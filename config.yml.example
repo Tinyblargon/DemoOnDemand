@@ -1,0 +1,8 @@
+ConfigFolder: './Demos'
+VMware:
+  URL: ''
+  User: ''
+  Password: ''
+  Insecure: 'true'
+  DataCenter: ''
+  DemoFolder: ''
