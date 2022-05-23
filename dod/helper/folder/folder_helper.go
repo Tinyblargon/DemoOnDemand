@@ -75,7 +75,10 @@ func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter
 			if err != nil {
 				return
 			}
-			spec := new(types.VirtualMachineCloneSpec)
+			spec, err := virtualmachine.SetMacToStatic(e.VirtualMachine)
+			if err != nil {
+				return err
+			}
 			_, err = virtualmachine.Clone(client, e.VirtualMachine, ob, e.Name, *spec, 1000)
 		}
 		if err != nil {

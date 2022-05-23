@@ -193,3 +193,26 @@ func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, e
 	defer cancel()
 	return vm.PowerState(ctx)
 }
+
+func SetMacToStatic(vm *object.VirtualMachine) (*types.VirtualMachineCloneSpec, error) {
+	properties, err := Properties(vm)
+	if err != nil {
+		return nil, err
+	}
+	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(properties.Config.Hardware.Device))
+
+	baseVDevices := []types.BaseVirtualDeviceConfigSpec{}
+	for _, e := range *networkInterfaces {
+		ethernetCard := e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard()
+		ethernetCard.AddressType = "manual"
+		baseVDevices = append(baseVDevices, &types.VirtualDeviceConfigSpec{
+			Operation: types.VirtualDeviceConfigSpecOperationEdit,
+			Device:    e,
+		})
+	}
+	vmSpec := new(types.VirtualMachineConfigSpec)
+	vmSpec.DeviceChange = baseVDevices
+	cloneSpec := new(types.VirtualMachineCloneSpec)
+	cloneSpec.Config = vmSpec
+	return cloneSpec, nil
+}
