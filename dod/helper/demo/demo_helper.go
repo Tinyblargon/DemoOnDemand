@@ -33,16 +33,12 @@ func Stop(client *govmomi.Client, dataCenter, demoName, userName string, number 
 // Imports a new demo from the speciefid folder
 func Import(client *govmomi.Client, dataCenter, path, name string, config *DemoConfig) (err error) {
 	filePath := global.ConfigFolder + "/" + name
-	data, err := yaml.Marshal(&config)
-	if err != nil {
-		return
-	}
-	err = file.Write(filePath, data)
-	if err != nil {
-		return
-	}
 	err = folder.Clone(client, dataCenter, path, global.TemplateFodler+"/"+name)
-	return
+	if err != nil {
+		return
+	}
+	data, _ := yaml.Marshal(&config)
+	return file.Write(filePath, data)
 }
 
 func New(client *govmomi.Client, dataCenter, demoName, userName string, number int) (err error) {
