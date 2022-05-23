@@ -155,6 +155,28 @@ func (fileSystem *FileSystemItem) RecursiveGetVmOjects(vmArray []*object.Virtual
 	return vmArray, vmCounter
 }
 
+func CreateSnapshot(client *govmomi.Client, DataCenter, Path, SnapshotName string, memory bool) error {
+	folder, err := Get(client, DataCenter, Path)
+	if err != nil {
+		return err
+	}
+	childrenExist, err := HasChildren(folder)
+	if err != nil {
+		return err
+	}
+	if childrenExist {
+		fileSystem, err := ReadFileSystem(client, DataCenter, Path)
+		if err != nil {
+			return err
+		}
+		err = virtualmachine.CreateSnapshots(fileSystem.GetVmOjects(), SnapshotName, memory)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func Delete(client *govmomi.Client, DataCenter, Path string) error {
 
 	folder, err := Get(client, DataCenter, Path)

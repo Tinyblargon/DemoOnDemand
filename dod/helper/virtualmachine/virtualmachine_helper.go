@@ -80,6 +80,27 @@ func FromID(client *govmomi.Client, id string) (*object.VirtualMachine, error) {
 	return vm.(*object.VirtualMachine), nil
 }
 
+func CreateSnapshots(vmObjects []*object.VirtualMachine, SnapshotName string, memory bool) (err error) {
+	for _, e := range vmObjects {
+		err = CreateSnapshot(e, SnapshotName, memory)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func CreateSnapshot(vm *object.VirtualMachine, SnapshotName string, memory bool) error {
+	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	defer cancel()
+	task, err := vm.CreateSnapshot(ctx, SnapshotName, "", memory, true)
+
+	if err != nil {
+		return fmt.Errorf("cannot create snapshot of virtualmachine: %s", err)
+	}
+	return generic.RunTaskWait(task)
+}
+
 func StartOjects(vmObjects []*object.VirtualMachine) (err error) {
 	for _, e := range vmObjects {
 		err = Start(e)
