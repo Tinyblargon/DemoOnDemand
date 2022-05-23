@@ -159,12 +159,12 @@ func Delete(client *govmomi.Client, DataCenter, Path string) error {
 
 	folder, err := Get(client, DataCenter, Path)
 	if err != nil {
-		return fmt.Errorf("cannot locate folder: %s", err)
+		return err
 	}
 
 	childrenExist, err := HasChildren(folder)
 	if err != nil {
-		return fmt.Errorf("error checking for folder contents: %s", err)
+		return err
 	}
 	if childrenExist {
 		fileSystem, err := ReadFileSystem(client, DataCenter, Path)
@@ -189,16 +189,16 @@ func Delete(client *govmomi.Client, DataCenter, Path string) error {
 }
 
 // Restarts all the virtualmachines in the folder and subfolders
-func ReStart(client *govmomi.Client, DataCenter, Path string) error {
+func ReStart(client *govmomi.Client, DataCenter, Path string) (err error) {
 
 	folder, err := Get(client, DataCenter, Path)
 	if err != nil {
-		return fmt.Errorf("cannot locate folder: %s", err)
+		return
 	}
 
 	childrenExist, err := HasChildren(folder)
 	if err != nil {
-		return fmt.Errorf("error checking for folder contents: %s", err)
+		return
 	}
 	if childrenExist {
 		fileSystem, err := ReadFileSystem(client, DataCenter, Path)
@@ -209,20 +209,20 @@ func ReStart(client *govmomi.Client, DataCenter, Path string) error {
 		virtualmachine.StopOjects(vmObjects)
 		virtualmachine.StartOjects(vmObjects)
 	}
-	return nil
+	return
 }
 
 // Starts all the virtualmachines in the folder and subfolders
-func Start(client *govmomi.Client, DataCenter, Path string) error {
+func Start(client *govmomi.Client, DataCenter, Path string) (err error) {
 
 	folder, err := Get(client, DataCenter, Path)
 	if err != nil {
-		return fmt.Errorf("cannot locate folder: %s", err)
+		return
 	}
 
 	childrenExist, err := HasChildren(folder)
 	if err != nil {
-		return fmt.Errorf("error checking for folder contents: %s", err)
+		return
 	}
 	if childrenExist {
 		fileSystem, err := ReadFileSystem(client, DataCenter, Path)
@@ -231,7 +231,7 @@ func Start(client *govmomi.Client, DataCenter, Path string) error {
 		}
 		virtualmachine.StartOjects(fileSystem.GetVmOjects())
 	}
-	return nil
+	return
 }
 
 // Stops all the virtualmachines in the folder and subfolders
@@ -349,7 +349,7 @@ func HasChildren(f *object.Folder) (bool, error) {
 	defer cancel()
 	children, err := f.Children(ctx)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("error checking for folder contents: %s", err)
 	}
 	return len(children) > 0, nil
 }
@@ -361,7 +361,7 @@ func Get(client *govmomi.Client, DataCenter, Path string) (*object.Folder, error
 	defer cancel()
 	folder, err := finder.Folder(ctx, checkPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot locate folder: %s", err)
 	}
 	return folder, nil
 }
