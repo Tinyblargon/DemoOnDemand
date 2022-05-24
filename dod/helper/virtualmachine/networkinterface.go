@@ -3,7 +3,6 @@ package virtualmachine
 // Code borrowed from "github.com/hashicorp/terraform-provider-vsphere/vsphere/internal/virtualdevice"
 
 import (
-	"errors"
 	"log"
 	"strings"
 
@@ -27,45 +26,45 @@ var networkInterfaceSubresourceTypeAllowedValues = []string{
 	networkInterfaceSubresourceTypeVmxnet3,
 }
 
-// virtualDeviceListSorter is an internal type to facilitate sorting of a BaseVirtualDeviceList.
-type virtualDeviceListSorter struct {
-	Sort       object.VirtualDeviceList
-	DeviceList object.VirtualDeviceList
-}
+// // virtualDeviceListSorter is an internal type to facilitate sorting of a BaseVirtualDeviceList.
+// type virtualDeviceListSorter struct {
+// 	Sort       object.VirtualDeviceList
+// 	DeviceList object.VirtualDeviceList
+// }
 
-// Len implements sort.Interface for virtualDeviceListSorter.
-func (l virtualDeviceListSorter) Len() int {
-	return len(l.Sort)
-}
+// // Len implements sort.Interface for virtualDeviceListSorter.
+// func (l virtualDeviceListSorter) Len() int {
+// 	return len(l.Sort)
+// }
 
-// Less helps implement sort.Interface for virtualDeviceListSorter. A
-// BaseVirtualDevice is "less" than another device if its controller's bus
-// number and unit number combination are earlier in the order than the other.
-func (l virtualDeviceListSorter) Less(i, j int) bool {
-	li := l.Sort[i]
-	lj := l.Sort[j]
-	liCtlr := l.DeviceList.FindByKey(li.GetVirtualDevice().ControllerKey)
-	ljCtlr := l.DeviceList.FindByKey(lj.GetVirtualDevice().ControllerKey)
-	if liCtlr == nil || ljCtlr == nil {
-		panic(errors.New("virtualDeviceListSorter cannot be used with devices that are not assigned to a controller"))
-	}
-	liCtlrBus := liCtlr.(types.BaseVirtualController).GetVirtualController().BusNumber
-	ljCtlrBus := ljCtlr.(types.BaseVirtualController).GetVirtualController().BusNumber
-	if liCtlrBus != ljCtlrBus {
-		return liCtlrBus < ljCtlrBus
-	}
-	liUnit := li.GetVirtualDevice().UnitNumber
-	ljUnit := lj.GetVirtualDevice().UnitNumber
-	if liUnit == nil || ljUnit == nil {
-		panic(errors.New("virtualDeviceListSorter cannot be used with devices that do not have unit numbers set"))
-	}
-	return *liUnit < *ljUnit
-}
+// // Less helps implement sort.Interface for virtualDeviceListSorter. A
+// // BaseVirtualDevice is "less" than another device if its controller's bus
+// // number and unit number combination are earlier in the order than the other.
+// func (l virtualDeviceListSorter) Less(i, j int) bool {
+// 	li := l.Sort[i]
+// 	lj := l.Sort[j]
+// 	liCtlr := l.DeviceList.FindByKey(li.GetVirtualDevice().ControllerKey)
+// 	ljCtlr := l.DeviceList.FindByKey(lj.GetVirtualDevice().ControllerKey)
+// 	if liCtlr == nil || ljCtlr == nil {
+// 		panic(errors.New("virtualDeviceListSorter cannot be used with devices that are not assigned to a controller"))
+// 	}
+// 	liCtlrBus := liCtlr.(types.BaseVirtualController).GetVirtualController().BusNumber
+// 	ljCtlrBus := ljCtlr.(types.BaseVirtualController).GetVirtualController().BusNumber
+// 	if liCtlrBus != ljCtlrBus {
+// 		return liCtlrBus < ljCtlrBus
+// 	}
+// 	liUnit := li.GetVirtualDevice().UnitNumber
+// 	ljUnit := lj.GetVirtualDevice().UnitNumber
+// 	if liUnit == nil || ljUnit == nil {
+// 		panic(errors.New("virtualDeviceListSorter cannot be used with devices that do not have unit numbers set"))
+// 	}
+// 	return *liUnit < *ljUnit
+// }
 
-// Swap helps implement sort.Interface for virtualDeviceListSorter.
-func (l virtualDeviceListSorter) Swap(i, j int) {
-	l.Sort[i], l.Sort[j] = l.Sort[j], l.Sort[i]
-}
+// // Swap helps implement sort.Interface for virtualDeviceListSorter.
+// func (l virtualDeviceListSorter) Swap(i, j int) {
+// 	l.Sort[i], l.Sort[j] = l.Sort[j], l.Sort[i]
+// }
 
 // ReadNetworkInterfaces returns a list of network interfaces. This is used
 // in the VM data source to discover the properties of the network interfaces on the
