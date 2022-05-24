@@ -120,20 +120,20 @@ func (parent *FileSystemItem) RecursiveRead(client *govmomi.Client) (*[]FileSyst
 	return &array, err
 }
 
-func (fileSystem *FileSystemItem) GetVmOjects() []*object.VirtualMachine {
-	amount := fileSystem.RecursiveCountVmOjects(0)
-	virtualMachineList, _ := fileSystem.RecursiveGetVmOjects(make([]*object.VirtualMachine, amount), 0)
+func (fileSystem *FileSystemItem) GetVmObjects() []*object.VirtualMachine {
+	amount := fileSystem.RecursiveCountVmObjects(0)
+	virtualMachineList, _ := fileSystem.RecursiveGetVmObjects(make([]*object.VirtualMachine, amount), 0)
 	return virtualMachineList
 }
 
 // this function recursivly calls itself to count all VirtualMachines in the filesystem
-func (fileSystem *FileSystemItem) RecursiveCountVmOjects(NumberOfVms int) int {
+func (fileSystem *FileSystemItem) RecursiveCountVmObjects(NumberOfVms int) int {
 	if fileSystem.Subitems == nil {
 		return NumberOfVms
 	}
 	for _, e := range *fileSystem.Subitems {
 		if e.Folder != nil {
-			NumberOfVms = e.RecursiveCountVmOjects(NumberOfVms)
+			NumberOfVms = e.RecursiveCountVmObjects(NumberOfVms)
 		}
 		if e.VirtualMachine != nil {
 			NumberOfVms += 1
@@ -142,13 +142,13 @@ func (fileSystem *FileSystemItem) RecursiveCountVmOjects(NumberOfVms int) int {
 	return NumberOfVms
 }
 
-func (fileSystem *FileSystemItem) RecursiveGetVmOjects(vmArray []*object.VirtualMachine, vmCounter int) ([]*object.VirtualMachine, int) {
+func (fileSystem *FileSystemItem) RecursiveGetVmObjects(vmArray []*object.VirtualMachine, vmCounter int) ([]*object.VirtualMachine, int) {
 	if fileSystem.Subitems == nil {
 		return vmArray, vmCounter
 	}
 	for _, e := range *fileSystem.Subitems {
 		if e.Folder != nil {
-			vmArray, vmCounter = e.RecursiveGetVmOjects(vmArray, vmCounter)
+			vmArray, vmCounter = e.RecursiveGetVmObjects(vmArray, vmCounter)
 		}
 		if e.VirtualMachine != nil {
 			vmArray[vmCounter] = e.VirtualMachine
@@ -172,7 +172,7 @@ func CreateSnapshot(client *govmomi.Client, DataCenter, Path, SnapshotName strin
 		if err != nil {
 			return err
 		}
-		err = virtualmachine.CreateSnapshots(fileSystem.GetVmOjects(), SnapshotName, memory)
+		err = virtualmachine.CreateSnapshots(fileSystem.GetVmObjects(), SnapshotName, memory)
 		if err != nil {
 			return err
 		}
@@ -196,7 +196,7 @@ func Delete(client *govmomi.Client, DataCenter, Path string) error {
 		if err != nil {
 			return err
 		}
-		err = virtualmachine.DeleteOjects(fileSystem.GetVmOjects())
+		err = virtualmachine.DeleteObjects(fileSystem.GetVmObjects())
 		if err != nil {
 			return err
 		}
@@ -230,9 +230,9 @@ func ReStart(client *govmomi.Client, DataCenter, Path string) (err error) {
 		if err != nil {
 			return err
 		}
-		vmObjects := fileSystem.GetVmOjects()
-		virtualmachine.StopOjects(vmObjects)
-		virtualmachine.StartOjects(vmObjects)
+		vmObjects := fileSystem.GetVmObjects()
+		virtualmachine.StopObjects(vmObjects)
+		virtualmachine.StartObjects(vmObjects)
 	}
 	return
 }
@@ -254,7 +254,7 @@ func Start(client *govmomi.Client, DataCenter, Path string) (err error) {
 		if err != nil {
 			return err
 		}
-		virtualmachine.StartOjects(fileSystem.GetVmOjects())
+		virtualmachine.StartObjects(fileSystem.GetVmObjects())
 	}
 	return
 }
@@ -276,7 +276,7 @@ func Stop(client *govmomi.Client, DataCenter, Path string) error {
 		if err != nil {
 			return err
 		}
-		virtualmachine.StopOjects(fileSystem.GetVmOjects())
+		virtualmachine.StopObjects(fileSystem.GetVmObjects())
 	}
 	return nil
 }

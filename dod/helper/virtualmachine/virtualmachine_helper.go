@@ -101,7 +101,7 @@ func CreateSnapshot(vm *object.VirtualMachine, SnapshotName string, memory bool)
 	return generic.RunTaskWait(task)
 }
 
-func StartOjects(vmObjects []*object.VirtualMachine) (err error) {
+func StartObjects(vmObjects []*object.VirtualMachine) (err error) {
 	for _, e := range vmObjects {
 		err = Start(e)
 		if err != nil {
@@ -131,7 +131,7 @@ func Start(vm *object.VirtualMachine) error {
 	return generic.RunTaskWait(task)
 }
 
-func StopOjects(vmObjects []*object.VirtualMachine) (err error) {
+func StopObjects(vmObjects []*object.VirtualMachine) (err error) {
 	for _, e := range vmObjects {
 		err = Stop(e)
 		if err != nil {
@@ -178,7 +178,7 @@ func Delete(vm *object.VirtualMachine) error {
 	return generic.RunTaskWait(task)
 }
 
-func DeleteOjects(vmObjects []*object.VirtualMachine) (err error) {
+func DeleteObjects(vmObjects []*object.VirtualMachine) (err error) {
 	for _, e := range vmObjects {
 		err = Delete(e)
 		if err != nil {
@@ -188,6 +188,7 @@ func DeleteOjects(vmObjects []*object.VirtualMachine) (err error) {
 	return
 }
 
+// Returns the powerstate of the given Virtualmachine object
 func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
