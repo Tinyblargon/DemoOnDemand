@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/session"
 	"github.com/vmware/govmomi/vim25"
@@ -35,7 +35,7 @@ type Client struct {
 
 var defaultAPITimeout = time.Minute * 5
 
-func New(VMware *dod.VMwareConfiguration) (*Client, error) {
+func New(VMware programconfig.VMwareConfiguration) (*Client, error) {
 	sessionConfig := &Config{
 		User:            VMware.User,
 		Password:        VMware.Password,
