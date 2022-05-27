@@ -11,6 +11,7 @@ type Configuration struct {
 	ConfigFolder string
 	VMware       *VMwareConfiguration
 	PostgreSQL   *PostgreSQLConfiguration
+	LDAP         *LDAPConfiguration
 }
 
 // DatabaseConfigurations exported
@@ -28,7 +29,7 @@ type PostgreSQLConfiguration struct {
 	User     string
 	Password string
 	Database string
-	Port     int
+	Port     uint
 }
 
 func GetConfigProgramConfig(path ...string) (configuration *Configuration) {

@@ -16,8 +16,8 @@ import (
 )
 
 type PortForward struct {
-	SourcePort      int
-	DestinationPort int
+	SourcePort      uint
+	DestinationPort uint
 	DestinationIP   string
 }
 
@@ -25,7 +25,7 @@ type DemoConfig struct {
 	PortForwards []*PortForward
 }
 
-func Start(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber int) (err error) {
+func Start(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber uint) (err error) {
 	err = folder.Start(client, dataCenter, CreateDemoURl(demoName, userName, demoNumber)+"/Demo")
 	if err != nil {
 		return
@@ -33,7 +33,7 @@ func Start(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName st
 	return database.UpdateDemoOfUser(db, userName, demoName, demoNumber, true)
 }
 
-func Stop(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber int) (err error) {
+func Stop(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber uint) (err error) {
 	err = folder.Stop(client, dataCenter, CreateDemoURl(demoName, userName, demoNumber)+"/Demo")
 	if err != nil {
 		return
@@ -52,7 +52,7 @@ func Import(client *govmomi.Client, dataCenter, path, name string, config *DemoC
 	return file.Write(filePath, data)
 }
 
-func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber, demoLimit int) (err error) {
+func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber, demoLimit uint) (err error) {
 	numberOfDemos, err := database.NumberOfDomosOfUser(db, userName)
 	if err != nil {
 		return
@@ -71,7 +71,7 @@ func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName stri
 	return
 }
 
-func New_Subroutine(client *govmomi.Client, dataCenter, demoName, userName string, demoNumber int) (err error) {
+func New_Subroutine(client *govmomi.Client, dataCenter, demoName, userName string, demoNumber uint) (err error) {
 	basePath := CreateDemoURl(demoName, userName, demoNumber)
 	folderObject, err := folder.Create(client, dataCenter, basePath)
 	if err != nil {
@@ -97,11 +97,11 @@ func ListAll(client *govmomi.Client, dataCenter string) (*[]string, error) {
 	return folder.ListSubFolders(client, dataCenter, global.DemoFodler)
 }
 
-func CreateDemoURl(demoName, userName string, number int) string {
-	return global.DemoFodler + "/" + userName + "_" + strconv.Itoa(number) + "_" + demoName
+func CreateDemoURl(demoName, userName string, number uint) string {
+	return global.DemoFodler + "/" + userName + "_" + strconv.Itoa(int(number)) + "_" + demoName
 }
 
-func Delete(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber int) (err error) {
+func Delete(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber uint) (err error) {
 	demoURL := CreateDemoURl(demoName, userName, demoNumber)
 	if !folder.Exists(client, dataCenter, demoURL) {
 		err = database.DeleteDemoOfUser(db, userName, demoName, demoNumber)

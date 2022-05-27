@@ -127,7 +127,7 @@ func (fileSystem *FileSystemItem) GetVmObjects() []*object.VirtualMachine {
 }
 
 // this function recursivly calls itself to count all VirtualMachines in the filesystem
-func (fileSystem *FileSystemItem) RecursiveCountVmObjects(NumberOfVms int) int {
+func (fileSystem *FileSystemItem) RecursiveCountVmObjects(NumberOfVms uint) uint {
 	if fileSystem.Subitems == nil {
 		return NumberOfVms
 	}
