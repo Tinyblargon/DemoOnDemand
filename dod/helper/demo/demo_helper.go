@@ -102,7 +102,14 @@ func CreateDemoURl(demoName, userName string, number int) string {
 }
 
 func Delete(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber int) (err error) {
-	err = folder.Delete(client, dataCenter, CreateDemoURl(demoName, userName, demoNumber))
+	demoURL := CreateDemoURl(demoName, userName, demoNumber)
+	if !folder.Exists(client, dataCenter, demoURL) {
+		err = database.DeleteDemoOfUser(db, userName, demoName, demoNumber)
+		if err != nil {
+			return
+		}
+	}
+	err = folder.Delete(client, dataCenter, demoURL)
 	if err != nil {
 		return
 	}

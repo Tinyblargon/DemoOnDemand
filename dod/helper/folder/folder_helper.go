@@ -302,7 +302,7 @@ func CreateSingleFolder(client *govmomi.Client, DataCenter, Path string) (*objec
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	if !FolderExists(client, DataCenter, Path) {
+	if !Exists(client, DataCenter, Path) {
 		folderObject, err = parent.CreateFolder(ctx, path.Base(Path))
 		if err != nil {
 			return nil, fmt.Errorf("error creating targetFolder: %s", err)
@@ -312,7 +312,7 @@ func CreateSingleFolder(client *govmomi.Client, DataCenter, Path string) (*objec
 	return folderObject, nil
 }
 
-func FolderExists(client *govmomi.Client, DataCenter, Path string) bool {
+func Exists(client *govmomi.Client, DataCenter, Path string) bool {
 	_, err := Get(client, DataCenter, Path)
 	if err != nil {
 		return false
