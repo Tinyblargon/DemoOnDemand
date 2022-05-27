@@ -15,5 +15,5 @@ CREATE TABLE IF NOT EXISTS public.RunningDemos
     DemoName text COLLATE pg_catalog."default",
     UserName text COLLATE pg_catalog."default",
     DemoNumber integer,
-    Runnig boolean
+    Running boolean
 );
