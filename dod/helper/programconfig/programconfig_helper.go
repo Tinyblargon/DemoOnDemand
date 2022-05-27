@@ -1,4 +1,4 @@
-package dod
+package programconfig
 
 import (
 	"fmt"
@@ -9,7 +9,8 @@ import (
 // Configurations exported
 type Configuration struct {
 	ConfigFolder string
-	VMware       VMwareConfiguration
+	VMware       *VMwareConfiguration
+	PostgreSQL   *PostgreSQLConfiguration
 }
 
 // DatabaseConfigurations exported
@@ -22,13 +23,25 @@ type VMwareConfiguration struct {
 	DemoFolder string
 }
 
-func GetConfigProgramConfig() (configuration Configuration) {
+type PostgreSQLConfiguration struct {
+	Host     string
+	User     string
+	Password string
+	Database string
+	Port     int
+}
+
+func GetConfigProgramConfig(path ...string) (configuration *Configuration) {
 
 	// Set the file name of the configurations file
 	viper.SetConfigName("config")
 
 	// Set the path to look for the configurations file
-	viper.AddConfigPath(".")
+	if len(path) == 0 {
+		viper.AddConfigPath(".")
+	} else {
+		viper.AddConfigPath(path[0])
+	}
 
 	// Enable VIPER to read Environment Variables
 	viper.AutomaticEnv()

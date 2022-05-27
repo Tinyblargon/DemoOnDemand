@@ -6,3 +6,9 @@ VMware:
   Insecure: 'true'
   DataCenter: ''
   DemoFolder: ''
+PostgreSQL:
+  Host:      ''
+  User:     ''
+  Password: ''
+  Database: 'dod_db'
+  Port: 5432
