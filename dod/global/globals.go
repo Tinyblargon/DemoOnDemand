@@ -1,6 +1,10 @@
 package global
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
+)
 
 var ConfigFolder string
 var DataCenter string
@@ -8,14 +12,23 @@ var TemplateFodler string
 var RouterFodler string
 var DemoFodler string
 var IngressVM string
+var PostgreSQLConfig *programconfig.PostgreSQLConfiguration
 
-func SetAll(dataCenter, demofolder, configFolder string) {
-	ConfigFolder = configFolder
+func SetAll(config *programconfig.Configuration) {
+	ConfigFolder = config.ConfigFolder
 
-	DataCenter = dataCenter
-	baseFolder := strings.Trim(demofolder, "/")
+	DataCenter = config.VMware.DataCenter
+	baseFolder := strings.Trim(config.VMware.DemoFolder, "/")
 	TemplateFodler = baseFolder + "/Templates"
 	RouterFodler = baseFolder + "/Router"
 	DemoFodler = baseFolder + "/Demos"
 	IngressVM = "routervm"
+
+	PostgreSQLConfig = &programconfig.PostgreSQLConfiguration{
+		Database: config.PostgreSQL.Database,
+		Password: config.PostgreSQL.Password,
+		Host:     config.PostgreSQL.Host,
+		User:     config.PostgreSQL.User,
+		Port:     config.PostgreSQL.Port,
+	}
 }
