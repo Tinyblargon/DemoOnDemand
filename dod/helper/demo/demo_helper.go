@@ -1,9 +1,12 @@
 package demo
 
 import (
+	"database/sql"
+	"fmt"
 	"strconv"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/folder"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/virtualmachine"
@@ -22,12 +25,20 @@ type DemoConfig struct {
 	PortForwards []*PortForward
 }
 
-func Start(client *govmomi.Client, dataCenter, demoName, userName string, number int) error {
-	return folder.Start(client, dataCenter, CreateDemoURl(demoName, userName, number)+"/Demo")
+func Start(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber int) (err error) {
+	err = folder.Start(client, dataCenter, CreateDemoURl(demoName, userName, demoNumber)+"/Demo")
+	if err != nil {
+		return
+	}
+	return database.UpdateDemoOfUser(db, userName, demoName, demoNumber, true)
 }
 
-func Stop(client *govmomi.Client, dataCenter, demoName, userName string, number int) error {
-	return folder.Stop(client, dataCenter, CreateDemoURl(demoName, userName, number)+"/Demo")
+func Stop(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber int) (err error) {
+	err = folder.Stop(client, dataCenter, CreateDemoURl(demoName, userName, demoNumber)+"/Demo")
+	if err != nil {
+		return
+	}
+	return database.UpdateDemoOfUser(db, userName, demoName, demoNumber, false)
 }
 
 // Imports a new demo from the speciefid folder
@@ -41,8 +52,27 @@ func Import(client *govmomi.Client, dataCenter, path, name string, config *DemoC
 	return file.Write(filePath, data)
 }
 
-func New(client *govmomi.Client, dataCenter, demoName, userName string, number int) (err error) {
-	basePath := CreateDemoURl(demoName, userName, number)
+func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber, demoLimit int) (err error) {
+	numberOfDemos, err := database.NumberOfDomosOfUser(db, userName)
+	if err != nil {
+		return
+	}
+	if numberOfDemos > demoLimit {
+		return fmt.Errorf("max number of concurrent demos reached")
+	}
+	err = database.AddDemoOfUser(db, userName, demoName, demoNumber)
+	if err != nil {
+		return
+	}
+	err = New_Subroutine(client, dataCenter, demoName, userName, demoNumber)
+	if err != nil {
+		_ = database.DeleteDemoOfUser(db, userName, demoName, demoNumber)
+	}
+	return
+}
+
+func New_Subroutine(client *govmomi.Client, dataCenter, demoName, userName string, demoNumber int) (err error) {
+	basePath := CreateDemoURl(demoName, userName, demoNumber)
 	folderObject, err := folder.Create(client, dataCenter, basePath)
 	if err != nil {
 		return
@@ -54,15 +84,13 @@ func New(client *govmomi.Client, dataCenter, demoName, userName string, number i
 	spec := new(types.VirtualMachineCloneSpec)
 	newVmObject, err := virtualmachine.Clone(client, vmObject, folderObject, vmObject.Name(), *spec, 999)
 	if err != nil {
-		return err
+		return
 	}
 	err = virtualmachine.Start(newVmObject)
 	if err != nil {
-		return err
+		return
 	}
-
-	err = folder.Clone(client, dataCenter, global.TemplateFodler+"/"+demoName, basePath+"/Demo")
-	return
+	return folder.Clone(client, dataCenter, global.TemplateFodler+"/"+demoName, basePath+"/Demo")
 }
 
 func ListAll(client *govmomi.Client, dataCenter string) (*[]string, error) {
@@ -73,8 +101,12 @@ func CreateDemoURl(demoName, userName string, number int) string {
 	return global.DemoFodler + "/" + userName + "_" + strconv.Itoa(number) + "_" + demoName
 }
 
-func Delete(client *govmomi.Client, dataCenter, demoName, userName string, number int) error {
-	return folder.Delete(client, dataCenter, CreateDemoURl(demoName, userName, number))
+func Delete(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber int) (err error) {
+	err = folder.Delete(client, dataCenter, CreateDemoURl(demoName, userName, demoNumber))
+	if err != nil {
+		return
+	}
+	return database.DeleteDemoOfUser(db, userName, demoName, demoNumber)
 }
 
 func DestroyTemplate(client *govmomi.Client, dataCenter, TempalateName string) error {
