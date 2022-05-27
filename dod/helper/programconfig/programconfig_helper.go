@@ -31,6 +31,10 @@ type PostgreSQLConfiguration struct {
 	Database string
 	Port     uint
 }
+type LDAPConfiguration struct {
+	BindUser     string
+	BindPassword string
+}
 
 func GetConfigProgramConfig(path ...string) (configuration *Configuration) {
 

@@ -12,3 +12,6 @@ PostgreSQL:
   Password: ''
   Database: 'dod_db'
   Port: 5432
+LDAP:
+  BindUser: ''
+  BindPassword: ''

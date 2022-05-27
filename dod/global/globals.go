@@ -13,6 +13,7 @@ var RouterFodler string
 var DemoFodler string
 var IngressVM string
 var PostgreSQLConfig *programconfig.PostgreSQLConfiguration
+var LDAPConfig *programconfig.LDAPConfiguration
 
 func SetAll(config *programconfig.Configuration) {
 	ConfigFolder = config.ConfigFolder
@@ -30,5 +31,9 @@ func SetAll(config *programconfig.Configuration) {
 		Host:     config.PostgreSQL.Host,
 		User:     config.PostgreSQL.User,
 		Port:     config.PostgreSQL.Port,
+	}
+	LDAPConfig = &programconfig.LDAPConfiguration{
+		BindUser:     config.LDAP.BindUser,
+		BindPassword: config.LDAP.BindPassword,
 	}
 }
