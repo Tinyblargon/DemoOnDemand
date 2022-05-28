@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+const fileExists string = "file already exists"
+
 func ReadDir(root string) ([]string, error) {
 	var files []string
 	f, err := os.Open(root)
@@ -26,7 +28,7 @@ func ReadDir(root string) ([]string, error) {
 
 func Creat(filePath string) (err error) {
 	if CheckExistance(filePath) {
-		return fmt.Errorf("file already exists")
+		return fmt.Errorf(fileExists)
 	}
 	myfile, err := os.Create(filePath)
 	if err != nil {
@@ -48,7 +50,14 @@ func Delete(filePath string) error {
 
 func Write(filePath string, data []byte) error {
 	if CheckExistance(filePath) {
-		return fmt.Errorf("file already exists")
+		return fmt.Errorf(fileExists)
 	}
 	return ioutil.WriteFile(filePath, data, 0644)
+}
+
+func Read(filePath string) ([]byte, error) {
+	if !CheckExistance(filePath) {
+		return nil, fmt.Errorf("file does not exist")
+	}
+	return ioutil.ReadFile(filePath)
 }

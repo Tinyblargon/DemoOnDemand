@@ -1,4 +1,7 @@
 ConfigFolder: './Demos'
+API:
+  PathPrefix: ''
+  Port: 8080
 VMware:
   URL: ''
   User: ''

@@ -9,9 +9,15 @@ import (
 // Configurations exported
 type Configuration struct {
 	ConfigFolder string
+	API          *APIConfiguration
 	VMware       *VMwareConfiguration
 	PostgreSQL   *PostgreSQLConfiguration
 	LDAP         *LDAPConfiguration
+}
+
+type APIConfiguration struct {
+	PathPrefix string
+	Port       uint
 }
 
 // DatabaseConfigurations exported
@@ -31,6 +37,7 @@ type PostgreSQLConfiguration struct {
 	Database string
 	Port     uint
 }
+
 type LDAPConfiguration struct {
 	BindUser     string
 	BindPassword string

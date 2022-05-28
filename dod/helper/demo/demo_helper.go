@@ -22,6 +22,7 @@ type PortForward struct {
 }
 
 type DemoConfig struct {
+	Description  string
 	PortForwards []*PortForward
 }
 
@@ -122,4 +123,17 @@ func DestroyTemplate(client *govmomi.Client, dataCenter, TempalateName string) e
 		return err
 	}
 	return file.Delete(global.ConfigFolder + "/" + TempalateName)
+}
+
+func ListTemplates() (files []string, err error) {
+	return file.ReadDir(global.ConfigFolder)
+}
+
+func GetTemplate(templeteName string) (templateConfig *DemoConfig, err error) {
+	contents, err := file.Read(global.ConfigFolder + "/" + templeteName)
+	if err != nil {
+		return
+	}
+	err = yaml.Unmarshal(contents, &templateConfig)
+	return
 }

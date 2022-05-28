@@ -3,6 +3,7 @@ module github.com/Tinyblargon/DemoOnDemand
 go 1.18
 
 require (
+	github.com/gorilla/mux v1.8.0
 	github.com/lib/pq v1.10.6
 	github.com/spf13/viper v1.11.0
 	github.com/vmware/govmomi v0.28.0
