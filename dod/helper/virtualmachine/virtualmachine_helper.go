@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/generic"
@@ -102,12 +103,15 @@ func CreateSnapshot(vm *object.VirtualMachine, SnapshotName string, memory bool)
 }
 
 func StartObjects(vmObjects []*object.VirtualMachine) (err error) {
+	var wg sync.WaitGroup
+	wg.Add(len(vmObjects))
 	for _, e := range vmObjects {
-		err = Start(e)
-		if err != nil {
-			return
-		}
+		go func(vm *object.VirtualMachine) {
+			err = Start(vm)
+			wg.Done()
+		}(e)
 	}
+	wg.Wait()
 	return
 }
 
@@ -132,12 +136,15 @@ func Start(vm *object.VirtualMachine) error {
 }
 
 func StopObjects(vmObjects []*object.VirtualMachine) (err error) {
+	var wg sync.WaitGroup
+	wg.Add(len(vmObjects))
 	for _, e := range vmObjects {
-		err = Stop(e)
-		if err != nil {
-			return
-		}
+		go func(vm *object.VirtualMachine) {
+			err = Stop(vm)
+			wg.Done()
+		}(e)
 	}
+	wg.Wait()
 	return
 }
 
@@ -179,12 +186,15 @@ func Delete(vm *object.VirtualMachine) error {
 }
 
 func DeleteObjects(vmObjects []*object.VirtualMachine) (err error) {
+	var wg sync.WaitGroup
+	wg.Add(len(vmObjects))
 	for _, e := range vmObjects {
-		err = Delete(e)
-		if err != nil {
-			return
-		}
+		go func(vm *object.VirtualMachine) {
+			err = Delete(vm)
+			wg.Done()
+		}(e)
 	}
+	wg.Wait()
 	return
 }
 

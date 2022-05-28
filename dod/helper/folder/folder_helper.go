@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/generic"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
@@ -17,7 +18,7 @@ import (
 
 type FileSystemItem struct {
 	Name           string
-	Subitems       *[]FileSystemItem
+	Subitems       []*FileSystemItem
 	Folder         *object.Folder
 	VirtualMachine *object.VirtualMachine
 }
@@ -57,46 +58,68 @@ func (fileSystem *FileSystemItem) Create(client *govmomi.Client, DataCenter, bas
 
 // this function recursivly calls itself to create all items found in parent at a the location of basefolder
 func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter, basefolder string) (err error) {
+	// this can be more parallelized but would require rewriting, look at the DeleteObjects function
 	if parent.Subitems == nil {
 		return
 	}
-	for _, e := range *parent.Subitems {
+	vmCounter := 0
+	for _, e := range parent.Subitems {
 		if e.Folder != nil {
 			newBaseFolder := basefolder + "/" + e.Name
 			_, err = CreateSingleFolder(client, DataCenter, newBaseFolder)
 			if err != nil {
-				return
+				break
 			}
 			err = e.RecursiveCreate(client, DataCenter, newBaseFolder)
 		}
 		if e.VirtualMachine != nil {
-			var ob *object.Folder
-			ob, err = Get(client, DataCenter, basefolder)
-			if err != nil {
-				return
-			}
-			spec, err := virtualmachine.SetMacToStatic(e.VirtualMachine)
-			if err != nil {
-				return err
-			}
-			_, err = virtualmachine.Clone(client, e.VirtualMachine, ob, e.Name, *spec, 1000)
-		}
-		if err != nil {
-			return
+			vmCounter += 1
 		}
 	}
+	if vmCounter == 0 {
+		return
+	}
+	var wg sync.WaitGroup
+	vmArray := make([]*FileSystemItem, vmCounter)
+	vmCounter = 0
+	for _, e := range parent.Subitems {
+		if e.VirtualMachine != nil {
+			vmArray[vmCounter] = e
+			vmCounter += 1
+		}
+	}
+	var ob *object.Folder
+	ob, err = Get(client, DataCenter, basefolder)
+	if err != nil {
+		return
+	}
+	wg.Add(len(vmArray))
+	for _, e := range vmArray {
+		go func(client *govmomi.Client, e *FileSystemItem) {
+			var spec *types.VirtualMachineCloneSpec
+			spec, err = virtualmachine.SetMacToStatic(e.VirtualMachine)
+			if err != nil {
+				wg.Done()
+				return
+			}
+			_, err = virtualmachine.Clone(client, e.VirtualMachine, ob, e.Name, *spec, 1000)
+			wg.Done()
+		}(client, e)
+	}
+	wg.Wait()
 	return
 }
 
 // ReadFileSystem Wil recursivly get all items in the subfolder
-func (parent *FileSystemItem) RecursiveRead(client *govmomi.Client) (*[]FileSystemItem, error) {
+func (parent *FileSystemItem) RecursiveRead(client *govmomi.Client) ([]*FileSystemItem, error) {
 	ob, err := parent.Folder.Children(context.Background())
 	SubItems := len(ob)
 	if SubItems == 0 {
 		return nil, nil
 	}
-	array := make([]FileSystemItem, SubItems)
+	array := make([]*FileSystemItem, SubItems)
 	for i, e := range ob {
+		array[i] = new(FileSystemItem)
 		test := e.Reference().Type
 		switch test {
 		case "Folder":
@@ -117,7 +140,7 @@ func (parent *FileSystemItem) RecursiveRead(client *govmomi.Client) (*[]FileSyst
 			array[i].Name = path.Base(subOb.InventoryPath)
 		}
 	}
-	return &array, err
+	return array, err
 }
 
 func (fileSystem *FileSystemItem) GetVmObjects() []*object.VirtualMachine {
@@ -131,7 +154,7 @@ func (fileSystem *FileSystemItem) RecursiveCountVmObjects(NumberOfVms uint) uint
 	if fileSystem.Subitems == nil {
 		return NumberOfVms
 	}
-	for _, e := range *fileSystem.Subitems {
+	for _, e := range fileSystem.Subitems {
 		if e.Folder != nil {
 			NumberOfVms = e.RecursiveCountVmObjects(NumberOfVms)
 		}
@@ -146,7 +169,7 @@ func (fileSystem *FileSystemItem) RecursiveGetVmObjects(vmArray []*object.Virtua
 	if fileSystem.Subitems == nil {
 		return vmArray, vmCounter
 	}
-	for _, e := range *fileSystem.Subitems {
+	for _, e := range fileSystem.Subitems {
 		if e.Folder != nil {
 			vmArray, vmCounter = e.RecursiveGetVmObjects(vmArray, vmCounter)
 		}
