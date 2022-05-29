@@ -9,6 +9,7 @@ VMware:
   Insecure: 'true'
   DataCenter: ''
   DemoFolder: ''
+  Pool: ''
 PostgreSQL:
   Host:      ''
   User:     ''
