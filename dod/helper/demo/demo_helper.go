@@ -43,9 +43,9 @@ func Stop(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName str
 }
 
 // Imports a new demo from the speciefid folder
-func Import(client *govmomi.Client, dataCenter, path, name string, config *DemoConfig) (err error) {
+func Import(client *govmomi.Client, dataCenter, path, name, pool string, config *DemoConfig) (err error) {
 	filePath := global.ConfigFolder + "/" + name
-	err = folder.Clone(client, dataCenter, path, global.TemplateFodler+"/"+name, true)
+	err = folder.Clone(client, dataCenter, path, global.TemplateFodler+"/"+name, pool, true)
 	if err != nil {
 		return
 	}
@@ -53,7 +53,7 @@ func Import(client *govmomi.Client, dataCenter, path, name string, config *DemoC
 	return file.Write(filePath, data)
 }
 
-func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber, demoLimit uint) (err error) {
+func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName, pool string, demoNumber, demoLimit uint) (err error) {
 	numberOfDemos, err := database.NumberOfDomosOfUser(db, userName)
 	if err != nil {
 		return
@@ -65,14 +65,14 @@ func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName stri
 	if err != nil {
 		return
 	}
-	err = New_Subroutine(client, dataCenter, demoName, userName, demoNumber)
+	err = New_Subroutine(client, dataCenter, demoName, userName, pool, demoNumber)
 	if err != nil {
 		_ = database.DeleteDemoOfUser(db, userName, demoName, demoNumber)
 	}
 	return
 }
 
-func New_Subroutine(client *govmomi.Client, dataCenter, demoName, userName string, demoNumber uint) (err error) {
+func New_Subroutine(client *govmomi.Client, dataCenter, demoName, userName, pool string, demoNumber uint) (err error) {
 	basePath := CreateDemoURl(demoName, userName, demoNumber)
 	folderObject, err := folder.Create(client, dataCenter, basePath)
 	if err != nil {
@@ -91,7 +91,7 @@ func New_Subroutine(client *govmomi.Client, dataCenter, demoName, userName strin
 	if err != nil {
 		return
 	}
-	return folder.Clone(client, dataCenter, global.TemplateFodler+"/"+demoName, basePath+"/Demo", false)
+	return folder.Clone(client, dataCenter, global.TemplateFodler+"/"+demoName, basePath+"/Demo", pool, false)
 }
 
 func ListAll(client *govmomi.Client, dataCenter string) (*[]string, error) {

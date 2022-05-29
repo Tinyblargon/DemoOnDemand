@@ -26,12 +26,12 @@ type FileSystemItem struct {
 }
 
 // Clone Wil clone all items in the speciefied folder and all it's subfolders
-func Clone(client *govmomi.Client, DataCenter, Path, newPath string, vmTemplate bool) (err error) {
+func Clone(client *govmomi.Client, DataCenter, Path, newPath, pool string, vmTemplate bool) (err error) {
 	fileSystem, err := ReadFileSystem(client, DataCenter, Path)
 	if err != nil {
 		return
 	}
-	err = fileSystem.Create(client, DataCenter, newPath, vmTemplate)
+	err = fileSystem.Create(client, DataCenter, newPath, pool, vmTemplate)
 	return
 }
 
@@ -49,14 +49,14 @@ func ReadFileSystem(client *govmomi.Client, DataCenter, Path string) (*FileSyste
 	return fileSystem, nil
 }
 
-func (fileSystem *FileSystemItem) Create(client *govmomi.Client, DataCenter, basefolder string, vmTemplate bool) (err error) {
+func (fileSystem *FileSystemItem) Create(client *govmomi.Client, DataCenter, basefolder, pool string, vmTemplate bool) (err error) {
 	_, err = Create(client, DataCenter, basefolder)
 	if err != nil {
 		return
 	}
 	var clusterProp *mo.ClusterComputeResource
 	if !vmTemplate {
-		clusterProp, err = clustercomputeresource.PropertiesFromPath(client, DataCenter, "DemoLab-Son-Cluster")
+		clusterProp, err = clustercomputeresource.PropertiesFromPath(client, DataCenter, pool)
 		if err != nil {
 			return
 		}

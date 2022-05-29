@@ -12,6 +12,7 @@ var TemplateFodler string
 var RouterFodler string
 var DemoFodler string
 var IngressVM string
+var Pool string
 var PostgreSQLConfig *programconfig.PostgreSQLConfiguration
 var LDAPConfig *programconfig.LDAPConfiguration
 
@@ -24,6 +25,7 @@ func SetAll(config *programconfig.Configuration) {
 	RouterFodler = baseFolder + "/Router"
 	DemoFodler = baseFolder + "/Demos"
 	IngressVM = "routervm"
+	Pool = config.VMware.Pool
 
 	PostgreSQLConfig = &programconfig.PostgreSQLConfiguration{
 		Database: config.PostgreSQL.Database,

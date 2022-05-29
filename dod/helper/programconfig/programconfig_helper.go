@@ -28,6 +28,7 @@ type VMwareConfiguration struct {
 	Insecure   bool
 	DataCenter string
 	DemoFolder string
+	Pool       string
 }
 
 type PostgreSQLConfiguration struct {
