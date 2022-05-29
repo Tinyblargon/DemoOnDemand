@@ -8,8 +8,8 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/folder"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/virtualmachine"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/vim25/types"
 	"gopkg.in/yaml.v3"
@@ -45,7 +45,7 @@ func Stop(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName str
 // Imports a new demo from the speciefid folder
 func Import(client *govmomi.Client, dataCenter, path, name string, config *DemoConfig) (err error) {
 	filePath := global.ConfigFolder + "/" + name
-	err = folder.Clone(client, dataCenter, path, global.TemplateFodler+"/"+name)
+	err = folder.Clone(client, dataCenter, path, global.TemplateFodler+"/"+name, true)
 	if err != nil {
 		return
 	}
@@ -91,7 +91,7 @@ func New_Subroutine(client *govmomi.Client, dataCenter, demoName, userName strin
 	if err != nil {
 		return
 	}
-	return folder.Clone(client, dataCenter, global.TemplateFodler+"/"+demoName, basePath+"/Demo")
+	return folder.Clone(client, dataCenter, global.TemplateFodler+"/"+demoName, basePath+"/Demo", false)
 }
 
 func ListAll(client *govmomi.Client, dataCenter string) (*[]string, error) {

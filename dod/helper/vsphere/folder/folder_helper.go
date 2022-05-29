@@ -9,10 +9,12 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/generic"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/virtualmachine"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/clustercomputeresource"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -24,12 +26,12 @@ type FileSystemItem struct {
 }
 
 // Clone Wil clone all items in the speciefied folder and all it's subfolders
-func Clone(client *govmomi.Client, DataCenter, Path, newPath string) (err error) {
+func Clone(client *govmomi.Client, DataCenter, Path, newPath string, vmTemplate bool) (err error) {
 	fileSystem, err := ReadFileSystem(client, DataCenter, Path)
 	if err != nil {
 		return
 	}
-	err = fileSystem.Create(client, DataCenter, newPath)
+	err = fileSystem.Create(client, DataCenter, newPath, vmTemplate)
 	return
 }
 
@@ -47,17 +49,24 @@ func ReadFileSystem(client *govmomi.Client, DataCenter, Path string) (*FileSyste
 	return fileSystem, nil
 }
 
-func (fileSystem *FileSystemItem) Create(client *govmomi.Client, DataCenter, basefolder string) (err error) {
+func (fileSystem *FileSystemItem) Create(client *govmomi.Client, DataCenter, basefolder string, vmTemplate bool) (err error) {
 	_, err = Create(client, DataCenter, basefolder)
 	if err != nil {
 		return
 	}
-	err = fileSystem.RecursiveCreate(client, DataCenter, basefolder)
+	var clusterProp *mo.ClusterComputeResource
+	if !vmTemplate {
+		clusterProp, err = clustercomputeresource.PropertiesFromPath(client, DataCenter, "DemoLab-Son-Cluster")
+		if err != nil {
+			return
+		}
+	}
+	err = fileSystem.RecursiveCreate(client, DataCenter, basefolder, vmTemplate, clusterProp)
 	return
 }
 
 // this function recursivly calls itself to create all items found in parent at a the location of basefolder
-func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter, basefolder string) (err error) {
+func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter, basefolder string, vmTemplate bool, clusterProp *mo.ClusterComputeResource) (err error) {
 	// this can be more parallelized but would require rewriting, look at the DeleteObjects function
 	if parent.Subitems == nil {
 		return
@@ -70,7 +79,7 @@ func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter
 			if err != nil {
 				break
 			}
-			err = e.RecursiveCreate(client, DataCenter, newBaseFolder)
+			err = e.RecursiveCreate(client, DataCenter, newBaseFolder, vmTemplate, clusterProp)
 		}
 		if e.VirtualMachine != nil {
 			vmCounter += 1
@@ -95,16 +104,28 @@ func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter
 	}
 	wg.Add(len(vmArray))
 	for _, e := range vmArray {
-		go func(client *govmomi.Client, e *FileSystemItem) {
+		go func(client *govmomi.Client, e *FileSystemItem, vmTemplate bool, clusterProp *mo.ClusterComputeResource) {
 			var spec *types.VirtualMachineCloneSpec
-			spec, err = virtualmachine.SetMacToStatic(e.VirtualMachine)
+			var properties *mo.VirtualMachine
+			properties, err = virtualmachine.Properties(e.VirtualMachine)
 			if err != nil {
 				wg.Done()
 				return
 			}
+			spec, err = virtualmachine.SetMacToStatic(properties)
+			if err != nil {
+				wg.Done()
+				return
+			}
+			spec.Template = vmTemplate
+			if clusterProp != nil {
+				spec.Location.Pool = new(types.ManagedObjectReference)
+				spec.Location.Pool.Value = clusterProp.ComputeResource.ResourcePool.Value
+				spec.Location.Pool.Type = clusterProp.ComputeResource.ResourcePool.Type
+			}
 			_, err = virtualmachine.Clone(client, e.VirtualMachine, ob, e.Name, *spec, 1000)
 			wg.Done()
-		}(client, e)
+		}(client, e, vmTemplate, clusterProp)
 	}
 	wg.Wait()
 	return

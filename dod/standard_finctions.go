@@ -2,7 +2,7 @@ package dod
 
 import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/folder"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
 	"github.com/vmware/govmomi"
 )
 
