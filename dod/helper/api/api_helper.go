@@ -19,10 +19,14 @@ func HandleRequests(pathPrefix string, port uint) {
 	myRouter.HandleFunc(pathPrefix+"/demos", pong).Methods("POST")                 //creates a new demo for the user
 	myRouter.HandleFunc(pathPrefix+"/demos/{id}", pong).Methods("GET")             //gets information of a specific demo of the user
 	myRouter.HandleFunc(pathPrefix+"/demos/{id}", pong).Methods("PUT")             //updates information on a specific demo of the user
+	myRouter.HandleFunc(pathPrefix+"/login", pong).Methods("PUT")                  //returns a session token
+	myRouter.HandleFunc(pathPrefix+"/logout", pong).Methods("PUT")                 //revokes the users session token
 	myRouter.HandleFunc(pathPrefix+"/networks", pong).Methods("POST")              //lists all the networks of vms in a folder and subfolders
 	myRouter.HandleFunc(pathPrefix+"/ping", pong).Methods("GET")                   //check if the application is still running
-	myRouter.HandleFunc(pathPrefix+"/templates", templatesGet).Methods("GET")      //lists all the availible templates
-	myRouter.HandleFunc(pathPrefix+"/templates", pong).Methods("POST")             //imports a new template from vmware
+	myRouter.HandleFunc(pathPrefix+"/tasks", pong).Methods("GET")                  //returns the list of all enden,running and queued tasks
+	myRouter.HandleFunc(pathPrefix+"/tasks/{id}", pong).Methods("GET")             //returns the status of the specified task
+	myRouter.HandleFunc(pathPrefix+"/templates", templatesGet).Methods("GET")      //returns a list of all availible templates
+	myRouter.HandleFunc(pathPrefix+"/templates", pong).Methods("POST")             //imports a new template from vmware, and returns a task ID
 	myRouter.HandleFunc(pathPrefix+"/templates/{id}", templatesGet).Methods("GET") //gets the settings of a template
 	myRouter.HandleFunc(pathPrefix+"/templates/{id}", pong).Methods("PUT")         //updates the settings of a template
 
