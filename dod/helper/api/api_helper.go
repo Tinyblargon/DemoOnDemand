@@ -41,17 +41,16 @@ func templatesGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	templates, err := demo.ListTemplates()
-	listAll := true
 	var j []byte
-	for _, e := range templates {
-		if e == id {
-			listAll = false
-			var templateConfig *demo.DemoConfig
-			templateConfig, err = demo.GetTemplate("demo-01")
-			j, err = json.Marshal(templateConfig)
+	if id != "" {
+		for _, e := range templates {
+			if e == id {
+				var templateConfig *demo.DemoConfig
+				templateConfig, err = demo.GetTemplate(e)
+				j, err = json.Marshal(templateConfig)
+			}
 		}
-	}
-	if listAll {
+	} else {
 		j, err = json.Marshal(templates)
 	}
 	if err == nil {
