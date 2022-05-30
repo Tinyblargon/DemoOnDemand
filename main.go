@@ -7,18 +7,22 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
 )
 
 func main() {
-	config := dod.GetConfigProgramConfig()
+	config := programconfig.GetConfigProgramConfig()
 
-	c, err := session.New(&config.VMware)
+	c, err := session.New(*config.VMware)
 	LogFatal(err)
 
-	global.SetAll(config.VMware.DataCenter, config.VMware.DemoFolder, config.ConfigFolder)
+	global.SetAll(config)
 	err = dod.Intialize(c.VimClient, global.DataCenter)
+
+	api.HandleRequests(config.API.PathPrefix, config.API.Port)
 
 	portForward1 := &demo.PortForward{
 		SourcePort:      1,
@@ -45,23 +49,23 @@ func main() {
 	}
 
 	_ = demoConfig
-	err = demo.Import(c.VimClient, global.DataCenter, "/test-import/test", "demo-02", demoConfig)
-	fmt.Println(err)
+	// err = demo.Import(c.VimClient, global.DataCenter, "/test-import/test", "demo-02", demoConfig)
+	// fmt.Println(err)
 
-	err = demo.New(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
-	fmt.Println(err)
+	// err = demo.New(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
+	// fmt.Println(err)
 
-	err = demo.Start(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
-	fmt.Println(err)
+	// err = demo.Start(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
+	// fmt.Println(err)
 
-	err = demo.Stop(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
-	fmt.Println(err)
+	// err = demo.Stop(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
+	// fmt.Println(err)
 
-	err = demo.Delete(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
-	fmt.Println(err)
+	// err = demo.Delete(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
+	// fmt.Println(err)
 
-	err = demo.DestroyTemplate(c.VimClient, global.DataCenter, "demo-02")
-	fmt.Println(err)
+	// err = demo.DestroyTemplate(c.VimClient, global.DataCenter, "demo-02")
+	// fmt.Println(err)
 
 	// err = folder.Delete(c.VimClient, config.VMware.DataCenter, "/testfolder/Templates/demo-01")
 
