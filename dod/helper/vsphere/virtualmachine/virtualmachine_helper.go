@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"sync"
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/generic"
@@ -102,16 +101,16 @@ func CreateSnapshot(vm *object.VirtualMachine, SnapshotName string, memory bool)
 	return generic.RunTaskWait(task)
 }
 
-func StartObjects(vmObjects []*object.VirtualMachine) (err error) {
-	var wg sync.WaitGroup
-	wg.Add(len(vmObjects))
-	for _, e := range vmObjects {
-		go func(vm *object.VirtualMachine) {
-			err = Start(vm)
-			wg.Done()
-		}(e)
+func StartObjects(vmObjects []*object.VirtualMachine, concurrency uint) (err error) {
+	in, ret, concurrency := channelInitialize(uint(len(vmObjects)), concurrency)
+	for x := 0; x < int(concurrency); x++ {
+		go func() {
+			for x := range in {
+				ret <- Start(x)
+			}
+		}()
 	}
-	wg.Wait()
+	err = channelLooper(in, ret, &vmObjects, uint(len(vmObjects)))
 	return
 }
 
@@ -135,16 +134,16 @@ func Start(vm *object.VirtualMachine) error {
 	return generic.RunTaskWait(task)
 }
 
-func StopObjects(vmObjects []*object.VirtualMachine) (err error) {
-	var wg sync.WaitGroup
-	wg.Add(len(vmObjects))
-	for _, e := range vmObjects {
-		go func(vm *object.VirtualMachine) {
-			err = Stop(vm)
-			wg.Done()
-		}(e)
+func StopObjects(vmObjects []*object.VirtualMachine, concurrency uint) (err error) {
+	in, ret, concurrency := channelInitialize(uint(len(vmObjects)), concurrency)
+	for x := 0; x < int(concurrency); x++ {
+		go func() {
+			for x := range in {
+				ret <- Stop(x)
+			}
+		}()
 	}
-	wg.Wait()
+	err = channelLooper(in, ret, &vmObjects, uint(len(vmObjects)))
 	return
 }
 
@@ -185,16 +184,16 @@ func Delete(vm *object.VirtualMachine) error {
 	return generic.RunTaskWait(task)
 }
 
-func DeleteObjects(vmObjects []*object.VirtualMachine) (err error) {
-	var wg sync.WaitGroup
-	wg.Add(len(vmObjects))
-	for _, e := range vmObjects {
-		go func(vm *object.VirtualMachine) {
-			err = Delete(vm)
-			wg.Done()
-		}(e)
+func DeleteObjects(vmObjects []*object.VirtualMachine, concurrency uint) (err error) {
+	in, ret, concurrency := channelInitialize(uint(len(vmObjects)), concurrency)
+	for x := 0; x < int(concurrency); x++ {
+		go func() {
+			for x := range in {
+				ret <- Delete(x)
+			}
+		}()
 	}
-	wg.Wait()
+	err = channelLooper(in, ret, &vmObjects, uint(len(vmObjects)))
 	return
 }
 
@@ -222,4 +221,43 @@ func SetMacToStatic(vmProperties *mo.VirtualMachine) (*types.VirtualMachineClone
 	cloneSpec := new(types.VirtualMachineCloneSpec)
 	cloneSpec.Config = vmSpec
 	return cloneSpec, nil
+}
+
+func channelInitialize(numberOfObjects, concurrency uint) (chan *object.VirtualMachine, chan error, uint) {
+	in := make(chan *object.VirtualMachine)
+	ret := make(chan error)
+	return in, ret, decideMinimumTreads(numberOfObjects, concurrency)
+}
+
+// Loops over the in and ret channels
+func channelLooper(in chan *object.VirtualMachine, ret chan error, vmObjects *[]*object.VirtualMachine, cycles uint) (err error) {
+	go func() {
+		for _, e := range *vmObjects {
+			// loop over all items
+			in <- e
+		}
+		close(in)
+	}()
+	counter := 0
+	for e := range ret {
+		counter++
+		if e != nil {
+			err = e
+			break
+		}
+		if counter == int(cycles) {
+			break
+		}
+	}
+	close(ret)
+	return
+}
+
+func decideMinimumTreads(numberOfObjects, concurrency uint) uint {
+	if concurrency == 0 {
+		concurrency = 1
+	} else if numberOfObjects < concurrency {
+		concurrency = numberOfObjects
+	}
+	return concurrency
 }

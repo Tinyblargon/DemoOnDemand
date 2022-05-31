@@ -6,6 +6,8 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 )
 
+const Concurency uint = 5
+
 var ConfigFolder string
 var DataCenter string
 var TemplateFodler string

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/generic"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/clustercomputeresource"
@@ -240,7 +241,7 @@ func Delete(client *govmomi.Client, DataCenter, Path string) error {
 		if err != nil {
 			return err
 		}
-		err = virtualmachine.DeleteObjects(fileSystem.GetVmObjects())
+		err = virtualmachine.DeleteObjects(fileSystem.GetVmObjects(), global.Concurency)
 		if err != nil {
 			return err
 		}
@@ -275,8 +276,8 @@ func ReStart(client *govmomi.Client, DataCenter, Path string) (err error) {
 			return err
 		}
 		vmObjects := fileSystem.GetVmObjects()
-		virtualmachine.StopObjects(vmObjects)
-		virtualmachine.StartObjects(vmObjects)
+		virtualmachine.StopObjects(vmObjects, global.Concurency)
+		virtualmachine.StartObjects(vmObjects, global.Concurency)
 	}
 	return
 }
@@ -298,7 +299,8 @@ func Start(client *govmomi.Client, DataCenter, Path string) (err error) {
 		if err != nil {
 			return err
 		}
-		virtualmachine.StartObjects(fileSystem.GetVmObjects())
+		err = virtualmachine.StartObjects(fileSystem.GetVmObjects(), global.Concurency)
+		return err
 	}
 	return
 }
@@ -320,7 +322,7 @@ func Stop(client *govmomi.Client, DataCenter, Path string) error {
 		if err != nil {
 			return err
 		}
-		virtualmachine.StopObjects(fileSystem.GetVmObjects())
+		virtualmachine.StopObjects(fileSystem.GetVmObjects(), global.Concurency)
 	}
 	return nil
 }
