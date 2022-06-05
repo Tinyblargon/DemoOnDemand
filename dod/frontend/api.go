@@ -1,4 +1,4 @@
-package api
+package frontend
 
 import (
 	"encoding/json"
