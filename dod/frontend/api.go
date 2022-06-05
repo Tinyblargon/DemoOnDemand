@@ -26,7 +26,7 @@ func HandleRequests(pathPrefix string, port uint) {
 	myRouter.HandleFunc(pathPrefix+"/demos", ping.Pong).Methods("GET")              //gets the users list of demos
 	myRouter.HandleFunc(pathPrefix+"/demos", demos.Post).Methods("POST")            //creates a new demo for the user
 	myRouter.HandleFunc(pathPrefix+"/demos/{id}", ping.Pong).Methods("GET")         //gets information of a specific demo of the user
-	myRouter.HandleFunc(pathPrefix+"/demos/{id}", ping.Pong).Methods("PUT")         //updates information on a specific demo of the user
+	myRouter.HandleFunc(pathPrefix+"/demos/{id}", demos.IdPut).Methods("PUT")       //updates information on a specific demo of the user
 	myRouter.HandleFunc(pathPrefix+"/demos/{id}", demos.IdDelete).Methods("DELETE") //removes a specific demo of the user
 	myRouter.HandleFunc(pathPrefix+"/login", ping.Pong).Methods("PUT")              //returns a session token
 	myRouter.HandleFunc(pathPrefix+"/logout", ping.Pong).Methods("PUT")             //revokes the users session token
