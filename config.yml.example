@@ -1,4 +1,5 @@
 ConfigFolder: './Demos'
+ConcurrentTasks: 4
 API:
   PathPrefix: ''
   Port: 8080

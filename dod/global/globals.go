@@ -3,6 +3,7 @@ package global
 import (
 	"strings"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/backends"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 )
 
@@ -17,8 +18,10 @@ var IngressVM string
 var Pool string
 var PostgreSQLConfig *programconfig.PostgreSQLConfiguration
 var LDAPConfig *programconfig.LDAPConfiguration
+var Backend backends.Backend
+var TaskHistoryDepth uint
 
-func SetAll(config *programconfig.Configuration) {
+func SetAll(config *programconfig.Configuration, backend backends.Backend) {
 	ConfigFolder = config.ConfigFolder
 
 	DataCenter = config.VMware.DataCenter
@@ -40,4 +43,6 @@ func SetAll(config *programconfig.Configuration) {
 		BindUser:     config.LDAP.BindUser,
 		BindPassword: config.LDAP.BindPassword,
 	}
+	Backend = backend
+	TaskHistoryDepth = 50
 }
