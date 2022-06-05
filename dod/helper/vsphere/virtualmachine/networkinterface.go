@@ -3,9 +3,9 @@ package virtualmachine
 // Code borrowed from "github.com/hashicorp/terraform-provider-vsphere/vsphere/internal/virtualdevice"
 
 import (
-	"log"
 	"strings"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/types"
 )
@@ -70,8 +70,8 @@ var networkInterfaceSubresourceTypeAllowedValues = []string{
 // in the VM data source to discover the properties of the network interfaces on the
 // virtual machine. The list is sorted by the order that they would be added in
 // if a clone were to be done.
-func ReadNetworkInterfaces(l object.VirtualDeviceList) *object.VirtualDeviceList {
-	log.Printf("[DEBUG] ReadNetworkInterfaces: Fetching network interfaces")
+func ReadNetworkInterfaces(l object.VirtualDeviceList, status *taskstatus.Status) *object.VirtualDeviceList {
+	status.AddToStatus("[DEBUG] ReadNetworkInterfaces: Fetching network interfaces")
 	devices := l.Select(func(device types.BaseVirtualDevice) bool {
 		if _, ok := device.(types.BaseVirtualEthernetCard); ok {
 			return true

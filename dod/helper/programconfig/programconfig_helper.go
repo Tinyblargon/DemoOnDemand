@@ -8,12 +8,12 @@ import (
 
 // Configurations exported
 type Configuration struct {
-	ConfigFolder    string
-	ConcurrentTasks uint
-	API             *APIConfiguration
-	VMware          *VMwareConfiguration
-	PostgreSQL      *PostgreSQLConfiguration
-	LDAP            *LDAPConfiguration
+	ConfigFolder   string
+	ConcurrentJobs uint
+	API            *APIConfiguration
+	VMware         *VMwareConfiguration
+	PostgreSQL     *PostgreSQLConfiguration
+	LDAP           *LDAPConfiguration
 }
 
 type APIConfiguration struct {

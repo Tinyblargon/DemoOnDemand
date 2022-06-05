@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	_ "github.com/lib/pq"
 )
+
+var db *sql.DB
 
 type UserLinkedList struct {
 	LinkedList *UserLinkedList
@@ -14,8 +16,8 @@ type UserLinkedList struct {
 	BindDn     string
 }
 
-func New() (db *sql.DB, err error) {
-	return sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", global.PostgreSQLConfig.Host, global.PostgreSQLConfig.Port, global.PostgreSQLConfig.User, global.PostgreSQLConfig.Password, global.PostgreSQLConfig.Database))
+func New(config programconfig.PostgreSQLConfiguration) (db *sql.DB, err error) {
+	return sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.Host, config.Port, config.User, config.Password, config.Database))
 }
 
 func AddDemoOfUser(db *sql.DB, userName, demoName string, demoNumber uint) (err error) {

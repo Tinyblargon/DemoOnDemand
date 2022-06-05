@@ -7,11 +7,15 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/backends"
+	"github.com/Tinyblargon/DemoOnDemand/dod/backends/job"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/gorilla/mux"
 )
+
+const InvalidID string = "Invalid ID."
 
 type Post struct {
 	Userid string `json:"userId"`
@@ -28,6 +32,7 @@ func HandleRequests(pathPrefix string, port uint) {
 	myRouter.HandleFunc(pathPrefix+"/demos", demosPost).Methods("POST")            //creates a new demo for the user
 	myRouter.HandleFunc(pathPrefix+"/demos/{id}", pong).Methods("GET")             //gets information of a specific demo of the user
 	myRouter.HandleFunc(pathPrefix+"/demos/{id}", pong).Methods("PUT")             //updates information on a specific demo of the user
+	myRouter.HandleFunc(pathPrefix+"/demos/{id}", demosIdDelete).Methods("DELETE") //removes a specific demo of the user
 	myRouter.HandleFunc(pathPrefix+"/login", pong).Methods("PUT")                  //returns a session token
 	myRouter.HandleFunc(pathPrefix+"/logout", pong).Methods("PUT")                 //revokes the users session token
 	myRouter.HandleFunc(pathPrefix+"/networks", pong).Methods("POST")              //lists all the networks of vms in a folder and subfolders
@@ -71,25 +76,64 @@ func tasksGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id != "" {
-		status := string(global.Backend.GetTaskStatus(id))
+		status := string(backends.Main.GetTaskStatus(id))
 		if status == "" {
 			status = "Task with id " + id + " does not exist."
 		}
 		fmt.Fprintf(w, status)
 	} else {
-		j, _ := json.Marshal(global.Backend.ListAllTasks())
+		j, _ := json.Marshal(backends.Main.ListAllTasks())
 		fmt.Fprintf(w, string(j))
 	}
 }
 
 func demosPost(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
-	post := Post{}
-	err = json.Unmarshal(body, &post)
 	if err != nil {
-		log.Printf("Reading body failed: %s", err)
+		readingBodyFailed(w, err)
+		return
 	}
-	taskID := global.Backend.Add([]byte(body), 9999999)
-	log.Printf("Post added with ID %s", taskID)
+	newDemo := job.Demo{
+		Create: true,
+	}
+	err = json.Unmarshal(body, &newDemo)
+	if err != nil {
+		readingBodyFailed(w, err)
+		return
+	}
+	newjob := job.Job{
+		Demo: &newDemo,
+	}
+	newJob(w, &newjob)
+}
 
+func demosIdDelete(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	demoName := strings.Split(id, "_")
+	if len(demoName) < 3 {
+		fmt.Fprintf(w, InvalidID)
+	}
+	demoNumber, err := strconv.Atoi(demoName[2])
+	if err != nil {
+		fmt.Fprintf(w, InvalidID)
+	}
+	newDemo := job.Demo{
+		Template: demoName[1],
+		UserName: demoName[0],
+		Number:   uint(demoNumber),
+		Destroy:  true,
+	}
+	newjob := job.Job{
+		Demo: &newDemo,
+	}
+	newJob(w, &newjob)
+}
+
+func readingBodyFailed(w http.ResponseWriter, err error) {
+	fmt.Fprintf(w, "Reading body failed: %s", err)
+}
+
+func newJob(w http.ResponseWriter, newJob *job.Job) {
+	fmt.Fprintf(w, "Task added with ID %s", backends.Main.Add(newJob, 9999999))
 }

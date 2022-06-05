@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/generic"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
@@ -16,8 +16,8 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
-func Properties(vm *object.VirtualMachine) (*mo.VirtualMachine, error) {
-	log.Printf("[DEBUG] Fetching properties for VM %q", vm.InventoryPath)
+func Properties(vm *object.VirtualMachine, status *taskstatus.Status) (*mo.VirtualMachine, error) {
+	status.AddToStatus(fmt.Sprintf("[DEBUG] Fetching properties for VM %q", vm.InventoryPath))
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 	var props mo.VirtualMachine
@@ -39,9 +39,8 @@ func Get(client *govmomi.Client, DataCenter, Path string) (*object.VirtualMachin
 
 // Clone wraps the creation of a virtual machine and the subsequent waiting of
 // the task. A higher-level virtual machine object is returned.
-func Clone(c *govmomi.Client, src *object.VirtualMachine, f *object.Folder, name string, spec types.VirtualMachineCloneSpec, timeout int) (*object.VirtualMachine, error) {
-
-	log.Printf("[DEBUG] Cloning virtual machine %q", fmt.Sprintf("%s/%s", f.InventoryPath, name))
+func Clone(c *govmomi.Client, src *object.VirtualMachine, f *object.Folder, name string, spec types.VirtualMachineCloneSpec, timeout int, status *taskstatus.Status) (*object.VirtualMachine, error) {
+	status.AddToStatus(fmt.Sprintf("[DEBUG] Cloning virtual machine %q", fmt.Sprintf("%s/%s", f.InventoryPath, name)))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(timeout))
 	defer cancel()
 	task, err := src.Clone(ctx, f, name, spec)
@@ -58,7 +57,7 @@ func Clone(c *govmomi.Client, src *object.VirtualMachine, f *object.Folder, name
 		}
 		return nil, err
 	}
-	log.Printf("[DEBUG] Virtual machine %q: clone complete (MOID: %q)", fmt.Sprintf("%s/%s", f.InventoryPath, name), result.Result.(types.ManagedObjectReference).Value)
+	status.AddToStatus(fmt.Sprintf("[DEBUG] Virtual machine %q: clone complete (MOID: %q)", fmt.Sprintf("%s/%s", f.InventoryPath, name), result.Result.(types.ManagedObjectReference).Value))
 	return FromID(c, result.Result.(types.ManagedObjectReference).Value)
 }
 
@@ -101,12 +100,12 @@ func CreateSnapshot(vm *object.VirtualMachine, SnapshotName string, memory bool)
 	return generic.RunTaskWait(task)
 }
 
-func StartObjects(vmObjects []*object.VirtualMachine, concurrency uint) (err error) {
+func StartObjects(vmObjects []*object.VirtualMachine, concurrency uint, status *taskstatus.Status) (err error) {
 	in, ret, concurrency := channelInitialize(uint(len(vmObjects)), concurrency)
 	for x := 0; x < int(concurrency); x++ {
 		go func() {
 			for x := range in {
-				ret <- Start(x)
+				ret <- Start(x, status)
 			}
 		}()
 	}
@@ -114,7 +113,7 @@ func StartObjects(vmObjects []*object.VirtualMachine, concurrency uint) (err err
 	return
 }
 
-func Start(vm *object.VirtualMachine) error {
+func Start(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	powerState, err := GetPowerState(vm)
 	if err != nil {
 		return err
@@ -126,7 +125,7 @@ func Start(vm *object.VirtualMachine) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	log.Printf("[DEBUG] Starting virtual machine %q", fmt.Sprintf("%s", vm.InventoryPath))
+	status.AddToStatus(fmt.Sprintf("[DEBUG] Starting virtual machine %s", vm.InventoryPath))
 	task, err := vm.PowerOn(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot start virtualmachine: %s", err)
@@ -134,12 +133,12 @@ func Start(vm *object.VirtualMachine) error {
 	return generic.RunTaskWait(task)
 }
 
-func StopObjects(vmObjects []*object.VirtualMachine, concurrency uint) (err error) {
+func StopObjects(vmObjects []*object.VirtualMachine, concurrency uint, status *taskstatus.Status) (err error) {
 	in, ret, concurrency := channelInitialize(uint(len(vmObjects)), concurrency)
 	for x := 0; x < int(concurrency); x++ {
 		go func() {
 			for x := range in {
-				ret <- Stop(x)
+				ret <- Stop(x, status)
 			}
 		}()
 	}
@@ -147,7 +146,7 @@ func StopObjects(vmObjects []*object.VirtualMachine, concurrency uint) (err erro
 	return
 }
 
-func Stop(vm *object.VirtualMachine) error {
+func Stop(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	powerState, err := GetPowerState(vm)
 	if err != nil {
 		return err
@@ -159,7 +158,7 @@ func Stop(vm *object.VirtualMachine) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	log.Printf("[DEBUG] Stopping virtual machine %q", fmt.Sprintf("%s", vm.InventoryPath))
+	status.AddToStatus(fmt.Sprintf("[DEBUG] Stopping virtual machine %s", vm.InventoryPath))
 	task, err := vm.PowerOff(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot stop virtualmachine: %s", err)
@@ -167,8 +166,8 @@ func Stop(vm *object.VirtualMachine) error {
 	return generic.RunTaskWait(task)
 }
 
-func Delete(vm *object.VirtualMachine) error {
-	err := Stop(vm)
+func Delete(vm *object.VirtualMachine, status *taskstatus.Status) error {
+	err := Stop(vm, status)
 	if err != nil {
 		return err
 	}
@@ -176,7 +175,7 @@ func Delete(vm *object.VirtualMachine) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	log.Printf("[DEBUG] Removing virtual machine %q", fmt.Sprintf("%s", vm.InventoryPath))
+	status.AddToStatus(fmt.Sprintf("[DEBUG] Removing virtual machine %s", vm.InventoryPath))
 	task, err := vm.Destroy(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot delete virtualmachine: %s", err)
@@ -184,12 +183,12 @@ func Delete(vm *object.VirtualMachine) error {
 	return generic.RunTaskWait(task)
 }
 
-func DeleteObjects(vmObjects []*object.VirtualMachine, concurrency uint) (err error) {
+func DeleteObjects(vmObjects []*object.VirtualMachine, concurrency uint, status *taskstatus.Status) (err error) {
 	in, ret, concurrency := channelInitialize(uint(len(vmObjects)), concurrency)
 	for x := 0; x < int(concurrency); x++ {
 		go func() {
 			for x := range in {
-				ret <- Delete(x)
+				ret <- Delete(x, status)
 			}
 		}()
 	}
@@ -204,8 +203,8 @@ func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, e
 	return vm.PowerState(ctx)
 }
 
-func SetMacToStatic(vmProperties *mo.VirtualMachine) (*types.VirtualMachineCloneSpec, error) {
-	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device))
+func SetMacToStatic(vmProperties *mo.VirtualMachine, status *taskstatus.Status) (*types.VirtualMachineCloneSpec, error) {
+	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device), status)
 
 	baseVDevices := []types.BaseVirtualDeviceConfigSpec{}
 	for _, e := range *networkInterfaces {

@@ -10,6 +10,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/generic"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/clustercomputeresource"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/vmware/govmomi"
@@ -27,12 +28,12 @@ type FileSystemItem struct {
 }
 
 // Clone Wil clone all items in the speciefied folder and all it's subfolders
-func Clone(client *govmomi.Client, DataCenter, Path, newPath, pool string, vmTemplate bool) (err error) {
+func Clone(client *govmomi.Client, DataCenter, Path, newPath, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
 	fileSystem, err := ReadFileSystem(client, DataCenter, Path)
 	if err != nil {
 		return
 	}
-	err = fileSystem.Create(client, DataCenter, newPath, pool, vmTemplate)
+	err = fileSystem.Create(client, DataCenter, newPath, pool, vmTemplate, status)
 	return
 }
 
@@ -50,24 +51,24 @@ func ReadFileSystem(client *govmomi.Client, DataCenter, Path string) (*FileSyste
 	return fileSystem, nil
 }
 
-func (fileSystem *FileSystemItem) Create(client *govmomi.Client, DataCenter, basefolder, pool string, vmTemplate bool) (err error) {
+func (fileSystem *FileSystemItem) Create(client *govmomi.Client, DataCenter, basefolder, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
 	_, err = Create(client, DataCenter, basefolder)
 	if err != nil {
 		return
 	}
 	var clusterProp *mo.ClusterComputeResource
 	if !vmTemplate {
-		clusterProp, err = clustercomputeresource.PropertiesFromPath(client, DataCenter, pool)
+		clusterProp, err = clustercomputeresource.PropertiesFromPath(client, DataCenter, pool, status)
 		if err != nil {
 			return
 		}
 	}
-	err = fileSystem.RecursiveCreate(client, DataCenter, basefolder, vmTemplate, clusterProp)
+	err = fileSystem.RecursiveCreate(client, DataCenter, basefolder, vmTemplate, clusterProp, status)
 	return
 }
 
 // this function recursivly calls itself to create all items found in parent at a the location of basefolder
-func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter, basefolder string, vmTemplate bool, clusterProp *mo.ClusterComputeResource) (err error) {
+func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter, basefolder string, vmTemplate bool, clusterProp *mo.ClusterComputeResource, status *taskstatus.Status) (err error) {
 	// this can be more parallelized but would require rewriting, look at the DeleteObjects function
 	if parent.Subitems == nil {
 		return
@@ -80,7 +81,7 @@ func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter
 			if err != nil {
 				break
 			}
-			err = e.RecursiveCreate(client, DataCenter, newBaseFolder, vmTemplate, clusterProp)
+			err = e.RecursiveCreate(client, DataCenter, newBaseFolder, vmTemplate, clusterProp, status)
 		}
 		if e.VirtualMachine != nil {
 			vmCounter += 1
@@ -108,12 +109,12 @@ func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter
 		go func(client *govmomi.Client, e *FileSystemItem, vmTemplate bool, clusterProp *mo.ClusterComputeResource) {
 			var spec *types.VirtualMachineCloneSpec
 			var properties *mo.VirtualMachine
-			properties, err = virtualmachine.Properties(e.VirtualMachine)
+			properties, err = virtualmachine.Properties(e.VirtualMachine, status)
 			if err != nil {
 				wg.Done()
 				return
 			}
-			spec, err = virtualmachine.SetMacToStatic(properties)
+			spec, err = virtualmachine.SetMacToStatic(properties, status)
 			if err != nil {
 				wg.Done()
 				return
@@ -124,7 +125,7 @@ func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter
 				spec.Location.Pool.Value = clusterProp.ComputeResource.ResourcePool.Value
 				spec.Location.Pool.Type = clusterProp.ComputeResource.ResourcePool.Type
 			}
-			_, err = virtualmachine.Clone(client, e.VirtualMachine, ob, e.Name, *spec, 1000)
+			_, err = virtualmachine.Clone(client, e.VirtualMachine, ob, e.Name, *spec, 1000, status)
 			wg.Done()
 		}(client, e, vmTemplate, clusterProp)
 	}
@@ -225,7 +226,7 @@ func CreateSnapshot(client *govmomi.Client, DataCenter, Path, SnapshotName strin
 	return nil
 }
 
-func Delete(client *govmomi.Client, DataCenter, Path string) error {
+func Delete(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) error {
 
 	folder, err := Get(client, DataCenter, Path)
 	if err != nil {
@@ -241,7 +242,7 @@ func Delete(client *govmomi.Client, DataCenter, Path string) error {
 		if err != nil {
 			return err
 		}
-		err = virtualmachine.DeleteObjects(fileSystem.GetVmObjects(), global.Concurency)
+		err = virtualmachine.DeleteObjects(fileSystem.GetVmObjects(), global.Concurency, status)
 		if err != nil {
 			return err
 		}
@@ -259,7 +260,7 @@ func Delete(client *govmomi.Client, DataCenter, Path string) error {
 }
 
 // Restarts all the virtualmachines in the folder and subfolders
-func ReStart(client *govmomi.Client, DataCenter, Path string) (err error) {
+func ReStart(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) (err error) {
 
 	folder, err := Get(client, DataCenter, Path)
 	if err != nil {
@@ -276,14 +277,14 @@ func ReStart(client *govmomi.Client, DataCenter, Path string) (err error) {
 			return err
 		}
 		vmObjects := fileSystem.GetVmObjects()
-		virtualmachine.StopObjects(vmObjects, global.Concurency)
-		virtualmachine.StartObjects(vmObjects, global.Concurency)
+		virtualmachine.StopObjects(vmObjects, global.Concurency, status)
+		virtualmachine.StartObjects(vmObjects, global.Concurency, status)
 	}
 	return
 }
 
 // Starts all the virtualmachines in the folder and subfolders
-func Start(client *govmomi.Client, DataCenter, Path string) (err error) {
+func Start(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) (err error) {
 
 	folder, err := Get(client, DataCenter, Path)
 	if err != nil {
@@ -299,14 +300,14 @@ func Start(client *govmomi.Client, DataCenter, Path string) (err error) {
 		if err != nil {
 			return err
 		}
-		err = virtualmachine.StartObjects(fileSystem.GetVmObjects(), global.Concurency)
+		err = virtualmachine.StartObjects(fileSystem.GetVmObjects(), global.Concurency, status)
 		return err
 	}
 	return
 }
 
 // Stops all the virtualmachines in the folder and subfolders
-func Stop(client *govmomi.Client, DataCenter, Path string) error {
+func Stop(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) error {
 
 	folder, err := Get(client, DataCenter, Path)
 	if err != nil {
@@ -322,7 +323,7 @@ func Stop(client *govmomi.Client, DataCenter, Path string) error {
 		if err != nil {
 			return err
 		}
-		virtualmachine.StopObjects(fileSystem.GetVmObjects(), global.Concurency)
+		virtualmachine.StopObjects(fileSystem.GetVmObjects(), global.Concurency, status)
 	}
 	return nil
 }

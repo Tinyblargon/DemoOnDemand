@@ -2,9 +2,10 @@ package clustercomputeresource
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
@@ -12,12 +13,12 @@ import (
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
-func PropertiesFromPath(client *govmomi.Client, DataCenter, pool string) (clusterProp *mo.ClusterComputeResource, err error) {
+func PropertiesFromPath(client *govmomi.Client, DataCenter, pool string, status *taskstatus.Status) (clusterProp *mo.ClusterComputeResource, err error) {
 	dataCenterOB, err := datacenter.FromPath(client, DataCenter)
 	if err != nil {
 		return
 	}
-	clusteOB, err := FromPath(client, pool, dataCenterOB)
+	clusteOB, err := FromPath(client, pool, dataCenterOB, status)
 	if err != nil {
 		return
 	}
@@ -29,13 +30,13 @@ func PropertiesFromPath(client *govmomi.Client, DataCenter, pool string) (cluste
 
 // FromPath loads a ClusterComputeResource from its path. The datacenter is
 // optional if the path is specific enough to not require it.
-func FromPath(client *govmomi.Client, name string, dc *object.Datacenter) (*object.ClusterComputeResource, error) {
+func FromPath(client *govmomi.Client, name string, dc *object.Datacenter, status *taskstatus.Status) (*object.ClusterComputeResource, error) {
 	finder := find.NewFinder(client.Client, false)
 	if dc != nil {
-		log.Printf("[DEBUG] Attempting to locate compute cluster %q in datacenter %q", name, dc.InventoryPath)
+		status.AddToStatus(fmt.Sprintf("[DEBUG] Attempting to locate compute cluster %q in datacenter %q", name, dc.InventoryPath))
 		finder.SetDatacenter(dc)
 	} else {
-		log.Printf("[DEBUG] Attempting to locate compute cluster at absolute path %q", name)
+		status.AddToStatus(fmt.Sprintf("[DEBUG] Attempting to locate compute cluster at absolute path %q", name))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)

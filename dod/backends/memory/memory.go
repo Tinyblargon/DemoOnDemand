@@ -7,8 +7,15 @@ import (
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/backends"
+	"github.com/Tinyblargon/DemoOnDemand/dod/backends/job"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 )
+
+const Concurency uint = 5
+
+var AddedToQueue = []byte("Task added to queue.")
+var TaskStarted = []byte("Task Started.")
 
 type Queue struct {
 	Tasks *[]*backends.Task
@@ -47,13 +54,16 @@ func New(concurrency uint) (memory *Memory) {
 }
 
 // Adds task to queue (wait)
-func (m *Memory) Add(payload []byte, executionTimeout time.Duration) (taskID string) {
+func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration) (taskID string) {
 	id := atomic.AddUint64(&m.taskIDCounter, 1)
 	taskID = strconv.FormatUint(id, 10)
+	status := &taskstatus.Status{
+		Info: AddedToQueue,
+	}
 	task := &backends.Task{
-		ID:      taskID,
-		Payload: payload,
-		Status:  []byte("Task added to queue."),
+		ID:     taskID,
+		Job:    payload,
+		Status: status,
 	}
 	addTaskToQueue(m.Wait, task)
 	return taskID
@@ -67,7 +77,6 @@ func (m *Memory) MoveToWorkQeueu(taskID string) (err error) {
 
 func (m *Memory) moveToDoneQeueu(taskID string) {
 	task := removeTaskFromQueue(m.Work, taskID)
-	task.Status = append(task.Status, []byte("\nOK")...)
 	tmpTasks := make([]*backends.Task, global.TaskHistoryDepth)
 	tmpTasks[0] = task
 	looplimit := int(global.TaskHistoryDepth) - 1
@@ -84,15 +93,15 @@ func (m *Memory) moveToDoneQeueu(taskID string) {
 func (m *Memory) GetTaskStatus(taskID string) []byte {
 	task := getTaskFromQueue(m.Wait, taskID)
 	if task != nil {
-		return task.Status
+		return task.Status.Info
 	}
 	task = getTaskFromQueue(m.Work, taskID)
 	if task != nil {
-		return task.Status
+		return task.Status.Info
 	}
 	task = getTaskFromQueue(m.Done, taskID)
 	if task != nil {
-		return task.Status
+		return task.Status.Info
 	}
 	return nil
 }
@@ -227,8 +236,8 @@ func (m *Memory) spawnWorkers(concurrency uint) {
 
 func (m *Memory) worker() {
 	for e := range m.InputChannel {
-		e.Status = []byte("Task Started.")
-		// execute task
+		e.Status.Info = TaskStarted
+		e.Job.Execute(e.Status)
 		m.moveToDoneQeueu(e.ID)
 	}
 }
