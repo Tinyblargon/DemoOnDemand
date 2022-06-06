@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/backends"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
 	"github.com/gorilla/mux"
 )
 
@@ -28,13 +28,13 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if id != "" {
-		status := string(backends.Main.GetTaskStatus(id))
+		status := string(scheduler.Main.GetTaskStatus(id))
 		if status == "" {
 			status = "Task with id " + id + " does not exist."
 		}
 		fmt.Fprint(w, status)
 	} else {
-		allTasks := backends.Main.ListAllTasks()
+		allTasks := scheduler.Main.ListAllTasks()
 		nuberOfTasks := len(allTasks)
 		tasksList := make([]*Task, nuberOfTasks)
 		for i, e := range allTasks {

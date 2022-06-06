@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/backends"
-	"github.com/Tinyblargon/DemoOnDemand/dod/backends/job"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 )
 
 const InvalidID string = "Invalid ID."
@@ -30,5 +30,5 @@ func ReadingBodyFailed(w http.ResponseWriter, err error) {
 }
 
 func NewJob(w http.ResponseWriter, newJob *job.Job, userID string) {
-	fmt.Fprintf(w, "Task added with ID: %s", backends.Main.Add(newJob, 9999999, userID))
+	fmt.Fprintf(w, "Task added with ID: %s", scheduler.Main.Add(newJob, 9999999, userID))
 }

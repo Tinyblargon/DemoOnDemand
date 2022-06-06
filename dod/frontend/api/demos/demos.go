@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/backends/job"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 	"github.com/gorilla/mux"
 )
 

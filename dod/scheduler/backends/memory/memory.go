@@ -6,17 +6,17 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/backends"
-	"github.com/Tinyblargon/DemoOnDemand/dod/backends/job"
-	"github.com/Tinyblargon/DemoOnDemand/dod/backends/memory/demolock"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/backends/memory/demolock"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 )
 
 const Concurency uint = 5
 
 type Queue struct {
-	Tasks *[]*backends.Task
+	Tasks *[]*scheduler.Task
 	Mutex sync.Mutex
 }
 
@@ -24,15 +24,15 @@ type Memory struct {
 	Wait         *Queue
 	Work         *Queue
 	Done         *Queue
-	InputChannel chan *backends.Task
+	InputChannel chan *scheduler.Task
 	DemoLock     *demolock.DemoLock
 
 	taskIDCounter uint64
 }
 
 func New(concurrency uint) (memory *Memory) {
-	workInputChannel := make(chan *backends.Task)
-	tasks := make([]*backends.Task, 50)
+	workInputChannel := make(chan *scheduler.Task)
+	tasks := make([]*scheduler.Task, 50)
 	waitQueue := &Queue{}
 	workQueue := &Queue{}
 	doneQueue := &Queue{
@@ -56,7 +56,7 @@ func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration, userID st
 	id := atomic.AddUint64(&m.taskIDCounter, 1)
 	taskID = strconv.FormatUint(id, 10)
 	status := taskstatus.NewStatus()
-	task := &backends.Task{
+	task := &scheduler.Task{
 		ID:     taskID,
 		Job:    payload,
 		Status: status,
@@ -74,7 +74,7 @@ func (m *Memory) MoveToWorkQeueu(taskID string) (err error) {
 
 func (m *Memory) moveToDoneQeueu(taskID string) {
 	task := removeTaskFromQueue(m.Work, taskID)
-	tmpTasks := make([]*backends.Task, global.TaskHistoryDepth)
+	tmpTasks := make([]*scheduler.Task, global.TaskHistoryDepth)
 	tmpTasks[0] = task
 	looplimit := int(global.TaskHistoryDepth) - 1
 	m.Done.Mutex.Lock()
@@ -103,7 +103,7 @@ func (m *Memory) GetTaskStatus(taskID string) []byte {
 	return nil
 }
 
-func (m *Memory) ListAllTasks() (tasks []*backends.Task) {
+func (m *Memory) ListAllTasks() (tasks []*scheduler.Task) {
 	tasks = listTasksFromQueue(m.Done)
 	if m.Work.Tasks != nil {
 		tasks = append(tasks, (*m.Work.Tasks)[:]...)
@@ -118,7 +118,7 @@ func (m *Memory) watchdogWaitQueue() {
 	for {
 		if m.Wait.Tasks != nil {
 			m.Wait.Mutex.Lock()
-			var task *backends.Task
+			var task *scheduler.Task
 			if m.Wait.Tasks != nil {
 				task = unsafeRemoveFirstItemOfQueue(m.Wait)
 			}
@@ -146,8 +146,8 @@ func checkTaskExistance(queue *Queue, taskID string) bool {
 	return false
 }
 
-func listTasksFromQueue(queue *Queue) (tasks []*backends.Task) {
-	tasks = make([]*backends.Task, 0)
+func listTasksFromQueue(queue *Queue) (tasks []*scheduler.Task) {
+	tasks = make([]*scheduler.Task, 0)
 	if queue.Tasks != nil {
 		for _, e := range *queue.Tasks {
 			if e != nil {
@@ -158,7 +158,7 @@ func listTasksFromQueue(queue *Queue) (tasks []*backends.Task) {
 	return
 }
 
-func getTaskFromQueue(queue *Queue, taskID string) (task *backends.Task) {
+func getTaskFromQueue(queue *Queue, taskID string) (task *scheduler.Task) {
 	if queue.Tasks != nil {
 		for _, e := range *queue.Tasks {
 			if e != nil {
@@ -171,11 +171,11 @@ func getTaskFromQueue(queue *Queue, taskID string) (task *backends.Task) {
 	return nil
 }
 
-func addTaskToQueue(queue *Queue, task *backends.Task) {
-	var newToTask []*backends.Task
+func addTaskToQueue(queue *Queue, task *scheduler.Task) {
+	var newToTask []*scheduler.Task
 	queue.Mutex.Lock()
 	if queue.Tasks == nil {
-		newToTask = make([]*backends.Task, 1)
+		newToTask = make([]*scheduler.Task, 1)
 		newToTask[0] = task
 	} else {
 		newToTask = append(*queue.Tasks, task)
@@ -184,12 +184,12 @@ func addTaskToQueue(queue *Queue, task *backends.Task) {
 	queue.Mutex.Unlock()
 }
 
-func removeTaskFromQueue(queue *Queue, taskID string) (movedTask *backends.Task) {
+func removeTaskFromQueue(queue *Queue, taskID string) (movedTask *scheduler.Task) {
 	var counter uint
 	queue.Mutex.Lock()
 	numberOftasks := len(*queue.Tasks)
 	if numberOftasks > 1 {
-		tmpTasks := make([]*backends.Task, numberOftasks-1)
+		tmpTasks := make([]*scheduler.Task, numberOftasks-1)
 		for _, e := range *queue.Tasks {
 			if e.ID != taskID {
 				tmpTasks[counter] = e
@@ -208,11 +208,11 @@ func removeTaskFromQueue(queue *Queue, taskID string) (movedTask *backends.Task)
 }
 
 // this function does not Lock and Unlock, the function calling this is responsible for Lock and Unlock
-func unsafeRemoveFirstItemOfQueue(queue *Queue) (task *backends.Task) {
+func unsafeRemoveFirstItemOfQueue(queue *Queue) (task *scheduler.Task) {
 	numberOftasks := len(*queue.Tasks)
 	task = (*queue.Tasks)[0]
 	if numberOftasks > 1 {
-		tmpTasks := make([]*backends.Task, numberOftasks-1)
+		tmpTasks := make([]*scheduler.Task, numberOftasks-1)
 		for i, e := range (*queue.Tasks)[1:] {
 			tmpTasks[i] = e
 		}

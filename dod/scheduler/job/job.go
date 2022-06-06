@@ -3,12 +3,12 @@ package job
 import (
 	"strconv"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/backends/memory/demolock"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/backends/memory/demolock"
 )
 
 type Job struct {

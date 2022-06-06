@@ -1,10 +1,10 @@
-package backends
+package scheduler
 
 import (
 	"time"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/backends/job"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 )
 
 type Task struct {
