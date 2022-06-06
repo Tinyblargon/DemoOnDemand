@@ -26,7 +26,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob)
+	api.NewJob(w, &newjob, "placeholder")
 }
 
 func IdDelete(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +40,7 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob)
+	api.NewJob(w, &newjob, "placeholder")
 }
 
 func IdPut(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +70,7 @@ func IdPut(w http.ResponseWriter, r *http.Request) {
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob)
+	api.NewJob(w, &newjob, "placeholder")
 }
 
 func checkID(w http.ResponseWriter, r *http.Request) (demoName []string, demoNumber int) {

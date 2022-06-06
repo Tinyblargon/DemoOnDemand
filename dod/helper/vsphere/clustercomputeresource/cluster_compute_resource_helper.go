@@ -33,10 +33,10 @@ func PropertiesFromPath(client *govmomi.Client, DataCenter, pool string, status 
 func FromPath(client *govmomi.Client, name string, dc *object.Datacenter, status *taskstatus.Status) (*object.ClusterComputeResource, error) {
 	finder := find.NewFinder(client.Client, false)
 	if dc != nil {
-		status.AddToStatus(fmt.Sprintf("[DEBUG] Attempting to locate compute cluster %q in datacenter %q", name, dc.InventoryPath))
+		status.AddToInfo(fmt.Sprintf("[DEBUG] Attempting to locate compute cluster %q in datacenter %q", name, dc.InventoryPath))
 		finder.SetDatacenter(dc)
 	} else {
-		status.AddToStatus(fmt.Sprintf("[DEBUG] Attempting to locate compute cluster at absolute path %q", name))
+		status.AddToInfo(fmt.Sprintf("[DEBUG] Attempting to locate compute cluster at absolute path %q", name))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)

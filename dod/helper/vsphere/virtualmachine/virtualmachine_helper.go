@@ -17,7 +17,7 @@ import (
 )
 
 func Properties(vm *object.VirtualMachine, status *taskstatus.Status) (*mo.VirtualMachine, error) {
-	status.AddToStatus(fmt.Sprintf("[DEBUG] Fetching properties for VM %q", vm.InventoryPath))
+	status.AddToInfo(fmt.Sprintf("[DEBUG] Fetching properties for VM %q", vm.InventoryPath))
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 	var props mo.VirtualMachine
@@ -40,7 +40,7 @@ func Get(client *govmomi.Client, DataCenter, Path string) (*object.VirtualMachin
 // Clone wraps the creation of a virtual machine and the subsequent waiting of
 // the task. A higher-level virtual machine object is returned.
 func Clone(c *govmomi.Client, src *object.VirtualMachine, f *object.Folder, name string, spec types.VirtualMachineCloneSpec, timeout int, status *taskstatus.Status) (*object.VirtualMachine, error) {
-	status.AddToStatus(fmt.Sprintf("[DEBUG] Cloning virtual machine %q", fmt.Sprintf("%s/%s", f.InventoryPath, name)))
+	status.AddToInfo(fmt.Sprintf("[DEBUG] Cloning virtual machine %q", fmt.Sprintf("%s/%s", f.InventoryPath, name)))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(timeout))
 	defer cancel()
 	task, err := src.Clone(ctx, f, name, spec)
@@ -57,7 +57,7 @@ func Clone(c *govmomi.Client, src *object.VirtualMachine, f *object.Folder, name
 		}
 		return nil, err
 	}
-	status.AddToStatus(fmt.Sprintf("[DEBUG] Virtual machine %q: clone complete (MOID: %q)", fmt.Sprintf("%s/%s", f.InventoryPath, name), result.Result.(types.ManagedObjectReference).Value))
+	status.AddToInfo(fmt.Sprintf("[DEBUG] Virtual machine %q: clone complete (MOID: %q)", fmt.Sprintf("%s/%s", f.InventoryPath, name), result.Result.(types.ManagedObjectReference).Value))
 	return FromID(c, result.Result.(types.ManagedObjectReference).Value)
 }
 
@@ -125,7 +125,7 @@ func Start(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	status.AddToStatus(fmt.Sprintf("[DEBUG] Starting virtual machine %s", vm.InventoryPath))
+	status.AddToInfo(fmt.Sprintf("[DEBUG] Starting virtual machine %s", vm.InventoryPath))
 	task, err := vm.PowerOn(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot start virtualmachine: %s", err)
@@ -158,7 +158,7 @@ func Stop(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	status.AddToStatus(fmt.Sprintf("[DEBUG] Stopping virtual machine %s", vm.InventoryPath))
+	status.AddToInfo(fmt.Sprintf("[DEBUG] Stopping virtual machine %s", vm.InventoryPath))
 	task, err := vm.PowerOff(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot stop virtualmachine: %s", err)
@@ -175,7 +175,7 @@ func Delete(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	status.AddToStatus(fmt.Sprintf("[DEBUG] Removing virtual machine %s", vm.InventoryPath))
+	status.AddToInfo(fmt.Sprintf("[DEBUG] Removing virtual machine %s", vm.InventoryPath))
 	task, err := vm.Destroy(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot delete virtualmachine: %s", err)

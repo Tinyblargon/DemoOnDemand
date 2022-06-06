@@ -71,7 +71,7 @@ var networkInterfaceSubresourceTypeAllowedValues = []string{
 // virtual machine. The list is sorted by the order that they would be added in
 // if a clone were to be done.
 func ReadNetworkInterfaces(l object.VirtualDeviceList, status *taskstatus.Status) *object.VirtualDeviceList {
-	status.AddToStatus("[DEBUG] ReadNetworkInterfaces: Fetching network interfaces")
+	status.AddToInfo("[DEBUG] ReadNetworkInterfaces: Fetching network interfaces")
 	devices := l.Select(func(device types.BaseVirtualDevice) bool {
 		if _, ok := device.(types.BaseVirtualEthernetCard); ok {
 			return true

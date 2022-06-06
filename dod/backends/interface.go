@@ -10,15 +10,15 @@ import (
 type Task struct {
 	ID     string
 	Job    *job.Job
-	Error  error
 	Status *taskstatus.Status
+	UserID string
 }
 
 var Main Backend
 
 type Backend interface {
-	Add(payload *job.Job, executionTimeout time.Duration) (taskID string)
+	Add(payload *job.Job, executionTimeout time.Duration, userID string) (taskID string)
 	MoveToWorkQeueu(taskID string) (err error)
 	GetTaskStatus(taskID string) []byte
-	ListAllTasks() (tasks []string)
+	ListAllTasks() (tasks []*Task)
 }

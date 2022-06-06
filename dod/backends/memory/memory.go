@@ -15,9 +15,6 @@ import (
 
 const Concurency uint = 5
 
-var AddedToQueue = []byte("Task added to queue.")
-var TaskStarted = []byte("Task Started.")
-
 type Queue struct {
 	Tasks *[]*backends.Task
 	Mutex sync.Mutex
@@ -55,16 +52,15 @@ func New(concurrency uint) (memory *Memory) {
 }
 
 // Adds task to queue (wait)
-func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration) (taskID string) {
+func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration, userID string) (taskID string) {
 	id := atomic.AddUint64(&m.taskIDCounter, 1)
 	taskID = strconv.FormatUint(id, 10)
-	status := &taskstatus.Status{
-		Info: AddedToQueue,
-	}
+	status := taskstatus.NewStatus()
 	task := &backends.Task{
 		ID:     taskID,
 		Job:    payload,
 		Status: status,
+		UserID: userID,
 	}
 	addTaskToQueue(m.Wait, task)
 	return taskID
@@ -107,14 +103,15 @@ func (m *Memory) GetTaskStatus(taskID string) []byte {
 	return nil
 }
 
-func (m *Memory) ListAllTasks() (tasks []string) {
-	tasks = make([]string, 0)
-	doneTasks := listTasksFromQueue(m.Done)
-	tasks = append(tasks, doneTasks[:]...)
-	workTasks := listTasksFromQueue(m.Work)
-	tasks = append(tasks, workTasks[:]...)
-	waitTasks := listTasksFromQueue(m.Wait)
-	return append(tasks, waitTasks[:]...)
+func (m *Memory) ListAllTasks() (tasks []*backends.Task) {
+	tasks = listTasksFromQueue(m.Done)
+	if m.Work.Tasks != nil {
+		tasks = append(tasks, (*m.Work.Tasks)[:]...)
+	}
+	if m.Wait.Tasks != nil {
+		tasks = append(tasks, (*m.Wait.Tasks)[:]...)
+	}
+	return
 }
 
 func (m *Memory) watchdogWaitQueue() {
@@ -149,12 +146,12 @@ func checkTaskExistance(queue *Queue, taskID string) bool {
 	return false
 }
 
-func listTasksFromQueue(queue *Queue) (tasks []string) {
-	tasks = make([]string, 0)
+func listTasksFromQueue(queue *Queue) (tasks []*backends.Task) {
+	tasks = make([]*backends.Task, 0)
 	if queue.Tasks != nil {
 		for _, e := range *queue.Tasks {
 			if e != nil {
-				tasks = append(tasks, e.ID)
+				tasks = append(tasks, e)
 			}
 		}
 	}
@@ -237,7 +234,9 @@ func (m *Memory) spawnWorkers(concurrency uint) {
 
 func (m *Memory) worker() {
 	for e := range m.InputChannel {
-		e.Status.Info = TaskStarted
+		// This unsafe function is possible because this is the only thread using this variable
+		e.Status.UnsafeSetStarted()
+		// e.Job.Execute will spawn more threads
 		e.Job.Execute(e.Status, m.DemoLock)
 		m.moveToDoneQeueu(e.ID)
 	}

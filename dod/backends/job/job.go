@@ -56,7 +56,7 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 			return
 		}
 	}
-	status.AddToStatus("OK")
+	status.AddCompleted()
 }
 
 func newSession(status *taskstatus.Status, config *programconfig.VMwareConfiguration) (c *session.Client, err error) {

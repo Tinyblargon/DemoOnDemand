@@ -34,7 +34,7 @@ func (d *DemoLock) Lock(ID string, status *taskstatus.Status) {
 			break
 		}
 		if !notFirstRun {
-			status.AddToStatus("Waiting: Trying to get Lock")
+			status.AddToInfo("Waiting: Trying to get Lock")
 		}
 		time.Sleep(time.Millisecond)
 		notFirstRun = true
