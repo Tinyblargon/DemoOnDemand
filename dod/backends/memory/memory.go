@@ -8,6 +8,7 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/backends"
 	"github.com/Tinyblargon/DemoOnDemand/dod/backends/job"
+	"github.com/Tinyblargon/DemoOnDemand/dod/backends/memory/demolock"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 )
@@ -27,9 +28,7 @@ type Memory struct {
 	Work         *Queue
 	Done         *Queue
 	InputChannel chan *backends.Task
-
-	// stats      map[string]backends.Stats
-	// statsMutex sync.Mutex
+	DemoLock     *demolock.DemoLock
 
 	taskIDCounter uint64
 }
@@ -42,11 +41,13 @@ func New(concurrency uint) (memory *Memory) {
 	doneQueue := &Queue{
 		Tasks: &tasks,
 	}
+	demoLock := &demolock.DemoLock{}
 	memory = &Memory{
 		Wait:         waitQueue,
 		Work:         workQueue,
 		Done:         doneQueue,
 		InputChannel: workInputChannel,
+		DemoLock:     demoLock,
 	}
 	go memory.watchdogWaitQueue()
 	memory.spawnWorkers(concurrency)
@@ -237,7 +238,7 @@ func (m *Memory) spawnWorkers(concurrency uint) {
 func (m *Memory) worker() {
 	for e := range m.InputChannel {
 		e.Status.Info = TaskStarted
-		e.Job.Execute(e.Status)
+		e.Job.Execute(e.Status, m.DemoLock)
 		m.moveToDoneQeueu(e.ID)
 	}
 }

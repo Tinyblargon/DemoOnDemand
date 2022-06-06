@@ -1,6 +1,9 @@
 package job
 
 import (
+	"strconv"
+
+	"github.com/Tinyblargon/DemoOnDemand/dod/backends/memory/demolock"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
@@ -22,8 +25,10 @@ type Demo struct {
 	Destroy  bool
 }
 
-func (j *Job) Execute(status *taskstatus.Status) {
+func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 	if j.Demo != nil {
+		ID := j.Demo.UserName + "_" + j.Demo.Template + "_" + strconv.Itoa(int(j.Demo.Number))
+		demoLock.Lock(ID, status)
 		c, err := newSession(status, global.VMwareConfig)
 		if err != nil {
 			return
@@ -38,12 +43,14 @@ func (j *Job) Execute(status *taskstatus.Status) {
 			err = demo.Stop(c.VimClient, global.DB, global.VMwareConfig.DataCenter, j.Demo.Template, j.Demo.UserName, j.Demo.Number, status)
 			if err != nil {
 				status.AddError(err)
+				demoLock.Unlock(ID)
 				return
 			}
 		}
 		if j.Demo.Start {
 			err = demo.Start(c.VimClient, global.DB, global.VMwareConfig.DataCenter, j.Demo.Template, j.Demo.UserName, j.Demo.Number, status)
 		}
+		demoLock.Unlock(ID)
 		if err != nil {
 			status.AddError(err)
 			return

@@ -30,5 +30,5 @@ func ReadingBodyFailed(w http.ResponseWriter, err error) {
 }
 
 func NewJob(w http.ResponseWriter, newJob *job.Job) {
-	fmt.Fprintf(w, "Task added with ID %s", backends.Main.Add(newJob, 9999999))
+	fmt.Fprintf(w, "Task added with ID: %s", backends.Main.Add(newJob, 9999999))
 }
