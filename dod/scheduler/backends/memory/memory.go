@@ -87,20 +87,20 @@ func (m *Memory) moveToDoneQeueu(taskID string) {
 	m.Done.Mutex.Unlock()
 }
 
-func (m *Memory) GetTaskStatus(taskID string) []byte {
+func (m *Memory) GetTaskStatus(taskID string) (info []byte, userID string) {
 	task := getTaskFromQueue(m.Wait, taskID)
 	if task != nil {
-		return task.Status.Info
+		return task.Status.Info, task.UserID
 	}
 	task = getTaskFromQueue(m.Work, taskID)
 	if task != nil {
-		return task.Status.Info
+		return task.Status.Info, task.UserID
 	}
 	task = getTaskFromQueue(m.Done, taskID)
 	if task != nil {
-		return task.Status.Info
+		return task.Status.Info, task.UserID
 	}
-	return nil
+	return nil, ""
 }
 
 func (m *Memory) ListAllTasks() (tasks []*scheduler.Task) {
