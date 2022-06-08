@@ -9,13 +9,16 @@ import (
 
 const Concurency uint = 5
 
+var CookieSecret []byte = []byte("keymaker")
+
 var ConfigFolder string
 var TemplateFodler string
 var RouterFodler string
 var DemoFodler string
 var IngressVM string
 var PostgreSQLConfig *programconfig.PostgreSQLConfiguration
-var LDAPConfig *programconfig.LDAPConfiguration
+
+// var LDAPConfig *programconfig.LDAPConfiguration
 var TaskHistoryDepth uint
 var DB *sql.DB
 var VMwareConfig *programconfig.VMwareConfiguration
@@ -44,10 +47,10 @@ func SetAll(config *programconfig.Configuration, db *sql.DB) {
 	// 	User:     config.PostgreSQL.User,
 	// 	Port:     config.PostgreSQL.Port,
 	// }
-	LDAPConfig = &programconfig.LDAPConfiguration{
-		BindUser:     config.LDAP.BindUser,
-		BindPassword: config.LDAP.BindPassword,
-	}
+	// LDAPConfig = &programconfig.LDAPConfiguration{
+	// 	BindUser:     config.LDAP.BindUser,
+	// 	BindPassword: config.LDAP.BindPassword,
+	// }
 	TaskHistoryDepth = 50
 	DB = db
 }

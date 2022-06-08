@@ -18,5 +18,12 @@ PostgreSQL:
   Database: 'dod_db'
   Port: 5432
 LDAP:
-  BindUser: ''
+  URL: 'ldaps://example.com:636'
+  BindDN: 'CN=dod-user,DC=example,DC=com'
   BindPassword: ''
+  InsecureSkipVerify: true
+  UsernameAttribute: 'samaccountname'
+  UserGroup:
+    UsersDN: 'OU=users,CN=dod-user,DC=example,DC=com'
+  AdminGroup:
+    UsersDN: 'OU=admins,CN=dod-user,DC=example,DC=com'

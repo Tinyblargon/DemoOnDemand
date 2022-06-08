@@ -40,12 +40,22 @@ type PostgreSQLConfiguration struct {
 	Port     uint
 }
 
-type LDAPConfiguration struct {
-	BindUser     string
-	BindPassword string
+type LDAPConfiguration_Group struct {
+	UsersDN string
+	// LDAPFilter string
 }
 
-func GetConfigProgramConfig(path ...string) (configuration *Configuration) {
+type LDAPConfiguration struct {
+	URL                string
+	BindDN             string
+	BindPassword       string
+	InsecureSkipVerify bool
+	UsernameAttribute  string
+	UserGroup          LDAPConfiguration_Group
+	AdminGroup         LDAPConfiguration_Group
+}
+
+func GetConfigProgramConfig(path ...string) (configuration *Configuration, err error) {
 
 	// Set the file name of the configurations file
 	viper.SetConfigName("config")
@@ -69,7 +79,7 @@ func GetConfigProgramConfig(path ...string) (configuration *Configuration) {
 	// Set undefined variables
 	// viper.SetDefault("database.dbname", "test_db")
 
-	err := viper.Unmarshal(&configuration)
+	err = viper.Unmarshal(&configuration)
 	if err != nil {
 		fmt.Printf("Unable to decode into struct, %v", err)
 	}
