@@ -10,6 +10,8 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 )
 
+const InvalidPerm string = "Invalid Permission."
+
 const InvalidID string = "Invalid ID."
 
 func GetBody(w http.ResponseWriter, r *http.Request, v any) (err error) {
@@ -31,4 +33,10 @@ func ReadingBodyFailed(w http.ResponseWriter, err error) {
 
 func NewJob(w http.ResponseWriter, newJob *job.Job, userID string) {
 	fmt.Fprintf(w, "Task added with ID: %s", scheduler.Main.Add(newJob, 9999999, userID))
+}
+
+func OutputJson(w http.ResponseWriter, jsonResponse any) {
+	j, _ := json.Marshal(jsonResponse)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, string(j))
 }

@@ -1,11 +1,11 @@
 package tasks
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
 	"github.com/gorilla/mux"
 )
@@ -38,7 +38,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		infoString := string(info)
 		if infoString != "" {
 			if role != "root" && name != userID {
-				infoString = "Invalid Permissions"
+				infoString = api.InvalidPerm
 			}
 		} else {
 			infoString = "Task with id " + id + " does not exist."
@@ -65,9 +65,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		}
 		data := new(Data)
 		data.Tasks = &tasksList
-		j, _ := json.Marshal(data)
-		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, string(j))
+		api.OutputJson(w, data)
 	}
 }
 
