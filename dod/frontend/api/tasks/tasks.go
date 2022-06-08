@@ -32,14 +32,13 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	name := r.Header.Get("name")
+	role := r.Header.Get("role")
 	if id != "" {
 		info, userID := scheduler.Main.GetTaskStatus(id)
 		infoString := string(info)
 		if infoString != "" {
-			if name != "root" {
-				if name != userID {
-					infoString = "Invalid Permissions"
-				}
+			if role != "root" && name != userID {
+				infoString = "Invalid Permissions"
 			}
 		} else {
 			infoString = "Task with id " + id + " does not exist."
@@ -48,7 +47,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	} else {
 		allTasks := scheduler.Main.ListAllTasks()
 		var tasksList []*Task
-		if name == "root" {
+		if role == "root" {
 			nuberOfTasks := len(allTasks)
 			tasksList = make([]*Task, nuberOfTasks)
 			for i, e := range allTasks {
