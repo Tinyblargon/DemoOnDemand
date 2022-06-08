@@ -5,71 +5,32 @@ import (
 	"log"
 	"os"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod"
+	"github.com/Tinyblargon/DemoOnDemand/dod/authentication"
+	"github.com/Tinyblargon/DemoOnDemand/dod/authentication/backends/ldap"
+	"github.com/Tinyblargon/DemoOnDemand/dod/frontend"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
+	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/backends/memory"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	config := programconfig.GetConfigProgramConfig()
-
-	c, err := session.New(*config.VMware)
+	config, err := programconfig.GetConfigProgramConfig()
 	LogFatal(err)
+	scheduler.Main = NewSchedulerBackend(config.ConcurrentTasks)
+	authentication.Main = NewAuthBackend(config.LDAP)
+	db, err := database.New(*config.PostgreSQL)
+	global.SetAll(config, db)
 
-	global.SetAll(config)
-	err = dod.Intialize(c.VimClient, global.DataCenter)
+	// c, err := session.New(*config.VMware)
+	// err = dod.Intialize(c.VimClient, global.VMwareConfig.DataCenter)
+	// c.VimClient.Logout()
 
-	api.HandleRequests(config.API.PathPrefix, config.API.Port)
+	frontend.HandleRequests(config.API.PathPrefix, config.API.Port)
 
-	portForward1 := &demo.PortForward{
-		SourcePort:      1,
-		DestinationPort: 2,
-		DestinationIP:   "10.10.10.10",
-	}
-	portForward2 := &demo.PortForward{
-		SourcePort:      1,
-		DestinationPort: 2,
-		DestinationIP:   "10.10.10.10",
-	}
-	portForward3 := &demo.PortForward{
-		SourcePort:      1,
-		DestinationPort: 2,
-		DestinationIP:   "10.10.10.10",
-	}
-	portForwars := []*demo.PortForward{
-		portForward1,
-		portForward2,
-		portForward3,
-	}
-	demoConfig := &demo.DemoConfig{
-		PortForwards: portForwars,
-	}
-
-	_ = demoConfig
-	// err = demo.Import(c.VimClient, global.DataCenter, "/test-import/test", "demo-02", demoConfig)
-	// fmt.Println(err)
-
-	// err = demo.New(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
-	// fmt.Println(err)
-
-	// err = demo.Start(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
-	// fmt.Println(err)
-
-	// err = demo.Stop(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
-	// fmt.Println(err)
-
-	// err = demo.Delete(c.VimClient, global.DataCenter, "demo-02", "myusername", 2)
-	// fmt.Println(err)
-
-	// err = demo.DestroyTemplate(c.VimClient, global.DataCenter, "demo-02")
-	// fmt.Println(err)
-
-	// err = folder.Delete(c.VimClient, config.VMware.DataCenter, "/testfolder/Templates/demo-01")
-
-	fmt.Println("test")
+	db.Close()
 	fmt.Println(err)
 	os.Exit(0)
 }
@@ -78,4 +39,29 @@ func LogFatal(err error) {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+func NewSchedulerBackend(concurrency uint) scheduler.Backend {
+	return memory.New(concurrency)
+}
+
+func NewAuthBackend(LDAPsettings *programconfig.LDAPConfiguration) authentication.Backend {
+	userGroup := ldap.Settings_Group{
+		UsersDN: LDAPsettings.UserGroup.UsersDN,
+	}
+	adminGroup := ldap.Settings_Group{
+		UsersDN: LDAPsettings.AdminGroup.UsersDN,
+	}
+	settings := ldap.Settings{
+		URL:                LDAPsettings.URL,
+		BindDN:             LDAPsettings.BindDN,
+		BindCredential:     LDAPsettings.BindPassword,
+		InsecureSkipVerify: LDAPsettings.InsecureSkipVerify,
+		UsernameAttribute:  LDAPsettings.UsernameAttribute,
+		UserGroup:          &userGroup,
+		AdminGroup:         &adminGroup,
+	}
+	validatedSettigns, err := ldap.New(&settings)
+	LogFatal(err)
+	return validatedSettigns
 }
