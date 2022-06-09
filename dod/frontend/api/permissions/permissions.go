@@ -6,10 +6,6 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 )
 
-type JsonResponse struct {
-	Data *Data `json:"data"`
-}
-
 type Data struct {
 	User string `json:"user,omitempty"`
 	Role string `json:"role,omitempty"`
@@ -24,8 +20,8 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		User: r.Header.Get("name"),
 		Role: r.Header.Get("role"),
 	}
-	jsonResponse := JsonResponse{
+	response := api.JsonResponse{
 		Data: &data,
 	}
-	api.OutputJson(w, jsonResponse)
+	response.Output(w)
 }

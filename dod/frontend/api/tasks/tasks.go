@@ -37,8 +37,9 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		info, userID := scheduler.Main.GetTaskStatus(id)
 		infoString := string(info)
 		if infoString != "" {
-			if role != "root" && name != userID {
-				infoString = api.InvalidPerm
+			if !api.IfRoleOrUser(r, "root", userID) {
+				api.OutputInvalidPermission(w)
+				return
 			}
 		} else {
 			infoString = "Task with id " + id + " does not exist."
@@ -65,7 +66,10 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		}
 		data := new(Data)
 		data.Tasks = &tasksList
-		api.OutputJson(w, data)
+		response := api.JsonResponse{
+			Data: &data,
+		}
+		response.Output(w)
 	}
 }
 

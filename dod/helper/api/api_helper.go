@@ -14,6 +14,16 @@ const InvalidPerm string = "Invalid Permission."
 
 const InvalidID string = "Invalid ID."
 
+type JsonResponse struct {
+	Data any `json:"data"`
+}
+
+func (j *JsonResponse) Output(w http.ResponseWriter) {
+	response, _ := json.Marshal(j)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, string(response))
+}
+
 func GetBody(w http.ResponseWriter, r *http.Request, v any) (err error) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -35,8 +45,14 @@ func NewJob(w http.ResponseWriter, newJob *job.Job, userID string) {
 	fmt.Fprintf(w, "Task added with ID: %s", scheduler.Main.Add(newJob, 9999999, userID))
 }
 
-func OutputJson(w http.ResponseWriter, jsonResponse any) {
-	j, _ := json.Marshal(jsonResponse)
-	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprint(w, string(j))
+func OutputInvalidPermission(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusUnauthorized)
+	fmt.Fprint(w, InvalidPerm)
+}
+
+func IfRoleOrUser(r *http.Request, role, user string) bool {
+	if r.Header.Get("role") != role && r.Header.Get("name") != user {
+		return false
+	}
+	return true
 }

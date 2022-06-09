@@ -23,6 +23,10 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+	if !api.IfRoleOrUser(r, "root", newDemo.UserName) {
+		api.OutputInvalidPermission(w)
+		return
+	}
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
@@ -30,29 +34,37 @@ func Post(w http.ResponseWriter, r *http.Request) {
 }
 
 func IdDelete(w http.ResponseWriter, r *http.Request) {
-	demoName, demoNumber := checkID(w, r)
+	userName, demoName, demoNumber := checkID(w, r)
+	if !api.IfRoleOrUser(r, "root", userName) {
+		api.OutputInvalidPermission(w)
+		return
+	}
 	newDemo := job.Demo{
-		Template: demoName[1],
-		UserName: demoName[0],
+		Template: demoName,
+		UserName: userName,
 		Number:   uint(demoNumber),
 		Destroy:  true,
 	}
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob, "placeholder")
+	api.NewJob(w, &newjob, userName)
 }
 
 func IdPut(w http.ResponseWriter, r *http.Request) {
-	demoName, demoNumber := checkID(w, r)
+	userName, demoName, demoNumber := checkID(w, r)
+	if !api.IfRoleOrUser(r, "root", userName) {
+		api.OutputInvalidPermission(w)
+		return
+	}
 	SSR := StartStopRestart{}
 	err := api.GetBody(w, r, &SSR)
 	if err != nil {
 		return
 	}
 	newDemo := job.Demo{
-		Template: demoName[1],
-		UserName: demoName[0],
+		Template: demoName,
+		UserName: userName,
 		Number:   uint(demoNumber),
 	}
 	switch SSR.Task {
@@ -70,19 +82,21 @@ func IdPut(w http.ResponseWriter, r *http.Request) {
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob, "placeholder")
+	api.NewJob(w, &newjob, userName)
 }
 
-func checkID(w http.ResponseWriter, r *http.Request) (demoName []string, demoNumber int) {
+func checkID(w http.ResponseWriter, r *http.Request) (username, demoName string, demoNumber int) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	demoName = strings.Split(id, "_")
-	if len(demoName) < 3 {
+	demoString := strings.Split(id, "_")
+	if len(demoString) != 3 {
 		fmt.Fprintf(w, api.InvalidID)
 	}
-	demoNumber, err := strconv.Atoi(demoName[2])
+	demoNumber, err := strconv.Atoi(demoString[2])
 	if err != nil {
 		fmt.Fprintf(w, api.InvalidID)
 	}
+	username = demoString[0]
+	demoName = demoString[1]
 	return
 }
