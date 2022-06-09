@@ -15,7 +15,7 @@ type DemoLock struct {
 func (d *DemoLock) Lock(ID string, status *taskstatus.Status) {
 	var notFirstRun bool
 	for {
-		IdExists := false
+		var IdExists bool
 		d.Mutex.Lock()
 		if d.DemoID != nil {
 			for _, e := range d.DemoID {
@@ -23,16 +23,19 @@ func (d *DemoLock) Lock(ID string, status *taskstatus.Status) {
 					IdExists = true
 					break
 				}
+			}
+			if !IdExists {
 				d.DemoID = append(d.DemoID, ID)
+				d.Mutex.Unlock()
+				break
 			}
 		} else {
 			d.DemoID = make([]string, 1)
 			d.DemoID[0] = ID
-		}
-		d.Mutex.Unlock()
-		if !IdExists {
+			d.Mutex.Unlock()
 			break
 		}
+		d.Mutex.Unlock()
 		if !notFirstRun {
 			status.AddToInfo("Waiting: Trying to get Lock")
 		}
@@ -53,6 +56,7 @@ func (d *DemoLock) Unlock(ID string) {
 				count++
 			}
 		}
+		d.DemoID = tmpDemoID
 	} else {
 		d.DemoID = nil
 	}
