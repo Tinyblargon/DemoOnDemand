@@ -30,7 +30,7 @@ func HandleRequests(pathPrefix string, port uint) {
 	router.Handle(pathPrefix+"/demos", authMiddleware(demos.GetHandler)).Methods("GET")   //gets the users list of demos
 	router.Handle(pathPrefix+"/demos", authMiddleware(demos.PostHandler)).Methods("POST") //creates a new demo for the user
 
-	router.HandleFunc(pathPrefix+"/demos/{id}", ping.Pong).Methods("GET")                            //gets information of a specific demo of the user
+	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdGetHandler)).Methods("GET")       //gets information of a specific demo of the user
 	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdPutHandler)).Methods("PUT")       //updates information on a specific demo of the user
 	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdDeleteHandler)).Methods("DELETE") //removes a specific demo of the user
 

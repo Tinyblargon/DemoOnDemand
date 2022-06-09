@@ -29,6 +29,10 @@ var PostHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 	Post(w, r)
 })
 
+var IdGetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	IdGet(w, r)
+})
+
 var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	IdDelete(w, r)
 })
@@ -82,6 +86,29 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		Demo: &newDemo,
 	}
 	api.NewJob(w, &newjob, "placeholder")
+}
+
+type IdData struct {
+	Demo *database.Demo `json:"demo"`
+}
+
+func IdGet(w http.ResponseWriter, r *http.Request) {
+	userName, demoName, demoNumber := checkID(w, r)
+	if !api.IfRoleOrUser(r, "root", userName) {
+		api.OutputInvalidPermission(w)
+		return
+	}
+	demo, err := database.GetSpecificDemo(global.DB, userName, demoName, uint(demoNumber))
+	if err != nil {
+		return
+	}
+	data := IdData{
+		Demo: demo,
+	}
+	response := api.JsonResponse{
+		Data: data,
+	}
+	response.Output(w)
 }
 
 func IdDelete(w http.ResponseWriter, r *http.Request) {

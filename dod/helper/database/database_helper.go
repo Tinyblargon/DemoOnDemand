@@ -48,6 +48,23 @@ type Demo struct {
 	Running    bool   `json:"active"`
 }
 
+func GetSpecificDemo(db *sql.DB, userName, demoName string, demoNumber uint) (demo *Demo, err error) {
+	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos" WHERE username=$1 AND demoname=$2 AND demonumber=$3`, userName, demoName, demoNumber)
+	if err != nil {
+		return
+	}
+	demos, err := getDemosFromRows(rows)
+	if err != nil {
+		return
+	}
+	if demos != nil {
+		if (*demos)[0] != nil {
+			demo = (*demos)[0]
+		}
+	}
+	return
+}
+
 func ListDemosOfUser(db *sql.DB, userName string) (*[]*Demo, error) {
 	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos" WHERE username=$1`, userName)
 	if err != nil {
