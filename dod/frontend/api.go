@@ -27,12 +27,12 @@ func HandleRequests(pathPrefix string, port uint) {
 
 	router.HandleFunc(pathPrefix+"/auth", authenticate).Methods("POST") //Authenticates the user
 
-	router.HandleFunc(pathPrefix+"/demos", ping.Pong).Methods("GET")   //gets the users list of demos
-	router.HandleFunc(pathPrefix+"/demos", demos.Post).Methods("POST") //creates a new demo for the user
+	router.HandleFunc(pathPrefix+"/demos", ping.Pong).Methods("GET")                      //gets the users list of demos
+	router.Handle(pathPrefix+"/demos", authMiddleware(demos.PostHandler)).Methods("POST") //creates a new demo for the user
 
-	router.HandleFunc(pathPrefix+"/demos/{id}", ping.Pong).Methods("GET")         //gets information of a specific demo of the user
-	router.HandleFunc(pathPrefix+"/demos/{id}", demos.IdPut).Methods("PUT")       //updates information on a specific demo of the user
-	router.HandleFunc(pathPrefix+"/demos/{id}", demos.IdDelete).Methods("DELETE") //removes a specific demo of the user
+	router.HandleFunc(pathPrefix+"/demos/{id}", ping.Pong).Methods("GET")                            //gets information of a specific demo of the user
+	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdPutHandler)).Methods("PUT")       //updates information on a specific demo of the user
+	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdDeleteHandler)).Methods("DELETE") //removes a specific demo of the user
 
 	router.HandleFunc(pathPrefix+"/login", ping.Pong).Methods("PUT") //returns a session token
 

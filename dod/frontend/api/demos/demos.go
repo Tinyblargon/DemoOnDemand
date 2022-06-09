@@ -15,6 +15,18 @@ type StartStopRestart struct {
 	Task string `json:"task"`
 }
 
+var PostHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	Post(w, r)
+})
+
+var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	IdDelete(w, r)
+})
+
+var IdPutHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	IdPut(w, r)
+})
+
 func Post(w http.ResponseWriter, r *http.Request) {
 	newDemo := job.Demo{
 		Create: true,
