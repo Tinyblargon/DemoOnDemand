@@ -53,7 +53,7 @@ func ListDemosOfUser(db *sql.DB, userName string) (*[]*Demo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return GetDemosFromRows(rows)
+	return getDemosFromRows(rows)
 }
 
 func ListAllDemos(db *sql.DB) (*[]*Demo, error) {
@@ -61,10 +61,10 @@ func ListAllDemos(db *sql.DB) (*[]*Demo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return GetDemosFromRows(rows)
+	return getDemosFromRows(rows)
 }
 
-func GetDemosFromRows(rows *sql.Rows) (*[]*Demo, error) {
+func getDemosFromRows(rows *sql.Rows) (*[]*Demo, error) {
 	demos := make([]*Demo, 0)
 	for rows.Next() {
 		demo := new(Demo)
