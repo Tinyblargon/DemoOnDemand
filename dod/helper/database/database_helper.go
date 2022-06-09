@@ -41,12 +41,12 @@ type DemosOfUser struct {
 }
 
 func NumberOfDomosOfUser(db *sql.DB, userName string) (numberOfDemos uint, err error) {
-	array, err := ListDomosOfUser(db, userName)
+	array, err := ListDemosOfUser(db, userName)
 	numberOfDemos = uint(len(array))
 	return
 }
 
-func ListDomosOfUser(db *sql.DB, userName string) (array []*DemosOfUser, err error) {
+func ListDemosOfUser(db *sql.DB, userName string) (array []*DemosOfUser, err error) {
 	rows, err := db.Query(`SELECT "username","demoname","demonumber" FROM "runningdemos" WHERE username=$1`, userName)
 	if err != nil {
 		return
