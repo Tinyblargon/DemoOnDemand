@@ -85,7 +85,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob, "placeholder")
+	api.NewJob(w, &newjob, newDemo.UserName)
 }
 
 type IdData struct {

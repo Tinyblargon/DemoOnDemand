@@ -41,8 +41,8 @@ func ReadingBodyFailed(w http.ResponseWriter, err error) {
 	fmt.Fprintf(w, "Reading body failed: %s", err)
 }
 
-func NewJob(w http.ResponseWriter, newJob *job.Job, userID string) {
-	fmt.Fprintf(w, "Task added with ID: %s", scheduler.Main.Add(newJob, 9999999, userID))
+func NewJob(w http.ResponseWriter, newJob *job.Job, jobOwner string) {
+	fmt.Fprintf(w, "Task added with ID: %s", scheduler.Main.Add(newJob, 9999999, jobOwner))
 }
 
 func OutputInvalidPermission(w http.ResponseWriter) {
