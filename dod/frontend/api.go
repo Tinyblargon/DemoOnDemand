@@ -27,7 +27,7 @@ func HandleRequests(pathPrefix string, port uint) {
 
 	router.HandleFunc(pathPrefix+"/auth", authenticate).Methods("POST") //Authenticates the user
 
-	router.HandleFunc(pathPrefix+"/demos", ping.Pong).Methods("GET")                      //gets the users list of demos
+	router.Handle(pathPrefix+"/demos", authMiddleware(demos.GetHandler)).Methods("GET")   //gets the users list of demos
 	router.Handle(pathPrefix+"/demos", authMiddleware(demos.PostHandler)).Methods("POST") //creates a new demo for the user
 
 	router.HandleFunc(pathPrefix+"/demos/{id}", ping.Pong).Methods("GET")                            //gets information of a specific demo of the user

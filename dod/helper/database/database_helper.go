@@ -35,35 +35,44 @@ func UpdateDemoOfUser(db *sql.DB, userName, demoName string, demoNumber uint, ru
 	return
 }
 
-type DemosOfUser struct {
-	DemoName   string
-	DemoNumber uint
-}
-
 func NumberOfDomosOfUser(db *sql.DB, userName string) (numberOfDemos uint, err error) {
 	array, err := ListDemosOfUser(db, userName)
-	numberOfDemos = uint(len(array))
+	numberOfDemos = uint(len(*array))
 	return
 }
 
-func ListDemosOfUser(db *sql.DB, userName string) (array []*DemosOfUser, err error) {
-	rows, err := db.Query(`SELECT "username","demoname","demonumber" FROM "runningdemos" WHERE username=$1`, userName)
+type Demo struct {
+	UserName   string `json:"user"`
+	DemoName   string `json:"demo"`
+	DemoNumber uint   `json:"demonumber"`
+	Running    bool   `json:"active"`
+}
+
+func ListDemosOfUser(db *sql.DB, userName string) (*[]*Demo, error) {
+	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos" WHERE username=$1`, userName)
 	if err != nil {
-		return
+		return nil, err
 	}
-	array = make([]*DemosOfUser, 0)
+	return GetDemosFromRows(rows)
+}
+
+func ListAllDemos(db *sql.DB) (*[]*Demo, error) {
+	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos"`)
+	if err != nil {
+		return nil, err
+	}
+	return GetDemosFromRows(rows)
+}
+
+func GetDemosFromRows(rows *sql.Rows) (*[]*Demo, error) {
+	demos := make([]*Demo, 0)
 	for rows.Next() {
-		child := new(DemosOfUser)
-		var userName string
-		var demoName string
-		var demoNumber uint
-		err = rows.Scan(&userName, &demoName, &demoNumber)
+		demo := new(Demo)
+		err := rows.Scan(&demo.UserName, &demo.DemoName, &demo.DemoNumber, &demo.Running)
 		if err != nil {
-			return
+			return nil, err
 		}
-		child.DemoName = demoName
-		child.DemoNumber = demoNumber
-		array = append(array, child)
+		demos = append(demos, demo)
 	}
-	return
+	return &demos, nil
 }

@@ -6,7 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 	"github.com/gorilla/mux"
 )
@@ -14,6 +16,14 @@ import (
 type StartStopRestart struct {
 	Task string `json:"task"`
 }
+
+type Data struct {
+	Demos *[]*database.Demo `json:"demos"`
+}
+
+var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	Get(w, r)
+})
 
 var PostHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	Post(w, r)
@@ -26,6 +36,35 @@ var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Reque
 var IdPutHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	IdPut(w, r)
 })
+
+func Get(w http.ResponseWriter, r *http.Request) {
+	var demos *[]*database.Demo
+	if r.Header.Get("role") == "root" {
+		// demos = new(database.Demos)
+		var err error
+		demos, err = database.ListAllDemos(global.DB)
+		if err != nil {
+			// TODO
+			// Log error to file
+			return
+		}
+	} else {
+		var err error
+		demos, err = database.ListDemosOfUser(global.DB, r.Header.Get("name"))
+		if err != nil {
+			// TODO
+			// Log error to file
+			return
+		}
+	}
+	data := Data{
+		Demos: demos,
+	}
+	response := api.JsonResponse{
+		Data: data,
+	}
+	response.Output(w)
+}
 
 func Post(w http.ResponseWriter, r *http.Request) {
 	newDemo := job.Demo{
