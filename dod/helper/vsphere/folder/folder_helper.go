@@ -44,7 +44,7 @@ func ReadFileSystem(client *govmomi.Client, DataCenter, Path string) (*FileSyste
 	if err != nil {
 		return nil, err
 	}
-	fileSystem.Subitems, err = fileSystem.RecursiveRead(client)
+	fileSystem.Subitems, err = fileSystem.recursiveRead(client)
 	if err != nil {
 		return nil, err
 	}
@@ -63,12 +63,12 @@ func (fileSystem *FileSystemItem) Create(client *govmomi.Client, DataCenter, bas
 			return
 		}
 	}
-	err = fileSystem.RecursiveCreate(client, DataCenter, basefolder, vmTemplate, clusterProp, status)
+	err = fileSystem.recursiveCreate(client, DataCenter, basefolder, vmTemplate, clusterProp, status)
 	return
 }
 
 // this function recursivly calls itself to create all items found in parent at a the location of basefolder
-func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter, basefolder string, vmTemplate bool, clusterProp *mo.ClusterComputeResource, status *taskstatus.Status) (err error) {
+func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, DataCenter, basefolder string, vmTemplate bool, clusterProp *mo.ClusterComputeResource, status *taskstatus.Status) (err error) {
 	// this can be more parallelized but would require rewriting, look at the DeleteObjects function
 	if parent.Subitems == nil {
 		return
@@ -81,7 +81,7 @@ func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter
 			if err != nil {
 				break
 			}
-			err = e.RecursiveCreate(client, DataCenter, newBaseFolder, vmTemplate, clusterProp, status)
+			err = e.recursiveCreate(client, DataCenter, newBaseFolder, vmTemplate, clusterProp, status)
 		}
 		if e.VirtualMachine != nil {
 			vmCounter += 1
@@ -134,7 +134,7 @@ func (parent *FileSystemItem) RecursiveCreate(client *govmomi.Client, DataCenter
 }
 
 // ReadFileSystem Wil recursivly get all items in the subfolder
-func (parent *FileSystemItem) RecursiveRead(client *govmomi.Client) ([]*FileSystemItem, error) {
+func (parent *FileSystemItem) recursiveRead(client *govmomi.Client) ([]*FileSystemItem, error) {
 	ob, err := parent.Folder.Children(context.Background())
 	SubItems := len(ob)
 	if SubItems == 0 {
@@ -152,7 +152,7 @@ func (parent *FileSystemItem) RecursiveRead(client *govmomi.Client) ([]*FileSyst
 			}
 			array[i].Folder = subOb
 			array[i].Name = path.Base(subOb.InventoryPath)
-			obList, err := array[i].RecursiveRead(client)
+			obList, err := array[i].recursiveRead(client)
 			array[i].Subitems = obList
 		case "VirtualMachine":
 			subOb, err := virtualmachine.FromID(client, e.Reference().Value)
@@ -261,71 +261,42 @@ func Delete(client *govmomi.Client, DataCenter, Path string, status *taskstatus.
 
 // Restarts all the virtualmachines in the folder and subfolders
 func ReStart(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) (err error) {
-
-	folder, err := Get(client, DataCenter, Path)
+	vmObjects, err := GetVmObjectsFromPath(client, DataCenter, Path)
 	if err != nil {
 		return
 	}
-
-	childrenExist, err := HasChildren(folder)
-	if err != nil {
-		return
-	}
-	if childrenExist {
-		fileSystem, err := ReadFileSystem(client, DataCenter, Path)
+	if len(vmObjects) != 0 {
+		err = virtualmachine.StopObjects(vmObjects, global.Concurency, status)
 		if err != nil {
-			return err
+			return
 		}
-		vmObjects := fileSystem.GetVmObjects()
-		virtualmachine.StopObjects(vmObjects, global.Concurency, status)
-		virtualmachine.StartObjects(vmObjects, global.Concurency, status)
+		err = virtualmachine.StartObjects(vmObjects, global.Concurency, status)
 	}
 	return
 }
 
 // Starts all the virtualmachines in the folder and subfolders
 func Start(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) (err error) {
-
-	folder, err := Get(client, DataCenter, Path)
+	vmObjects, err := GetVmObjectsFromPath(client, DataCenter, Path)
 	if err != nil {
 		return
 	}
-
-	childrenExist, err := HasChildren(folder)
-	if err != nil {
-		return
-	}
-	if childrenExist {
-		fileSystem, err := ReadFileSystem(client, DataCenter, Path)
-		if err != nil {
-			return err
-		}
-		err = virtualmachine.StartObjects(fileSystem.GetVmObjects(), global.Concurency, status)
-		return err
+	if len(vmObjects) != 0 {
+		err = virtualmachine.StartObjects(vmObjects, global.Concurency, status)
 	}
 	return
 }
 
 // Stops all the virtualmachines in the folder and subfolders
-func Stop(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) error {
-
-	folder, err := Get(client, DataCenter, Path)
+func Stop(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) (err error) {
+	vmObjects, err := GetVmObjectsFromPath(client, DataCenter, Path)
 	if err != nil {
-		return fmt.Errorf("cannot locate folder: %s", err)
+		return
 	}
-
-	childrenExist, err := HasChildren(folder)
-	if err != nil {
-		return fmt.Errorf("error checking for folder contents: %s", err)
+	if len(vmObjects) != 0 {
+		err = virtualmachine.StopObjects(vmObjects, global.Concurency, status)
 	}
-	if childrenExist {
-		fileSystem, err := ReadFileSystem(client, DataCenter, Path)
-		if err != nil {
-			return err
-		}
-		virtualmachine.StopObjects(fileSystem.GetVmObjects(), global.Concurency, status)
-	}
-	return nil
+	return
 }
 
 // CreateFolder Creates the full folder path spaeciefied
@@ -464,4 +435,25 @@ func FromID(client *govmomi.Client, id string) (*object.Folder, error) {
 		return nil, err
 	}
 	return folder.(*object.Folder), nil
+}
+
+func GetVmObjectsFromPath(client *govmomi.Client, DataCenter, Path string) (vmObjects []*object.VirtualMachine, err error) {
+	folder, err := Get(client, DataCenter, Path)
+	if err != nil {
+		return
+	}
+
+	childrenExist, err := HasChildren(folder)
+	if err != nil {
+		return
+	}
+	if childrenExist {
+		var fileSystem *FileSystemItem
+		fileSystem, err = ReadFileSystem(client, DataCenter, Path)
+		if err != nil {
+			return
+		}
+		vmObjects = fileSystem.GetVmObjects()
+	}
+	return
 }
