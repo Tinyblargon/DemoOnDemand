@@ -5,6 +5,7 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/gorilla/mux"
 )
 
@@ -25,9 +26,11 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		// Log the error to error log
 	}
 	if id != "" {
-		for _, e := range templates {
-			if e == id {
-				templateConfig, err = demo.GetTemplate(e)
+		if !util.IsStringUnique(&templates, id) {
+			templateConfig, err = demo.GetTemplate(id)
+			if err != nil {
+				// TODO
+				// Log the error to error log
 			}
 		}
 	} else {

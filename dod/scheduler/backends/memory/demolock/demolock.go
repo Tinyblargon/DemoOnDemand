@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 )
 
 type DemoLock struct {
@@ -15,16 +16,9 @@ type DemoLock struct {
 func (d *DemoLock) Lock(ID string, status *taskstatus.Status) {
 	var notFirstRun bool
 	for {
-		var IdExists bool
 		d.Mutex.Lock()
 		if d.DemoID != nil {
-			for _, e := range d.DemoID {
-				if e == ID {
-					IdExists = true
-					break
-				}
-			}
-			if !IdExists {
+			if util.IsStringUnique(&d.DemoID, ID) {
 				d.DemoID = append(d.DemoID, ID)
 				d.Mutex.Unlock()
 				break
