@@ -130,8 +130,8 @@ func ListTemplates() (files []string, err error) {
 	return file.ReadDir(global.ConfigFolder)
 }
 
-func GetTemplate(templeteName string) (templateConfig *DemoConfig, err error) {
-	contents, err := file.Read(global.ConfigFolder + "/" + templeteName)
+func GetTemplate(templateName string) (templateConfig *DemoConfig, err error) {
+	contents, err := file.Read(global.ConfigFolder + "/" + templateName)
 	if err != nil {
 		return
 	}
