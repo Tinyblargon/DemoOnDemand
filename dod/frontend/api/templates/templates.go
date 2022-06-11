@@ -14,6 +14,10 @@ type Data struct {
 	Templates      *[]string        `json:"templates,omitempty"`
 }
 
+var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	Get(w, r)
+})
+
 func Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
