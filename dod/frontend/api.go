@@ -43,6 +43,8 @@ func HandleRequests(pathPrefix string, port uint) {
 
 	router.HandleFunc(pathPrefix+"/ping", ping.Pong).Methods("GET") //check if the application is still running
 
+	router.HandleFunc(pathPrefix+"/renew", ping.Pong).Methods("POST") //Returns a new session token. This is used to extend the session.
+
 	router.Handle(pathPrefix+"/tasks", authMiddleware(tasks.GetHandler)).Methods("GET") //returns the list of all enden,running and queued tasks
 
 	router.Handle(pathPrefix+"/tasks/{id}", authMiddleware(tasks.GetHandler)).Methods("GET") //returns the status of the specified task
