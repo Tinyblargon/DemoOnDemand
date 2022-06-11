@@ -54,6 +54,7 @@ func HandleRequests(pathPrefix string, port uint) {
 
 	router.Handle(pathPrefix+"/templates/{id}", authMiddleware(templates.GetHandler)).Methods("GET") //gets the settings of a template
 	router.HandleFunc(pathPrefix+"/templates/{id}", ping.Pong).Methods("PUT")                        //updates the settings of a template
+	router.HandleFunc(pathPrefix+"/templates/{id}", ping.Pong).Methods("DELETE")                     //deletes a template
 
 	// TODO
 	// This should log to a file instead of os.Stdout
