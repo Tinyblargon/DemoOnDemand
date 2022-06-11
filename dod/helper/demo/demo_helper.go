@@ -9,6 +9,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/vmware/govmomi"
@@ -136,5 +137,31 @@ func GetTemplate(templateName string) (templateConfig *DemoConfig, err error) {
 		return
 	}
 	err = yaml.Unmarshal(contents, &templateConfig)
+	return
+}
+
+// Get the current properties like VLANS of a new demo you would like to import.
+func GetImportProperties(client *govmomi.Client, dataCenter, folderContainingNewTemplate string) (networks []string, err error) {
+	networks = make([]string, 0)
+	status := new(taskstatus.Status)
+	vmObjects, err := folder.GetVmObjectsFromPath(client, dataCenter, folderContainingNewTemplate)
+	if err != nil {
+		return
+	}
+	if len(vmObjects) == 0 {
+		return
+	}
+	for _, e := range vmObjects {
+		var vmNetworks []string
+		vmNetworks, err = virtualmachine.GetNetworks(e, status)
+		if err != nil {
+			return
+		}
+		for _, networkID := range vmNetworks {
+			if util.IsStringUnique(&networks, networkID) {
+				networks = append(networks, networkID)
+			}
+		}
+	}
 	return
 }

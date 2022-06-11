@@ -260,3 +260,18 @@ func decideMinimumTreads(numberOfObjects, concurrency uint) uint {
 	}
 	return concurrency
 }
+
+// Returns the networks of the vmObject
+func GetNetworks(vmObject *object.VirtualMachine, status *taskstatus.Status) (networks []string, err error) {
+	networks = make([]string, 0)
+	var vmProperties *mo.VirtualMachine
+	vmProperties, err = Properties(vmObject, status)
+	if err != nil {
+		return
+	}
+	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device), status)
+	for _, e := range *networkInterfaces {
+		networks = append(networks, e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().VirtualDevice.DeviceInfo.GetDescription().Summary)
+	}
+	return
+}

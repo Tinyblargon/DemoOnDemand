@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/demos"
+	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/networks"
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/permissions"
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/ping"
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/tasks"
@@ -38,7 +39,7 @@ func HandleRequests(pathPrefix string, port uint) {
 
 	router.HandleFunc(pathPrefix+"/logout", ping.Pong).Methods("PUT") //revokes the users session token
 
-	router.HandleFunc(pathPrefix+"/networks", ping.Pong).Methods("POST") //lists all the networks of vms in a folder and subfolders
+	router.Handle(pathPrefix+"/networks", authMiddleware(networks.PostHandler)).Methods("POST") //lists all the networks of vms in a folder and subfolders
 
 	router.Handle(pathPrefix+"/permissions", authMiddleware(permissions.GetHandler)).Methods("GET") //returns the users permissions
 

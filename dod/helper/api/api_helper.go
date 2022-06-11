@@ -56,3 +56,13 @@ func IfRoleOrUser(r *http.Request, role, user string) bool {
 	}
 	return true
 }
+
+func IfRole(r *http.Request, roles []string) bool {
+	role := r.Header.Get("role")
+	for _, e := range roles {
+		if e == role {
+			return true
+		}
+	}
+	return false
+}
