@@ -26,7 +26,7 @@ type Post struct {
 func HandleRequests(pathPrefix string, port uint) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc(pathPrefix+"/auth", authenticate).Methods("POST") //Authenticates the user
+	router.HandleFunc(pathPrefix+"/auth", authenticate).Methods("POST") //Authenticates the user/returns a session token
 
 	router.Handle(pathPrefix+"/demos", authMiddleware(demos.GetHandler)).Methods("GET")   //gets the users list of demos
 	router.Handle(pathPrefix+"/demos", authMiddleware(demos.PostHandler)).Methods("POST") //creates a new demo for the user
@@ -34,8 +34,6 @@ func HandleRequests(pathPrefix string, port uint) {
 	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdGetHandler)).Methods("GET")       //gets information of a specific demo of the user
 	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdPutHandler)).Methods("PUT")       //updates information on a specific demo of the user
 	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdDeleteHandler)).Methods("DELETE") //removes a specific demo of the user
-
-	router.HandleFunc(pathPrefix+"/login", ping.Pong).Methods("PUT") //returns a session token
 
 	router.HandleFunc(pathPrefix+"/logout", ping.Pong).Methods("PUT") //revokes the users session token
 
