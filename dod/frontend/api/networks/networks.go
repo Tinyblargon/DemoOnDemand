@@ -27,8 +27,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	input := Input{}
-	err := api.GetBody(w, r, &input)
+	err := api.GetBody(r, &input)
 	if err != nil {
+		api.OutputUserInputError(w, err.Error())
 		return
 	}
 	c, err := session.New(*global.VMwareConfig)

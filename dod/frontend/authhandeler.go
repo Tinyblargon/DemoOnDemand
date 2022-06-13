@@ -14,8 +14,9 @@ type Auth struct {
 
 func authenticate(w http.ResponseWriter, r *http.Request) {
 	auth := Auth{}
-	err := api.GetBody(w, r, &auth)
+	err := api.GetBody(r, &auth)
 	if err != nil {
+		api.OutputUserInputError(w, err.Error())
 		return
 	}
 

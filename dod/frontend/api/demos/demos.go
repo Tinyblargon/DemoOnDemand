@@ -1,7 +1,6 @@
 package demos
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -74,8 +73,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	newDemo := job.Demo{
 		Create: true,
 	}
-	err := api.GetBody(w, r, &newDemo)
+	err := api.GetBody(r, &newDemo)
 	if err != nil {
+		api.OutputUserInputError(w, err.Error())
 		return
 	}
 	if !api.IfRoleOrUser(r, "root", newDemo.UserName) {
@@ -100,6 +100,8 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 	}
 	demo, err := database.GetSpecificDemo(global.DB, userName, demoName, uint(demoNumber))
 	if err != nil {
+		// TODO
+		// Log to disk
 		return
 	}
 	data := IdData{
@@ -136,8 +138,9 @@ func IdPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	SSR := StartStopRestart{}
-	err := api.GetBody(w, r, &SSR)
+	err := api.GetBody(r, &SSR)
 	if err != nil {
+		api.OutputUserInputError(w, err.Error())
 		return
 	}
 	newDemo := job.Demo{
@@ -154,7 +157,7 @@ func IdPut(w http.ResponseWriter, r *http.Request) {
 		newDemo.Start = true
 		newDemo.Stop = true
 	default:
-		fmt.Fprint(w, "Key task shoud be (Start|Stop|Restart)")
+		api.OutputUserInputError(w, "Key task shoud be (Start|Stop|Restart)")
 		return
 	}
 	newjob := job.Job{
@@ -168,11 +171,13 @@ func checkID(w http.ResponseWriter, r *http.Request) (username, demoName string,
 	id := vars["id"]
 	demoString := strings.Split(id, "_")
 	if len(demoString) != 3 {
-		fmt.Fprintf(w, api.InvalidID)
+		api.OutputInvalidID(w)
+		return
 	}
 	demoNumber, err := strconv.Atoi(demoString[2])
 	if err != nil {
-		fmt.Fprintf(w, api.InvalidID)
+		api.OutputInvalidID(w)
+		return
 	}
 	username = demoString[0]
 	demoName = demoString[1]

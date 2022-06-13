@@ -24,17 +24,16 @@ func (j *JsonResponse) Output(w http.ResponseWriter) {
 	fmt.Fprint(w, string(response))
 }
 
-func GetBody(w http.ResponseWriter, r *http.Request, v any) (err error) {
+func GetBody(r *http.Request, v any) error {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Fprintf(w, "Reading body failed: %s", err)
-		return
+		return fmt.Errorf("reading body failed: %s", err)
 	}
 	err = json.Unmarshal(body, v)
 	if err != nil {
-		fmt.Fprintf(w, "Invalid json: %s", err)
+		return fmt.Errorf("invalid json: %s", err)
 	}
-	return
+	return nil
 }
 
 func ReadingBodyFailed(w http.ResponseWriter, err error) {
@@ -48,6 +47,16 @@ func NewJob(w http.ResponseWriter, newJob *job.Job, jobOwner string) {
 func OutputInvalidPermission(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusUnauthorized)
 	fmt.Fprint(w, InvalidPerm)
+}
+
+func OutputInvalidID(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusBadRequest)
+	fmt.Fprint(w, InvalidID)
+}
+
+func OutputUserInputError(w http.ResponseWriter, error string) {
+	w.WriteHeader(http.StatusBadRequest)
+	fmt.Fprint(w, error)
 }
 
 func IfRoleOrUser(r *http.Request, role, user string) bool {
