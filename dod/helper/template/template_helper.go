@@ -16,23 +16,23 @@ import (
 )
 
 type PortForward struct {
-	SourcePort      uint   `json:"sourceport"`
-	DestinationPort uint   `json:"destinationport,omitempty"`
-	DestinationIP   string `json:"destinationip"`
-	Protocol        string `json:"protocol,omitempty"`
+	SourcePort      uint   `json:"sourceport" yaml:"sourceport"`
+	DestinationPort uint   `json:"destinationport,omitempty" yaml:"destinationport,omitempty"`
+	DestinationIP   string `json:"destinationip" yaml:"destinationip"`
+	Protocol        string `json:"protocol,omitempty" yaml:"protocol,omitempty"`
 }
 
 type Network struct {
-	Name   string `json:"name"`
-	Subnet string `json:"subnet"`
+	Name   string `json:"name" yaml:"name"`
+	Subnet string `json:"subnet" yaml:"subnet"`
 }
 
 type Config struct {
-	Name         string         `json:"name,omitempty"`
-	Description  string         `json:"description,omitempty"`
-	Path         string         `json:"path,omitempty"`
-	PortForwards []*PortForward `json:"portforwards"`
-	Networks     []*Network     `json:"networks"`
+	Name         string         `json:"name,omitempty" yaml:"name,omitempty"`
+	Description  string         `json:"description,omitempty" yaml:"description"`
+	Path         string         `json:"path,omitempty" yaml:"path,omitempty"`
+	PortForwards []*PortForward `json:"portforwards" yaml:"portforwards"`
+	Networks     []*Network     `json:"networks" yaml:"networks"`
 }
 
 func Get(templateName string) (templateConfig *Config, err error) {
@@ -63,8 +63,7 @@ func (c *Config) Import(client *govmomi.Client, dataCenter, pool string, status 
 	if err != nil {
 		return
 	}
-	data, _ := yaml.Marshal(c)
-	return file.Write(filePath, data)
+	return c.WriteToFile(filePath)
 }
 
 func (c *Config) Defaults() {
@@ -104,6 +103,13 @@ func (c *Config) Validate(nameAndPathEmpty bool) (err error) {
 		}
 	}
 	return err
+}
+
+func (c *Config) WriteToFile(filePath string) error {
+	c.Name = ""
+	c.Path = ""
+	data, _ := yaml.Marshal(c)
+	return file.Write(filePath, data)
 }
 
 func (c *Config) ValidatePortforwards() (err error) {
