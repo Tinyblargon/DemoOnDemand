@@ -14,19 +14,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/vim25/types"
-	"gopkg.in/yaml.v3"
 )
-
-type PortForward struct {
-	SourcePort      uint
-	DestinationPort uint
-	DestinationIP   string
-}
-
-type DemoConfig struct {
-	Description  string
-	PortForwards []*PortForward
-}
 
 func Start(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName string, demoNumber uint, status *taskstatus.Status) (err error) {
 	err = folder.Start(client, dataCenter, CreateDemoURl(demoName, userName, demoNumber)+"/Demo", status)
@@ -42,17 +30,6 @@ func Stop(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName str
 		return
 	}
 	return database.UpdateDemoOfUser(db, userName, demoName, demoNumber, false)
-}
-
-// Imports a new demo from the speciefid folder
-func Import(client *govmomi.Client, dataCenter, path, name, pool string, config *DemoConfig, status *taskstatus.Status) (err error) {
-	filePath := global.ConfigFolder + "/" + name
-	err = folder.Clone(client, dataCenter, path, global.TemplateFodler+"/"+name, pool, true, status)
-	if err != nil {
-		return
-	}
-	data, _ := yaml.Marshal(&config)
-	return file.Write(filePath, data)
 }
 
 func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName, pool string, demoNumber, demoLimit uint, status *taskstatus.Status) (err error) {
@@ -129,15 +106,6 @@ func DestroyTemplate(client *govmomi.Client, dataCenter, TempalateName string, s
 
 func ListTemplates() (files []string, err error) {
 	return file.ReadDir(global.ConfigFolder)
-}
-
-func GetTemplate(templateName string) (templateConfig *DemoConfig, err error) {
-	contents, err := file.Read(global.ConfigFolder + "/" + templateName)
-	if err != nil {
-		return
-	}
-	err = yaml.Unmarshal(contents, &templateConfig)
-	return
 }
 
 // Get the current properties like VLANS of a new demo you would like to import.

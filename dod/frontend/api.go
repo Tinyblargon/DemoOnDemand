@@ -49,8 +49,8 @@ func HandleRequests(pathPrefix string, port uint) {
 
 	router.Handle(pathPrefix+"/tasks/{id}", authMiddleware(tasks.GetHandler)).Methods("GET") //returns the status of the specified task
 
-	router.Handle(pathPrefix+"/templates", authMiddleware(templates.GetHandler)).Methods("GET") //returns a list of all availible templates
-	router.HandleFunc(pathPrefix+"/templates", ping.Pong).Methods("POST")                       //imports a new template from vmware, and returns a task ID
+	router.Handle(pathPrefix+"/templates", authMiddleware(templates.GetHandler)).Methods("GET")   //returns a list of all availible templates
+	router.Handle(pathPrefix+"/templates", authMiddleware(templates.PostHandler)).Methods("POST") //imports a new template from vmware, and returns a task ID
 
 	router.Handle(pathPrefix+"/templates/{id}", authMiddleware(templates.GetHandler)).Methods("GET") //gets the settings of a template
 	router.HandleFunc(pathPrefix+"/templates/{id}", ping.Pong).Methods("PUT")                        //updates the settings of a template
