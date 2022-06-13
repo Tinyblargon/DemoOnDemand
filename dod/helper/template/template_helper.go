@@ -44,6 +44,18 @@ func Get(templateName string) (templateConfig *Config, err error) {
 	return
 }
 
+func Destroy(client *govmomi.Client, dataCenter, TempalateName string, status *taskstatus.Status) error {
+	err := folder.Delete(client, dataCenter, global.TemplateFodler+"/"+TempalateName, status)
+	if err != nil {
+		return err
+	}
+	return file.Delete(global.ConfigFolder + "/" + TempalateName)
+}
+
+func List() (files []string, err error) {
+	return file.ReadDir(global.ConfigFolder)
+}
+
 // Imports a new demo from the speciefid folder
 func (c *Config) Import(client *govmomi.Client, dataCenter, pool string, status *taskstatus.Status) (err error) {
 	filePath := global.ConfigFolder + "/" + c.Name

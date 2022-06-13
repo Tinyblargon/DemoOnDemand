@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
@@ -28,7 +27,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	templates, err := demo.ListTemplates()
+	templates, err := template.List()
 	var templateConfig *template.Config
 	var templateList *[]string
 	if err != nil {

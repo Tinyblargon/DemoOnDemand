@@ -7,7 +7,6 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
@@ -94,18 +93,6 @@ func Delete(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName s
 		return
 	}
 	return database.DeleteDemoOfUser(db, userName, demoName, demoNumber)
-}
-
-func DestroyTemplate(client *govmomi.Client, dataCenter, TempalateName string, status *taskstatus.Status) error {
-	err := folder.Delete(client, dataCenter, global.TemplateFodler+"/"+TempalateName, status)
-	if err != nil {
-		return err
-	}
-	return file.Delete(global.ConfigFolder + "/" + TempalateName)
-}
-
-func ListTemplates() (files []string, err error) {
-	return file.ReadDir(global.ConfigFolder)
 }
 
 // Get the current properties like VLANS of a new demo you would like to import.
