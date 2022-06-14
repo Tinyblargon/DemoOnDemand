@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
@@ -44,10 +45,17 @@ func Get(templateName string) (templateConfig *Config, err error) {
 	return
 }
 
-func Destroy(client *govmomi.Client, dataCenter, TempalateName string, status *taskstatus.Status) error {
-	err := folder.Delete(client, dataCenter, global.TemplateFodler+"/"+TempalateName, status)
+func Destroy(client *govmomi.Client, dataCenter, TempalateName string, status *taskstatus.Status) (err error) {
+	inUse, err := database.CheckTemplateInUse(global.DB, TempalateName)
 	if err != nil {
-		return err
+		return
+	}
+	if inUse {
+		return fmt.Errorf("unable to remove template, template is in use")
+	}
+	err = folder.Delete(client, dataCenter, global.TemplateFodler+"/"+TempalateName, status)
+	if err != nil {
+		return
 	}
 	return file.Delete(global.ConfigFolder + "/" + TempalateName)
 }

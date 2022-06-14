@@ -94,6 +94,10 @@ func Post(w http.ResponseWriter, r *http.Request) {
 func IdDelete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
+	if !api.IfRole(r, []string{"admin", "root"}) {
+		api.OutputInvalidPermission(w)
+		return
+	}
 	if !file.CheckExistance(global.ConfigFolder + "/" + id) {
 		api.OutputInvalidID(w)
 		return

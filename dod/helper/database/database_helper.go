@@ -93,3 +93,21 @@ func getDemosFromRows(rows *sql.Rows) (*[]*Demo, error) {
 	}
 	return &demos, nil
 }
+
+func CheckTemplateInUse(db *sql.DB, demoName string) (inUse bool, err error) {
+	rows, err := db.Query(`SELECT "demoname" FROM "runningdemos" WHERE demoname=$1`, demoName)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		var tmp string
+		err = rows.Scan(&tmp)
+		if err != nil {
+			break
+		}
+		inUse = true
+		break
+	}
+	rows.Close()
+	return
+}
