@@ -3,7 +3,9 @@ package templates
 import (
 	"net/http"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
@@ -21,6 +23,10 @@ var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 var PostHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	Post(w, r)
+})
+
+var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	IdDelete(w, r)
 })
 
 func Get(w http.ResponseWriter, r *http.Request) {
@@ -78,6 +84,26 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	newTemplate := job.Template{
 		Config: newConfig,
 		Import: true,
+	}
+	newjob := job.Job{
+		Template: &newTemplate,
+	}
+	api.NewJob(w, &newjob, r.Header.Get("name"))
+}
+
+func IdDelete(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	if !file.CheckExistance(global.ConfigFolder + "/" + id) {
+		api.OutputInvalidID(w)
+		return
+	}
+	newConfig := template.Config{
+		Name: id,
+	}
+	newTemplate := job.Template{
+		Config:  newConfig,
+		Destroy: true,
 	}
 	newjob := job.Job{
 		Template: &newTemplate,

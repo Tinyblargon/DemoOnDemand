@@ -52,9 +52,9 @@ func HandleRequests(pathPrefix string, port uint) {
 	router.Handle(pathPrefix+"/templates", authMiddleware(templates.GetHandler)).Methods("GET")   //returns a list of all availible templates
 	router.Handle(pathPrefix+"/templates", authMiddleware(templates.PostHandler)).Methods("POST") //imports a new template from vmware, and returns a task ID
 
-	router.Handle(pathPrefix+"/templates/{id}", authMiddleware(templates.GetHandler)).Methods("GET") //gets the settings of a template
-	router.HandleFunc(pathPrefix+"/templates/{id}", ping.Pong).Methods("PUT")                        //updates the settings of a template
-	router.HandleFunc(pathPrefix+"/templates/{id}", ping.Pong).Methods("DELETE")                     //deletes a template
+	router.Handle(pathPrefix+"/templates/{id}", authMiddleware(templates.GetHandler)).Methods("GET")         //gets the settings of a template
+	router.HandleFunc(pathPrefix+"/templates/{id}", ping.Pong).Methods("PUT")                                //updates the settings of a template
+	router.Handle(pathPrefix+"/templates/{id}", authMiddleware(templates.IdDeleteHandler)).Methods("DELETE") //deletes a template
 
 	// TODO
 	// This should log to a file instead of os.Stdout
