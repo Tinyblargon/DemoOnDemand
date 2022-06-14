@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
@@ -18,9 +19,10 @@ type Job struct {
 }
 
 type Template struct {
-	Config  template.Config
-	Import  bool
-	Destroy bool
+	Config       template.Config
+	Import       bool
+	Destroy      bool
+	ChildDestroy bool
 }
 
 type Demo struct {
@@ -37,7 +39,7 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 	var err error
 	var c *session.Client
 	if j.Demo != nil {
-		ID := j.Demo.UserName + "_" + j.Demo.Template + "_" + strconv.Itoa(int(j.Demo.Number))
+		ID := createID(j.Demo.UserName, j.Demo.Template, j.Demo.Number)
 		demoLock.Lock(ID, status)
 		c, err = newSession(status, global.VMwareConfig)
 		if err != nil {
@@ -73,6 +75,9 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 		if j.Template.Destroy {
 			err = template.Destroy(c.VimClient, global.VMwareConfig.DataCenter, j.Template.Config.Name, status)
 		}
+		if j.Template.ChildDestroy {
+			err = deleteTemplateChilds(status, demoLock, c, j.Template.Config.Name)
+		}
 	}
 	if err != nil {
 		status.AddError(err)
@@ -87,4 +92,25 @@ func newSession(status *taskstatus.Status, config *programconfig.VMwareConfigura
 		status.AddError(err)
 	}
 	return
+}
+
+func deleteTemplateChilds(status *taskstatus.Status, demoLock *demolock.DemoLock, c *session.Client, templateName string) (err error) {
+	demos, err := database.ListDemosOfTemplate(global.DB, templateName)
+	if err != nil {
+		return
+	}
+	for _, e := range *demos {
+		ID := createID(e.UserName, e.DemoName, e.DemoNumber)
+		demoLock.Lock(ID, status)
+		err = demo.Delete(c.VimClient, global.DB, global.VMwareConfig.DataCenter, e.DemoName, e.UserName, e.DemoNumber, status)
+		demoLock.Unlock(ID)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func createID(userName, template string, number uint) string {
+	return userName + "_" + template + "_" + strconv.Itoa(int(number))
 }

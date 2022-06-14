@@ -73,6 +73,14 @@ func ListDemosOfUser(db *sql.DB, userName string) (*[]*Demo, error) {
 	return getDemosFromRows(rows)
 }
 
+func ListDemosOfTemplate(db *sql.DB, template string) (*[]*Demo, error) {
+	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos" WHERE demoname=$1`, template)
+	if err != nil {
+		return nil, err
+	}
+	return getDemosFromRows(rows)
+}
+
 func ListAllDemos(db *sql.DB) (*[]*Demo, error) {
 	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos"`)
 	if err != nil {
@@ -81,17 +89,19 @@ func ListAllDemos(db *sql.DB) (*[]*Demo, error) {
 	return getDemosFromRows(rows)
 }
 
-func getDemosFromRows(rows *sql.Rows) (*[]*Demo, error) {
-	demos := make([]*Demo, 0)
+func getDemosFromRows(rows *sql.Rows) (demos *[]*Demo, err error) {
+	demoList := make([]*Demo, 0)
 	for rows.Next() {
 		demo := new(Demo)
 		err := rows.Scan(&demo.UserName, &demo.DemoName, &demo.DemoNumber, &demo.Running)
 		if err != nil {
-			return nil, err
+			break
 		}
-		demos = append(demos, demo)
+		demoList = append(demoList, demo)
 	}
-	return &demos, nil
+	demos = &demoList
+	rows.Close()
+	return
 }
 
 func CheckTemplateInUse(db *sql.DB, demoName string) (inUse bool, err error) {
