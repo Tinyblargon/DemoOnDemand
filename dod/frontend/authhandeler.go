@@ -12,6 +12,10 @@ type Auth struct {
 	Password string `json:"password"`
 }
 
+type Data struct {
+	Token string `json:"token"`
+}
+
 func authenticate(w http.ResponseWriter, r *http.Request) {
 	auth := Auth{}
 	err := api.GetBody(r, &auth)
@@ -50,7 +54,13 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.Header().Set("Authorization", "Bearer "+token)
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Token: " + token))
+			data := Data{
+				Token: token,
+			}
+			response := api.JsonResponse{
+				Data: data,
+			}
+			response.Output(w)
 		}
 	} else {
 		w.WriteHeader(http.StatusUnauthorized)
