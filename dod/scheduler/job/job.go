@@ -27,7 +27,7 @@ type Template struct {
 
 type Demo struct {
 	Template string `json:"template"`
-	UserName string `json:"username"`
+	UserName string `json:"username,omitempty"`
 	Number   uint   `json:"number"`
 	Create   bool
 	Start    bool

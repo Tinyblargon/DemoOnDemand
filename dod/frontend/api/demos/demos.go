@@ -78,6 +78,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		api.OutputUserInputError(w, err.Error())
 		return
 	}
+	if newDemo.UserName == "" {
+		newDemo.UserName = r.Header.Get("name")
+	}
 	if !api.IfRoleOrUser(r, "root", newDemo.UserName) {
 		api.OutputInvalidPermission(w)
 		return
