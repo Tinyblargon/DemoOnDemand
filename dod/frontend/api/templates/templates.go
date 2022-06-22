@@ -37,6 +37,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	var templateConfig *template.Config
 	var templateList *[]string
 	if err != nil {
+		api.OutputServerError(w, "")
 		// TODO
 		// Log the error to error log
 		return
@@ -45,6 +46,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		if !util.IsStringUnique(&templates, id) {
 			templateConfig, err = template.Get(id)
 			if err != nil {
+				api.OutputServerError(w, "")
 				// TODO
 				// Log the error to error log
 				return

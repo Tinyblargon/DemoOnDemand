@@ -103,6 +103,7 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 	}
 	demo, err := database.GetSpecificDemo(global.DB, userName, demoName, uint(demoNumber))
 	if err != nil {
+		api.OutputServerError(w, "")
 		// TODO
 		// Log to disk
 		return
