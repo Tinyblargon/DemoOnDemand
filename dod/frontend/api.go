@@ -57,7 +57,7 @@ func HandleRequests(pathPrefix string, port uint) {
 	router.HandleFunc(pathPrefix+"/templates/{id}", ping.Pong).Methods("PUT")                                //updates the settings of a template
 	router.Handle(pathPrefix+"/templates/{id}", authMiddleware(templates.IdDeleteHandler)).Methods("DELETE") //deletes a template
 
-	router.HandleFunc(pathPrefix+"/templates/{id}/childs", ping.Pong).Methods("GET")                             //returns the amount of demos that exist based on the speciefied template
+	router.Handle(pathPrefix+"/templates/{id}/childs", authMiddleware(childs.IdGetHandler)).Methods("GET")       //returns the amount of demos that exist based on the speciefied template
 	router.Handle(pathPrefix+"/templates/{id}/childs", authMiddleware(childs.IdDeleteHandler)).Methods("DELETE") //deletes all demos based on the speciefied template
 
 	// TODO

@@ -121,3 +121,14 @@ func CheckTemplateInUse(db *sql.DB, demoName string) (inUse bool, err error) {
 	rows.Close()
 	return
 }
+
+func CountTemplateInUse(db *sql.DB, demoName string) (demos uint, err error) {
+	rows, err := db.Query(`SELECT COUNT(*) FROM "runningdemos" WHERE demoname=$1`, demoName)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		rows.Scan(&demos)
+	}
+	return
+}

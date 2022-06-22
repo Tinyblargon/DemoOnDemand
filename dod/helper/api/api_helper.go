@@ -54,9 +54,17 @@ func OutputInvalidID(w http.ResponseWriter) {
 	fmt.Fprint(w, InvalidID)
 }
 
-func OutputUserInputError(w http.ResponseWriter, error string) {
+func OutputUserInputError(w http.ResponseWriter, err string) {
 	w.WriteHeader(http.StatusBadRequest)
-	fmt.Fprint(w, error)
+	fmt.Fprint(w, err)
+}
+
+func OutputServerError(w http.ResponseWriter, err string) {
+	w.WriteHeader(http.StatusInternalServerError)
+	if err == "" {
+		err = "internal server error"
+	}
+	fmt.Fprint(w, err)
 }
 
 func IfRoleOrUser(r *http.Request, role, user string) bool {

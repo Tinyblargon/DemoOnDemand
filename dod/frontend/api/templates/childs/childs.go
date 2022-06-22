@@ -5,15 +5,47 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 	"github.com/gorilla/mux"
 )
 
+type Data struct {
+	Childs uint `json:"childs"`
+}
+
+var IdGetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	IdGet(w, r)
+})
+
 var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	IdDelete(w, r)
 })
+
+func IdGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	if !api.IfRole(r, []string{"root", "admin"}) {
+		api.OutputInvalidPermission(w)
+		return
+	}
+	childs, err := database.CountTemplateInUse(global.DB, id)
+	if err != nil {
+		api.OutputServerError(w, "")
+		// TODO
+		// LOG this error to file
+		return
+	}
+	data := Data{
+		Childs: childs,
+	}
+	response := api.JsonResponse{
+		Data: data,
+	}
+	response.Output(w)
+}
 
 func IdDelete(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
