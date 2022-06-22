@@ -18,7 +18,7 @@ type Configuration struct {
 }
 
 type Vlan struct {
-	Vlans  *[]string
+	Id     *[]uint
 	Prefix string
 }
 
