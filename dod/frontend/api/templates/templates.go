@@ -5,7 +5,9 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
@@ -77,6 +79,15 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		api.OutputInvalidPermission(w)
 		return
 	}
+	c, err := session.New(*global.VMwareConfig)
+	if err != nil {
+		api.OutputServerError(w, "")
+		// TODO
+		// LOG to disk
+		return
+	}
+	networks, err := demo.GetImportProperties(c.VimClient, global.VMwareConfig.DataCenter, newConfig.Path)
+	api.ErrorToManyNetworks(w, &networks)
 	newConfig.Defaults()
 	err = newConfig.Validate(false)
 	if err != nil {

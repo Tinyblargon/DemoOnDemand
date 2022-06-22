@@ -46,6 +46,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		// LOG to disk
 		return
 	}
+	api.ErrorToManyNetworks(w, &networks)
 	data := Data{
 		Networks: networks,
 	}

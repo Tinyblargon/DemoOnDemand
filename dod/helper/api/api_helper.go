@@ -67,6 +67,13 @@ func OutputServerError(w http.ResponseWriter, err string) {
 	fmt.Fprint(w, err)
 }
 
+func ErrorToManyNetworks(w http.ResponseWriter, networks *[]string) {
+	if len(*networks) > 8 {
+		OutputUserInputError(w, fmt.Errorf("to many networks found, found %d, maximum is 8", len(*networks)).Error())
+		return
+	}
+}
+
 func IfRoleOrUser(r *http.Request, role, user string) bool {
 	if r.Header.Get("role") != role && r.Header.Get("name") != user {
 		return false
