@@ -34,10 +34,16 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	}
 	c, err := session.New(*global.VMwareConfig)
 	if err != nil {
+		api.OutputServerError(w, "")
+		// TODO
+		// LOG to disk
 		return
 	}
 	networks, err := demo.GetImportProperties(c.VimClient, global.VMwareConfig.DataCenter, input.Path)
 	if err != nil {
+		api.OutputServerError(w, "")
+		// TODO
+		// LOG to disk
 		return
 	}
 	data := Data{
