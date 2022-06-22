@@ -1,5 +1,10 @@
 ConfigFolder: './Demos'
 ConcurrentTasks: 4
+Vlan:
+  Id: [
+    2000,2001,2002
+  ]
+  Prefix: 'dod-'
 API:
   PathPrefix: ''
   Port: 8080

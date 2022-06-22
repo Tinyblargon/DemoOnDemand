@@ -10,10 +10,16 @@ import (
 type Configuration struct {
 	ConfigFolder    string
 	ConcurrentTasks uint
+	Vlan            *Vlan
 	API             *APIConfiguration
 	VMware          *VMwareConfiguration
 	PostgreSQL      *PostgreSQLConfiguration
 	LDAP            *LDAPConfiguration
+}
+
+type Vlan struct {
+	Vlans  *[]string
+	Prefix string
 }
 
 type APIConfiguration struct {
