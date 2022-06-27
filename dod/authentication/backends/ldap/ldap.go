@@ -23,10 +23,10 @@ type Settings_Group struct {
 
 func New(settigns *Settings) (*Settings, error) {
 	l, err := settigns.NewSession()
-	l.Close()
 	if err != nil {
 		return nil, err
 	}
+	l.Close()
 	return settigns, nil
 }
 
