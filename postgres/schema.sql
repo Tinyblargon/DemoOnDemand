@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS public.Vlans
 (
     Prefix text COLLATE pg_catalog."default",
-    ID text COLLATE pg_catalog."default",
+    ID integer COLLATE pg_catalog."default",
     Demo text COLLATE pg_catalog."default"
 );
 
