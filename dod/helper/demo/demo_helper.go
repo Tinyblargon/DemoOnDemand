@@ -12,6 +12,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/vmware/govmomi"
+	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -31,7 +32,8 @@ func Stop(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName str
 	return database.UpdateDemoOfUser(db, userName, demoName, demoNumber, false)
 }
 
-func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName, pool string, demoNumber, demoLimit uint, status *taskstatus.Status) (err error) {
+// Creates a new demo of the the speciefied template
+func New(client *govmomi.Client, db *sql.DB, dataCenter, templateName, userName, pool string, demoNumber, demoLimit uint, status *taskstatus.Status) (err error) {
 	numberOfDemos, err := database.NumberOfDomosOfUser(db, userName)
 	if err != nil {
 		return
@@ -39,23 +41,32 @@ func New(client *govmomi.Client, db *sql.DB, dataCenter, demoName, userName, poo
 	if numberOfDemos > demoLimit {
 		return fmt.Errorf("max number of concurrent demos reached")
 	}
-	err = database.AddDemoOfUser(db, userName, demoName, demoNumber)
+	err = database.AddDemoOfUser(db, userName, templateName, demoNumber)
 	if err != nil {
 		return
 	}
-	err = New_Subroutine(client, dataCenter, demoName, userName, pool, demoNumber, status)
+	err = createAndSetupDemo(client, dataCenter, templateName, userName, pool, demoNumber, status)
 	if err != nil {
-		_ = database.DeleteDemoOfUser(db, userName, demoName, demoNumber)
+		_ = database.DeleteDemoOfUser(db, userName, templateName, demoNumber)
 	}
 	return
 }
 
-func New_Subroutine(client *govmomi.Client, dataCenter, demoName, userName, pool string, demoNumber uint, status *taskstatus.Status) (err error) {
+func createAndSetupDemo(client *govmomi.Client, dataCenter, demoName, userName, pool string, demoNumber uint, status *taskstatus.Status) (err error) {
 	basePath := CreateDemoURl(demoName, userName, demoNumber)
 	folderObject, err := folder.Create(client, dataCenter, basePath)
 	if err != nil {
 		return
 	}
+	err = cloneRouterVM(client, dataCenter, folderObject, status)
+	if err != nil {
+		return
+	}
+	return folder.Clone(client, dataCenter, global.TemplateFodler+"/"+demoName, basePath+"/Demo", pool, false, status)
+}
+
+// setup the vm responsible for making all the routing work
+func cloneRouterVM(client *govmomi.Client, dataCenter string, folderObject *object.Folder, status *taskstatus.Status) (err error) {
 	vmObject, err := virtualmachine.Get(client, dataCenter, global.RouterFodler+"/"+global.IngressVM)
 	if err != nil {
 		return
@@ -66,10 +77,7 @@ func New_Subroutine(client *govmomi.Client, dataCenter, demoName, userName, pool
 		return
 	}
 	err = virtualmachine.Start(newVmObject, status)
-	if err != nil {
-		return
-	}
-	return folder.Clone(client, dataCenter, global.TemplateFodler+"/"+demoName, basePath+"/Demo", pool, false, status)
+	return
 }
 
 func ListAll(client *govmomi.Client, dataCenter string) (*[]string, error) {
