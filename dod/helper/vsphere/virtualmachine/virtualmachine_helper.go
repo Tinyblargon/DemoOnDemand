@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/generic"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
@@ -222,10 +223,10 @@ func SetMacToStatic(vmProperties *mo.VirtualMachine, status *taskstatus.Status) 
 	return cloneSpec, nil
 }
 
-func channelInitialize(numberOfObjects, concurrency uint) (chan *object.VirtualMachine, chan error, uint) {
+func channelInitialize(numberOfObjects, concurrencyNumner uint) (chan *object.VirtualMachine, chan error, uint) {
 	in := make(chan *object.VirtualMachine)
 	ret := make(chan error)
-	return in, ret, decideMinimumTreads(numberOfObjects, concurrency)
+	return in, ret, concurrency.DecideMinimumTreads(numberOfObjects, concurrencyNumner)
 }
 
 // Loops over the in and ret channels
@@ -237,28 +238,9 @@ func channelLooper(in chan *object.VirtualMachine, ret chan error, vmObjects *[]
 		}
 		close(in)
 	}()
-	counter := 0
-	for e := range ret {
-		counter++
-		if e != nil {
-			err = e
-			break
-		}
-		if counter == int(cycles) {
-			break
-		}
-	}
+	err = concurrency.ChannelLooperError(ret, cycles)
 	close(ret)
 	return
-}
-
-func decideMinimumTreads(numberOfObjects, concurrency uint) uint {
-	if concurrency == 0 {
-		concurrency = 1
-	} else if numberOfObjects < concurrency {
-		concurrency = numberOfObjects
-	}
-	return concurrency
 }
 
 // Returns the networks of the vmObject
