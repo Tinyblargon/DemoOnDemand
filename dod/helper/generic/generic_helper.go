@@ -16,11 +16,11 @@ func NewFinder(client *govmomi.Client, DataCenter, Path string) (context.Context
 	return ctx, cancel, find.NewFinder(client.Client, false), "/" + DataCenter + "/vm/" + strings.Trim(Path, "/")
 }
 
-func RunTaskWait(task *object.Task) error {
+func RunTaskWait(task *object.Task, message string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 	if err := task.Wait(ctx); err != nil {
-		return fmt.Errorf("error on waiting for deletion task completion: %s", err)
+		return fmt.Errorf("error on waiting for '%s' task completion: %s", message, err)
 	}
 	return nil
 }

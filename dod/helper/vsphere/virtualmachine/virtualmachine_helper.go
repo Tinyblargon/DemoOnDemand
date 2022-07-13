@@ -98,7 +98,7 @@ func CreateSnapshot(vm *object.VirtualMachine, SnapshotName string, memory bool)
 	if err != nil {
 		return fmt.Errorf("cannot create snapshot of virtualmachine: %s", err)
 	}
-	return generic.RunTaskWait(task)
+	return generic.RunTaskWait(task, "create snapshot of virtualmachine")
 }
 
 func StartObjects(vmObjects []*object.VirtualMachine, concurrency uint, status *taskstatus.Status) (err error) {
@@ -131,7 +131,7 @@ func Start(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	if err != nil {
 		return fmt.Errorf("cannot start virtualmachine: %s", err)
 	}
-	return generic.RunTaskWait(task)
+	return generic.RunTaskWait(task, "start virtualmachine")
 }
 
 func StopObjects(vmObjects []*object.VirtualMachine, concurrency uint, status *taskstatus.Status) (err error) {
@@ -164,7 +164,7 @@ func Stop(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	if err != nil {
 		return fmt.Errorf("cannot stop virtualmachine: %s", err)
 	}
-	return generic.RunTaskWait(task)
+	return generic.RunTaskWait(task, "stop virtualmachine")
 }
 
 func Delete(vm *object.VirtualMachine, status *taskstatus.Status) error {
@@ -181,7 +181,7 @@ func Delete(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	if err != nil {
 		return fmt.Errorf("cannot delete virtualmachine: %s", err)
 	}
-	return generic.RunTaskWait(task)
+	return generic.RunTaskWait(task, "delete virtualmachine")
 }
 
 func DeleteObjects(vmObjects []*object.VirtualMachine, concurrency uint, status *taskstatus.Status) (err error) {

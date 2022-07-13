@@ -256,7 +256,7 @@ func Delete(client *govmomi.Client, DataCenter, Path string, status *taskstatus.
 		return fmt.Errorf("cannot delete folder: %s", err)
 	}
 
-	return generic.RunTaskWait(task)
+	return generic.RunTaskWait(task, "delete folder")
 }
 
 // Restarts all the virtualmachines in the folder and subfolders
