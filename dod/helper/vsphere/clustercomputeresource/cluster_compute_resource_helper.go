@@ -14,7 +14,7 @@ import (
 )
 
 func PropertiesFromPath(client *govmomi.Client, DataCenter, pool string, status *taskstatus.Status) (clusterProp *mo.ClusterComputeResource, err error) {
-	dataCenterOB, err := datacenter.FromPath(client, DataCenter)
+	dataCenterOB, err := datacenter.FromName(client, DataCenter)
 	if err != nil {
 		return
 	}

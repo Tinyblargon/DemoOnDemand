@@ -2,12 +2,12 @@ package demos
 
 import (
 	"net/http"
-	"strconv"
-	"strings"
 
+	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 	"github.com/gorilla/mux"
 )
@@ -47,6 +47,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		var err error
 		demos, err = database.ListAllDemos(global.DB)
 		if err != nil {
+			api.OutputServerError(w, "")
 			// TODO
 			// Log error to file
 			return
@@ -55,6 +56,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		var err error
 		demos, err = database.ListDemosOfUser(global.DB, r.Header.Get("name"))
 		if err != nil {
+			api.OutputServerError(w, "")
 			// TODO
 			// Log error to file
 			return
@@ -85,6 +87,22 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		api.OutputInvalidPermission(w)
 		return
 	}
+	demoObj := demo.Demo{
+		Name: newDemo.Template,
+		User: newDemo.UserName,
+		ID:   newDemo.Number,
+	}
+	existance, err := demoactions.CheckExistance(global.DB, demoObj)
+	if err != nil {
+		api.OutputServerError(w, "")
+		// TODO
+		// Log error to file
+		return
+	}
+	if existance {
+		api.OutputDemoAlreadyExists(w)
+		return
+	}
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
@@ -96,16 +114,30 @@ type IdData struct {
 }
 
 func IdGet(w http.ResponseWriter, r *http.Request) {
-	userName, demoName, demoNumber := checkID(w, r)
-	if !api.IfRoleOrUser(r, "root", userName) {
+	demoObj, err := checkID(w, r)
+	if err != nil {
+		return
+	}
+	if !api.IfRoleOrUser(r, "root", demoObj.User) {
 		api.OutputInvalidPermission(w)
 		return
 	}
-	demo, err := database.GetSpecificDemo(global.DB, userName, demoName, uint(demoNumber))
+	demo, err := database.GetSpecificDemo(global.DB, demoObj)
 	if err != nil {
 		api.OutputServerError(w, "")
 		// TODO
 		// Log to disk
+		return
+	}
+	existance, err := demoactions.CheckExistance(global.DB, demoObj)
+	if err != nil {
+		api.OutputServerError(w, "")
+		// TODO
+		// Log error to file
+		return
+	}
+	if !existance {
+		api.OutputDemoDoesNotExists(w)
 		return
 	}
 	data := IdData{
@@ -118,39 +150,56 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func IdDelete(w http.ResponseWriter, r *http.Request) {
-	userName, demoName, demoNumber := checkID(w, r)
-	if !api.IfRoleOrUser(r, "root", userName) {
+	demoObj, err := checkID(w, r)
+	if err != nil {
+		return
+	}
+	if !api.IfRoleOrUser(r, "root", demoObj.User) {
 		api.OutputInvalidPermission(w)
 		return
 	}
+	existance, err := demoactions.CheckExistance(global.DB, demoObj)
+	if err != nil {
+		api.OutputServerError(w, "")
+		// TODO
+		// Log error to file
+		return
+	}
+	if !existance {
+		api.OutputDemoDoesNotExists(w)
+		return
+	}
 	newDemo := job.Demo{
-		Template: demoName,
-		UserName: userName,
-		Number:   uint(demoNumber),
+		Template: demoObj.Name,
+		UserName: demoObj.User,
+		Number:   demoObj.ID,
 		Destroy:  true,
 	}
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob, userName)
+	api.NewJob(w, &newjob, demoObj.User)
 }
 
 func IdPut(w http.ResponseWriter, r *http.Request) {
-	userName, demoName, demoNumber := checkID(w, r)
-	if !api.IfRoleOrUser(r, "root", userName) {
+	demoObj, err := checkID(w, r)
+	if err != nil {
+		return
+	}
+	if !api.IfRoleOrUser(r, "root", demoObj.User) {
 		api.OutputInvalidPermission(w)
 		return
 	}
 	SSR := StartStopRestart{}
-	err := api.GetBody(r, &SSR)
+	err = api.GetBody(r, &SSR)
 	if err != nil {
 		api.OutputUserInputError(w, err.Error())
 		return
 	}
 	newDemo := job.Demo{
-		Template: demoName,
-		UserName: userName,
-		Number:   uint(demoNumber),
+		Template: demoObj.Name,
+		UserName: demoObj.User,
+		Number:   demoObj.ID,
 	}
 	switch SSR.Task {
 	case "start":
@@ -167,23 +216,15 @@ func IdPut(w http.ResponseWriter, r *http.Request) {
 	newjob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob, userName)
+	api.NewJob(w, &newjob, demoObj.User)
 }
 
-func checkID(w http.ResponseWriter, r *http.Request) (username, demoName string, demoNumber int) {
+func checkID(w http.ResponseWriter, r *http.Request) (demoObj demo.Demo, err error) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	demoString := strings.Split(id, "_")
-	if len(demoString) != 3 {
-		api.OutputInvalidID(w)
-		return
-	}
-	demoNumber, err := strconv.Atoi(demoString[2])
+	demoObj.User, demoObj.Name, demoObj.ID, err = demo.ReverseID(id)
 	if err != nil {
 		api.OutputInvalidID(w)
-		return
 	}
-	username = demoString[0]
-	demoName = demoString[1]
 	return
 }

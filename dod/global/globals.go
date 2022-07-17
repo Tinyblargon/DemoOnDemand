@@ -38,6 +38,8 @@ func SetAll(config *programconfig.Configuration, db *sql.DB) {
 		Insecure:   config.VMware.Insecure,
 		DataCenter: config.VMware.DataCenter,
 		Pool:       config.VMware.Pool,
+		Hosts:      config.VMware.Hosts,
+		Vswitch:    config.VMware.Vswitch,
 	}
 
 	// PostgreSQLConfig = &programconfig.PostgreSQLConfiguration{

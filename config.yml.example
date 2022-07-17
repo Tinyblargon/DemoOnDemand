@@ -16,6 +16,8 @@ VMware:
   DataCenter: ''
   DemoFolder: ''
   Pool: ''
+  Hosts: []
+  Vswitch: ''
 PostgreSQL:
   Host:      ''
   User:     ''

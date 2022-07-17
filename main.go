@@ -11,6 +11,10 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/host"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/backends/memory"
 	_ "github.com/lib/pq"
@@ -22,9 +26,19 @@ func main() {
 	scheduler.Main = NewSchedulerBackend(config.ConcurrentTasks)
 	authentication.Main = NewAuthBackend(config.LDAP)
 	db, err := database.New(*config.PostgreSQL)
+	LogFatal(err)
 	global.SetAll(config, db)
 
-	// c, err := session.New(*config.VMware)
+	c, err := session.New(*config.VMware)
+	LogFatal(err)
+	datacenterObj, err := datacenter.FromName(c.VimClient, global.VMwareConfig.DataCenter)
+	LogFatal(err)
+	hosts, err := host.ListAll(c.VimClient, datacenterObj, global.VMwareConfig.Hosts)
+	LogFatal(err)
+	host.SetGlobal(hosts)
+
+	vlan.Initialize(config.Vlan.Id, config.Vlan.Prefix)
+
 	// err = dod.Intialize(c.VimClient, global.VMwareConfig.DataCenter)
 	// c.VimClient.Logout()
 

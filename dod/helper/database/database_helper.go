@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	_ "github.com/lib/pq"
 )
@@ -16,22 +17,28 @@ type UserLinkedList struct {
 	BindDn     string
 }
 
+type Vlan struct {
+	ID     uint
+	Demo   string
+	Prefix string
+}
+
 func New(config programconfig.PostgreSQLConfiguration) (db *sql.DB, err error) {
 	return sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.Host, config.Port, config.User, config.Password, config.Database))
 }
 
-func AddDemoOfUser(db *sql.DB, userName, demoName string, demoNumber uint) (err error) {
-	_, err = db.Exec(`insert into "runningdemos"("username","demoname","demonumber","running") values($1, $2, $3, $4)`, userName, demoName, demoNumber, false)
+func AddDemoOfUser(db *sql.DB, demoObj *demo.Demo) (err error) {
+	_, err = db.Exec(`insert into "runningdemos"("username","demoname","demonumber","running") values($1, $2, $3, $4)`, demoObj.User, demoObj.Name, demoObj.ID, false)
 	return
 }
 
-func DeleteDemoOfUser(db *sql.DB, userName, demoName string, demoNumber uint) (err error) {
-	_, err = db.Exec(`delete from "runningdemos" where username=$1 AND demoname=$2 AND demonumber=$3`, userName, demoName, demoNumber)
+func DeleteDemoOfUser(db *sql.DB, demoObj *demo.Demo) (err error) {
+	_, err = db.Exec(`delete from "runningdemos" where username=$1 AND demoname=$2 AND demonumber=$3`, demoObj.User, demoObj.Name, demoObj.ID)
 	return
 }
 
-func UpdateDemoOfUser(db *sql.DB, userName, demoName string, demoNumber uint, running bool) (err error) {
-	_, err = db.Exec(`update "runningdemos" set "running"=$1 where username=$2 AND demoname=$3 AND demonumber=$4`, running, userName, demoName, demoNumber)
+func UpdateDemoOfUser(db *sql.DB, demoObj *demo.Demo, running bool) (err error) {
+	_, err = db.Exec(`update "runningdemos" set "running"=$1 where username=$2 AND demoname=$3 AND demonumber=$4`, running, demoObj.User, demoObj.Name, demoObj.ID)
 	return
 }
 
@@ -48,8 +55,8 @@ type Demo struct {
 	Running    bool   `json:"active"`
 }
 
-func GetSpecificDemo(db *sql.DB, userName, demoName string, demoNumber uint) (demo *Demo, err error) {
-	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos" WHERE username=$1 AND demoname=$2 AND demonumber=$3`, userName, demoName, demoNumber)
+func GetSpecificDemo(db *sql.DB, demoObj demo.Demo) (demo *Demo, err error) {
+	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos" WHERE username=$1 AND demoname=$2 AND demonumber=$3`, demoObj.User, demoObj.Name, demoObj.ID)
 	if err != nil {
 		return
 	}
@@ -100,6 +107,47 @@ func getDemosFromRows(rows *sql.Rows) (demos *[]*Demo, err error) {
 		demoList = append(demoList, demo)
 	}
 	demos = &demoList
+	rows.Close()
+	return
+}
+
+func ListUsedVlans(db *sql.DB) (*[]Vlan, error) {
+	rows, err := db.Query(`SELECT "prefix","id","demo" FROM "vlans"`)
+	if err != nil {
+		return nil, err
+	}
+	return getVlansFromRows(rows)
+}
+
+func ListUsedVlansOfDemo(db *sql.DB, demo string) (*[]Vlan, error) {
+	rows, err := db.Query(`SELECT "prefix","id","demo" FROM "vlans" WHERE demo=$1`, demo)
+	if err != nil {
+		return nil, err
+	}
+	return getVlansFromRows(rows)
+}
+
+func SetVlanInUse(db *sql.DB, id uint, prefix string, demo *demo.Demo) (err error) {
+	_, err = db.Exec(`INSERT INTO "vlans"("prefix","id","demo") VALUES($1, $2, $3)`, prefix, id, demo.CreateID())
+	return
+}
+
+func DeleteVlanInUse(db *sql.DB, demo string) (err error) {
+	_, err = db.Exec(`DELETE FROM "vlans" WHERE demo=$1`, demo)
+	return
+}
+
+func getVlansFromRows(rows *sql.Rows) (vlans *[]Vlan, err error) {
+	vlanList := make([]Vlan, 0)
+	for rows.Next() {
+		vlan := Vlan{}
+		err := rows.Scan(&vlan.Prefix, &vlan.ID, &vlan.Demo)
+		if err != nil {
+			break
+		}
+		vlanList = append(vlanList, vlan)
+	}
+	vlans = &vlanList
 	rows.Close()
 	return
 }

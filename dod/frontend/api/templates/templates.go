@@ -3,9 +3,9 @@ package templates
 import (
 	"net/http"
 
+	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
@@ -86,7 +86,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		// LOG to disk
 		return
 	}
-	networks, err := demo.GetImportProperties(c.VimClient, global.VMwareConfig.DataCenter, newConfig.Path)
+	networks, err := demoactions.GetImportProperties(c.VimClient, global.VMwareConfig.DataCenter, newConfig.Path)
 	api.ErrorToManyNetworks(w, &networks)
 	newConfig.Defaults()
 	err = newConfig.Validate(false)

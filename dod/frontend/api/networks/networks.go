@@ -3,9 +3,9 @@ package networks
 import (
 	"net/http"
 
+	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
 )
 
@@ -39,7 +39,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		// LOG to disk
 		return
 	}
-	networks, err := demo.GetImportProperties(c.VimClient, global.VMwareConfig.DataCenter, input.Path)
+	networks, err := demoactions.GetImportProperties(c.VimClient, global.VMwareConfig.DataCenter, input.Path)
 	if err != nil {
 		api.OutputServerError(w, "")
 		// TODO

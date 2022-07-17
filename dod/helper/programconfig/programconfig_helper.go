@@ -36,6 +36,8 @@ type VMwareConfiguration struct {
 	DataCenter string
 	DemoFolder string
 	Pool       string
+	Hosts      []string
+	Vswitch    string
 }
 
 type PostgreSQLConfiguration struct {

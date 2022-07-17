@@ -1,8 +1,7 @@
 package job
 
 import (
-	"strconv"
-
+	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
@@ -39,20 +38,25 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 	var err error
 	var c *session.Client
 	if j.Demo != nil {
-		ID := createID(j.Demo.UserName, j.Demo.Template, j.Demo.Number)
+		demoObj := demo.Demo{
+			Name: j.Demo.Template,
+			User: j.Demo.UserName,
+			ID:   j.Demo.Number,
+		}
+		ID := demoObj.CreateID()
 		demoLock.Lock(ID, status)
 		c, err = newSession(status, global.VMwareConfig)
 		if err != nil {
 			return
 		}
 		if j.Demo.Create {
-			err = demo.New(c.VimClient, global.DB, global.VMwareConfig.DataCenter, j.Demo.Template, j.Demo.UserName, global.VMwareConfig.Pool, j.Demo.Number, 5, status)
+			err = demoactions.New(c.VimClient, global.DB, global.VMwareConfig.DataCenter, global.VMwareConfig.Pool, &demoObj, 5, status)
 		}
 		if j.Demo.Destroy {
-			err = demo.Delete(c.VimClient, global.DB, global.VMwareConfig.DataCenter, j.Demo.Template, j.Demo.UserName, j.Demo.Number, status)
+			err = demoactions.Delete(c.VimClient, global.DB, global.VMwareConfig.DataCenter, &demoObj, status)
 		}
 		if j.Demo.Stop {
-			err = demo.Stop(c.VimClient, global.DB, global.VMwareConfig.DataCenter, j.Demo.Template, j.Demo.UserName, j.Demo.Number, status)
+			err = demoactions.Stop(c.VimClient, global.DB, global.VMwareConfig.DataCenter, &demoObj, status)
 			if err != nil {
 				status.AddError(err)
 				demoLock.Unlock(ID)
@@ -60,7 +64,7 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 			}
 		}
 		if j.Demo.Start {
-			err = demo.Start(c.VimClient, global.DB, global.VMwareConfig.DataCenter, j.Demo.Template, j.Demo.UserName, j.Demo.Number, status)
+			err = demoactions.Start(c.VimClient, global.DB, global.VMwareConfig.DataCenter, &demoObj, status)
 		}
 		demoLock.Unlock(ID)
 	}
@@ -100,17 +104,18 @@ func deleteTemplateChilds(status *taskstatus.Status, demoLock *demolock.DemoLock
 		return
 	}
 	for _, e := range *demos {
-		ID := createID(e.UserName, e.DemoName, e.DemoNumber)
+		demoObj := demo.Demo{
+			Name: e.DemoName,
+			User: e.UserName,
+			ID:   e.DemoNumber,
+		}
+		ID := demoObj.CreateID()
 		demoLock.Lock(ID, status)
-		err = demo.Delete(c.VimClient, global.DB, global.VMwareConfig.DataCenter, e.DemoName, e.UserName, e.DemoNumber, status)
+		err = demoactions.Delete(c.VimClient, global.DB, global.VMwareConfig.DataCenter, &demoObj, status)
 		demoLock.Unlock(ID)
 		if err != nil {
 			return
 		}
 	}
 	return
-}
-
-func createID(userName, template string, number uint) string {
-	return userName + "_" + template + "_" + strconv.Itoa(int(number))
 }

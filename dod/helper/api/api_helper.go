@@ -11,8 +11,9 @@ import (
 )
 
 const InvalidPerm string = "Invalid Permission."
-
 const InvalidID string = "Invalid ID."
+const DemoAlreadyExists string = "Demo Already Exists."
+const DemoDoesNotExists string = "Demo Does Not Exist."
 
 type JsonResponse struct {
 	Data any `json:"data"`
@@ -65,6 +66,16 @@ func OutputServerError(w http.ResponseWriter, err string) {
 		err = "internal server error"
 	}
 	fmt.Fprint(w, err)
+}
+
+func OutputDemoAlreadyExists(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusBadRequest)
+	fmt.Fprint(w, DemoAlreadyExists)
+}
+
+func OutputDemoDoesNotExists(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusBadRequest)
+	fmt.Fprint(w, DemoDoesNotExists)
 }
 
 func ErrorToManyNetworks(w http.ResponseWriter, networks *[]string) {
