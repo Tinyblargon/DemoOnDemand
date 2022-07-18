@@ -13,6 +13,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
 	"github.com/vmware/govmomi"
+	"github.com/vmware/govmomi/object"
 	"gopkg.in/yaml.v2"
 )
 
@@ -45,7 +46,7 @@ func Get(templateName string) (templateConfig *Config, err error) {
 	return
 }
 
-func Destroy(client *govmomi.Client, dataCenter, TempalateName string, status *taskstatus.Status) (err error) {
+func Destroy(client *govmomi.Client, dc *object.Datacenter, TempalateName string, status *taskstatus.Status) (err error) {
 	inUse, err := database.CheckTemplateInUse(global.DB, TempalateName)
 	if err != nil {
 		return
@@ -53,7 +54,7 @@ func Destroy(client *govmomi.Client, dataCenter, TempalateName string, status *t
 	if inUse {
 		return fmt.Errorf("unable to remove template, template is in use")
 	}
-	err = folder.Delete(client, dataCenter, global.TemplateFodler+"/"+TempalateName, status)
+	err = folder.Delete(client, dc, global.TemplateFodler+"/"+TempalateName, status)
 	if err != nil {
 		return
 	}
@@ -65,9 +66,9 @@ func List() (files []string, err error) {
 }
 
 // Imports a new demo from the speciefid folder
-func (c *Config) Import(client *govmomi.Client, dataCenter, pool string, status *taskstatus.Status) (err error) {
+func (c *Config) Import(client *govmomi.Client, dc *object.Datacenter, pool string, status *taskstatus.Status) (err error) {
 	filePath := global.ConfigFolder + "/" + c.Name
-	err = folder.Clone(client, dataCenter, c.Path, global.TemplateFodler+"/"+c.Name, pool, true, status)
+	err = folder.Clone(client, dc, c.Path, global.TemplateFodler+"/"+c.Name, pool, true, status)
 	if err != nil {
 		return
 	}

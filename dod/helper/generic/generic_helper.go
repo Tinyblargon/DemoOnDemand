@@ -11,9 +11,9 @@ import (
 	"github.com/vmware/govmomi/object"
 )
 
-func NewFinder(client *govmomi.Client, DataCenter, Path string) (context.Context, context.CancelFunc, *find.Finder, string) {
+func NewFinder(client *govmomi.Client, DataCenter *object.Datacenter, Path string) (context.Context, context.CancelFunc, *find.Finder, string) {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
-	return ctx, cancel, find.NewFinder(client.Client, false), "/" + DataCenter + "/vm/" + strings.Trim(Path, "/")
+	return ctx, cancel, find.NewFinder(client.Client, false), "/" + DataCenter.Name() + "/vm/" + strings.Trim(Path, "/")
 }
 
 func RunTaskWait(task *object.Task, message string) error {

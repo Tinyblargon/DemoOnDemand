@@ -33,7 +33,8 @@ func main() {
 	LogFatal(err)
 	datacenterObj, err := datacenter.FromName(c.VimClient, global.VMwareConfig.DataCenter)
 	LogFatal(err)
-	hosts, err := host.ListAll(c.VimClient, datacenterObj, global.VMwareConfig.Hosts)
+	datacenter.SetGlobal(datacenterObj)
+	hosts, err := host.ListAll(c.VimClient, datacenter.DatacenterObj, global.VMwareConfig.Hosts)
 	LogFatal(err)
 	host.SetGlobal(hosts)
 

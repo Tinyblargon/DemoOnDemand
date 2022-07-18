@@ -9,6 +9,12 @@ import (
 	"github.com/vmware/govmomi/object"
 )
 
+var DatacenterObj *object.Datacenter
+
+func SetGlobal(datacenter *object.Datacenter) {
+	DatacenterObj = datacenter
+}
+
 // code borrowed from "github.com/hashicorp/terraform-provider-vsphere/vsphere/internal/virtualdevice"
 
 // FromName returns a Datacenter via its supplied name.

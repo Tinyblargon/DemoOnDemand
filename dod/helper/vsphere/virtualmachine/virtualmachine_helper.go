@@ -28,8 +28,8 @@ func Properties(vm *object.VirtualMachine, status *taskstatus.Status) (*mo.Virtu
 	return &props, nil
 }
 
-func Get(client *govmomi.Client, DataCenter, Path string) (*object.VirtualMachine, error) {
-	ctx, cancel, finder, checkPath := generic.NewFinder(client, DataCenter, Path)
+func Get(client *govmomi.Client, dc *object.Datacenter, Path string) (*object.VirtualMachine, error) {
+	ctx, cancel, finder, checkPath := generic.NewFinder(client, dc, Path)
 	defer cancel()
 	vm, err := finder.VirtualMachine(ctx, checkPath)
 	if err != nil {

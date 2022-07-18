@@ -28,19 +28,19 @@ type FileSystemItem struct {
 }
 
 // Clone Wil clone all items in the speciefied folder and all it's subfolders
-func Clone(client *govmomi.Client, DataCenter, Path, newPath, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
-	fileSystem, err := ReadFileSystem(client, DataCenter, Path)
+func Clone(client *govmomi.Client, dc *object.Datacenter, Path, newPath, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
+	fileSystem, err := ReadFileSystem(client, dc, Path)
 	if err != nil {
 		return
 	}
-	err = fileSystem.Create(client, DataCenter, newPath, pool, vmTemplate, status)
+	err = fileSystem.Create(client, dc, newPath, pool, vmTemplate, status)
 	return
 }
 
-func ReadFileSystem(client *govmomi.Client, DataCenter, Path string) (*FileSystemItem, error) {
+func ReadFileSystem(client *govmomi.Client, dc *object.Datacenter, Path string) (*FileSystemItem, error) {
 	var err error
 	fileSystem := new(FileSystemItem)
-	fileSystem.Folder, err = Get(client, DataCenter, Path)
+	fileSystem.Folder, err = Get(client, dc, Path)
 	if err != nil {
 		return nil, err
 	}
@@ -51,24 +51,24 @@ func ReadFileSystem(client *govmomi.Client, DataCenter, Path string) (*FileSyste
 	return fileSystem, nil
 }
 
-func (fileSystem *FileSystemItem) Create(client *govmomi.Client, DataCenter, basefolder, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
-	_, err = Create(client, DataCenter, basefolder)
+func (fileSystem *FileSystemItem) Create(client *govmomi.Client, dc *object.Datacenter, basefolder, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
+	_, err = Create(client, dc, basefolder)
 	if err != nil {
 		return
 	}
 	var clusterProp *mo.ClusterComputeResource
 	if !vmTemplate {
-		clusterProp, err = clustercomputeresource.PropertiesFromPath(client, DataCenter, pool, status)
+		clusterProp, err = clustercomputeresource.PropertiesFromPath(client, dc, pool, status)
 		if err != nil {
 			return
 		}
 	}
-	err = fileSystem.recursiveCreate(client, DataCenter, basefolder, vmTemplate, clusterProp, status)
+	err = fileSystem.recursiveCreate(client, dc, basefolder, vmTemplate, clusterProp, status)
 	return
 }
 
 // this function recursivly calls itself to create all items found in parent at a the location of basefolder
-func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, DataCenter, basefolder string, vmTemplate bool, clusterProp *mo.ClusterComputeResource, status *taskstatus.Status) (err error) {
+func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, dc *object.Datacenter, basefolder string, vmTemplate bool, clusterProp *mo.ClusterComputeResource, status *taskstatus.Status) (err error) {
 	// this can be more parallelized but would require rewriting, look at the DeleteObjects function
 	if parent.Subitems == nil {
 		return
@@ -77,11 +77,11 @@ func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, DataCenter
 	for _, e := range parent.Subitems {
 		if e.Folder != nil {
 			newBaseFolder := basefolder + "/" + e.Name
-			_, err = CreateSingleFolder(client, DataCenter, newBaseFolder)
+			_, err = CreateSingleFolder(client, dc, newBaseFolder)
 			if err != nil {
 				break
 			}
-			err = e.recursiveCreate(client, DataCenter, newBaseFolder, vmTemplate, clusterProp, status)
+			err = e.recursiveCreate(client, dc, newBaseFolder, vmTemplate, clusterProp, status)
 		}
 		if e.VirtualMachine != nil {
 			vmCounter += 1
@@ -100,7 +100,7 @@ func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, DataCenter
 		}
 	}
 	var ob *object.Folder
-	ob, err = Get(client, DataCenter, basefolder)
+	ob, err = Get(client, dc, basefolder)
 	if err != nil {
 		return
 	}
@@ -204,8 +204,8 @@ func (fileSystem *FileSystemItem) RecursiveGetVmObjects(vmArray []*object.Virtua
 	return vmArray, vmCounter
 }
 
-func CreateSnapshot(client *govmomi.Client, DataCenter, Path, SnapshotName string, memory bool) error {
-	folder, err := Get(client, DataCenter, Path)
+func CreateSnapshot(client *govmomi.Client, dc *object.Datacenter, Path, SnapshotName string, memory bool) error {
+	folder, err := Get(client, dc, Path)
 	if err != nil {
 		return err
 	}
@@ -214,7 +214,7 @@ func CreateSnapshot(client *govmomi.Client, DataCenter, Path, SnapshotName strin
 		return err
 	}
 	if childrenExist {
-		fileSystem, err := ReadFileSystem(client, DataCenter, Path)
+		fileSystem, err := ReadFileSystem(client, dc, Path)
 		if err != nil {
 			return err
 		}
@@ -226,9 +226,9 @@ func CreateSnapshot(client *govmomi.Client, DataCenter, Path, SnapshotName strin
 	return nil
 }
 
-func Delete(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) error {
+func Delete(client *govmomi.Client, dc *object.Datacenter, Path string, status *taskstatus.Status) error {
 
-	folder, err := Get(client, DataCenter, Path)
+	folder, err := Get(client, dc, Path)
 	if err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func Delete(client *govmomi.Client, DataCenter, Path string, status *taskstatus.
 		return err
 	}
 	if childrenExist {
-		fileSystem, err := ReadFileSystem(client, DataCenter, Path)
+		fileSystem, err := ReadFileSystem(client, dc, Path)
 		if err != nil {
 			return err
 		}
@@ -260,8 +260,8 @@ func Delete(client *govmomi.Client, DataCenter, Path string, status *taskstatus.
 }
 
 // Restarts all the virtualmachines in the folder and subfolders
-func ReStart(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) (err error) {
-	vmObjects, err := GetVmObjectsFromPath(client, DataCenter, Path)
+func ReStart(client *govmomi.Client, dc *object.Datacenter, Path string, status *taskstatus.Status) (err error) {
+	vmObjects, err := GetVmObjectsFromPath(client, dc, Path)
 	if err != nil {
 		return
 	}
@@ -276,8 +276,8 @@ func ReStart(client *govmomi.Client, DataCenter, Path string, status *taskstatus
 }
 
 // Starts all the virtualmachines in the folder and subfolders
-func Start(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) (err error) {
-	vmObjects, err := GetVmObjectsFromPath(client, DataCenter, Path)
+func Start(client *govmomi.Client, dc *object.Datacenter, Path string, status *taskstatus.Status) (err error) {
+	vmObjects, err := GetVmObjectsFromPath(client, dc, Path)
 	if err != nil {
 		return
 	}
@@ -288,8 +288,8 @@ func Start(client *govmomi.Client, DataCenter, Path string, status *taskstatus.S
 }
 
 // Stops all the virtualmachines in the folder and subfolders
-func Stop(client *govmomi.Client, DataCenter, Path string, status *taskstatus.Status) (err error) {
-	vmObjects, err := GetVmObjectsFromPath(client, DataCenter, Path)
+func Stop(client *govmomi.Client, dc *object.Datacenter, Path string, status *taskstatus.Status) (err error) {
+	vmObjects, err := GetVmObjectsFromPath(client, dc, Path)
 	if err != nil {
 		return
 	}
@@ -300,27 +300,27 @@ func Stop(client *govmomi.Client, DataCenter, Path string, status *taskstatus.St
 }
 
 // CreateFolder Creates the full folder path spaeciefied
-func Create(client *govmomi.Client, DataCenter, Path string) (folderObject *object.Folder, err error) {
+func Create(client *govmomi.Client, dc *object.Datacenter, Path string) (folderObject *object.Folder, err error) {
 	folders := strings.Split(strings.Trim(Path, "/"), "/")
 	var CurrentPath string
 	for _, e := range folders {
 		CurrentPath += "/" + e
-		folderObject, err = CreateSingleFolder(client, "DemoLab-Son-DC", CurrentPath)
+		folderObject, err = CreateSingleFolder(client, dc, CurrentPath)
 	}
 	return
 }
 
 // CreateFolder only creates last subfolder, it fails if the path doesnt exist
-func CreateSingleFolder(client *govmomi.Client, DataCenter, Path string) (*object.Folder, error) {
+func CreateSingleFolder(client *govmomi.Client, dc *object.Datacenter, Path string) (*object.Folder, error) {
 	var folderObject *object.Folder
-	parent, err := Get(client, DataCenter, path.Dir(Path))
+	parent, err := Get(client, dc, path.Dir(Path))
 	if err != nil {
 		return nil, fmt.Errorf("error trying to determine parent targetFolder: %s", err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	if !Exists(client, DataCenter, Path) {
+	if !Exists(client, dc, Path) {
 		folderObject, err = parent.CreateFolder(ctx, path.Base(Path))
 		if err != nil {
 			return nil, fmt.Errorf("error creating targetFolder: %s", err)
@@ -330,24 +330,24 @@ func CreateSingleFolder(client *govmomi.Client, DataCenter, Path string) (*objec
 	return folderObject, nil
 }
 
-func Exists(client *govmomi.Client, DataCenter, Path string) bool {
-	_, err := Get(client, DataCenter, Path)
+func Exists(client *govmomi.Client, dc *object.Datacenter, Path string) bool {
+	_, err := Get(client, dc, Path)
 	if err != nil {
 		return false
 	}
 	return true
 }
 
-func ListSubFolders(client *govmomi.Client, DataCenter, Path string) (*[]string, error) {
-	return ListFolderItems(client, DataCenter, Path, "Folder")
+func ListSubFolders(client *govmomi.Client, dc *object.Datacenter, Path string) (*[]string, error) {
+	return ListFolderItems(client, dc, Path, "Folder")
 }
 
-func ListVirtualMachinesInFolder(client *govmomi.Client, DataCenter, Path string) (*[]string, error) {
-	return ListFolderItems(client, DataCenter, Path, "VirtualMachine")
+func ListVirtualMachinesInFolder(client *govmomi.Client, dc *object.Datacenter, Path string) (*[]string, error) {
+	return ListFolderItems(client, dc, Path, "VirtualMachine")
 }
 
-func ListFolderItems(client *govmomi.Client, DataCenter, Path, Type string) (*[]string, error) {
-	parentFolder, err := Get(client, DataCenter, Path)
+func ListFolderItems(client *govmomi.Client, dc *object.Datacenter, Path, Type string) (*[]string, error) {
+	parentFolder, err := Get(client, dc, Path)
 	if err != nil {
 		return nil, err
 	}
@@ -399,8 +399,8 @@ func HasChildren(f *object.Folder) (bool, error) {
 
 // GetFolder returns an *object.Folder from a given absolute path.
 // If no such folder is found, an appropriate error will be returned.
-func Get(client *govmomi.Client, DataCenter, Path string) (*object.Folder, error) {
-	ctx, cancel, finder, checkPath := generic.NewFinder(client, DataCenter, Path)
+func Get(client *govmomi.Client, dc *object.Datacenter, Path string) (*object.Folder, error) {
+	ctx, cancel, finder, checkPath := generic.NewFinder(client, dc, Path)
 	defer cancel()
 	folder, err := finder.Folder(ctx, checkPath)
 	if err != nil {
@@ -409,8 +409,8 @@ func Get(client *govmomi.Client, DataCenter, Path string) (*object.Folder, error
 	return folder, nil
 }
 
-func GetChildrenFromPath(client *govmomi.Client, DataCenter, Path string) ([]*object.Folder, error) {
-	ctx, cancel, finder, checkPath := generic.NewFinder(client, DataCenter, Path)
+func GetChildrenFromPath(client *govmomi.Client, dc *object.Datacenter, Path string) ([]*object.Folder, error) {
+	ctx, cancel, finder, checkPath := generic.NewFinder(client, dc, Path)
 	defer cancel()
 	folder, err := finder.FolderList(ctx, checkPath)
 	if err != nil {
@@ -437,8 +437,8 @@ func FromID(client *govmomi.Client, id string) (*object.Folder, error) {
 	return folder.(*object.Folder), nil
 }
 
-func GetVmObjectsFromPath(client *govmomi.Client, DataCenter, Path string) (vmObjects []*object.VirtualMachine, err error) {
-	folder, err := Get(client, DataCenter, Path)
+func GetVmObjectsFromPath(client *govmomi.Client, dc *object.Datacenter, Path string) (vmObjects []*object.VirtualMachine, err error) {
+	folder, err := Get(client, dc, Path)
 	if err != nil {
 		return
 	}
@@ -449,7 +449,7 @@ func GetVmObjectsFromPath(client *govmomi.Client, DataCenter, Path string) (vmOb
 	}
 	if childrenExist {
 		var fileSystem *FileSystemItem
-		fileSystem, err = ReadFileSystem(client, DataCenter, Path)
+		fileSystem, err = ReadFileSystem(client, dc, Path)
 		if err != nil {
 			return
 		}

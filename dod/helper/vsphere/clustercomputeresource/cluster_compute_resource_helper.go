@@ -6,19 +6,14 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
-func PropertiesFromPath(client *govmomi.Client, DataCenter, pool string, status *taskstatus.Status) (clusterProp *mo.ClusterComputeResource, err error) {
-	dataCenterOB, err := datacenter.FromName(client, DataCenter)
-	if err != nil {
-		return
-	}
-	clusteOB, err := FromPath(client, pool, dataCenterOB, status)
+func PropertiesFromPath(client *govmomi.Client, dc *object.Datacenter, pool string, status *taskstatus.Status) (clusterProp *mo.ClusterComputeResource, err error) {
+	clusteOB, err := FromPath(client, pool, dc, status)
 	if err != nil {
 		return
 	}

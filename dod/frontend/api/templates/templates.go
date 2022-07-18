@@ -10,6 +10,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 	"github.com/gorilla/mux"
 )
@@ -86,7 +87,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		// LOG to disk
 		return
 	}
-	networks, err := demoactions.GetImportProperties(c.VimClient, global.VMwareConfig.DataCenter, newConfig.Path)
+	networks, err := demoactions.GetImportProperties(c.VimClient, datacenter.DatacenterObj, newConfig.Path)
 	api.ErrorToManyNetworks(w, &networks)
 	newConfig.Defaults()
 	err = newConfig.Validate(false)

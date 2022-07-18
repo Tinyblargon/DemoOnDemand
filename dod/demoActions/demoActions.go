@@ -24,16 +24,16 @@ import (
 
 const demoDoesNotExist string = "demo does not exist"
 
-func Start(client *govmomi.Client, db *sql.DB, dataCenter string, demo *demo.Demo, status *taskstatus.Status) (err error) {
-	err = folder.Start(client, dataCenter, demo.CreateDemoURl()+"/Demo", status)
+func Start(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *demo.Demo, status *taskstatus.Status) (err error) {
+	err = folder.Start(client, dc, demo.CreateDemoURl()+"/Demo", status)
 	if err != nil {
 		return
 	}
 	return database.UpdateDemoOfUser(db, demo, true)
 }
 
-func Stop(client *govmomi.Client, db *sql.DB, dataCenter string, demo *demo.Demo, status *taskstatus.Status) (err error) {
-	err = folder.Stop(client, dataCenter, demo.CreateDemoURl()+"/Demo", status)
+func Stop(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *demo.Demo, status *taskstatus.Status) (err error) {
+	err = folder.Stop(client, dc, demo.CreateDemoURl()+"/Demo", status)
 	if err != nil {
 		return
 	}
@@ -41,7 +41,7 @@ func Stop(client *govmomi.Client, db *sql.DB, dataCenter string, demo *demo.Demo
 }
 
 // Creates a new demo of the the speciefied template
-func New(client *govmomi.Client, db *sql.DB, dataCenter, pool string, demo *demo.Demo, demoLimit uint, status *taskstatus.Status) (err error) {
+func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string, demo *demo.Demo, demoLimit uint, status *taskstatus.Status) (err error) {
 	numberOfDemos, err := database.NumberOfDomosOfUser(db, demo.User)
 	if err != nil {
 		return
@@ -57,16 +57,16 @@ func New(client *govmomi.Client, db *sql.DB, dataCenter, pool string, demo *demo
 	if err != nil {
 		return
 	}
-	err = createAndSetupDemo(client, dataCenter, pool, demo, templateConf, status)
+	err = createAndSetupDemo(client, dc, pool, demo, templateConf, status)
 	if err != nil {
 		_ = database.DeleteDemoOfUser(db, demo)
 	}
 	return
 }
 
-func createAndSetupDemo(client *govmomi.Client, dataCenter, pool string, demo *demo.Demo, templateConf *template.Config, status *taskstatus.Status) (err error) {
+func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool string, demo *demo.Demo, templateConf *template.Config, status *taskstatus.Status) (err error) {
 	basePath := demo.CreateDemoURl()
-	folderObject, err := folder.Create(client, dataCenter, basePath)
+	folderObject, err := folder.Create(client, dc, basePath)
 	if err != nil {
 		return
 	}
@@ -74,11 +74,11 @@ func createAndSetupDemo(client *govmomi.Client, dataCenter, pool string, demo *d
 	if err != nil {
 		return
 	}
-	err = cloneRouterVM(client, dataCenter, folderObject, vlans, status)
+	err = cloneRouterVM(client, dc, folderObject, vlans, status)
 	if err != nil {
 		return
 	}
-	return folder.Clone(client, dataCenter, global.TemplateFodler+"/"+demo.Name, basePath+"/Demo", pool, false, status)
+	return folder.Clone(client, dc, global.TemplateFodler+"/"+demo.Name, basePath+"/Demo", pool, false, status)
 }
 
 func createAndSetupVlans(client *govmomi.Client, demo *demo.Demo, templateConf *template.Config, status *taskstatus.Status) (vlans *vlan.LocalList, err error) {
@@ -95,8 +95,8 @@ func createAndSetupVlans(client *govmomi.Client, demo *demo.Demo, templateConf *
 }
 
 // setup the vm responsible for making all the routing work
-func cloneRouterVM(client *govmomi.Client, dataCenter string, folderObject *object.Folder, vlans *vlan.LocalList, status *taskstatus.Status) (err error) {
-	vmObject, err := virtualmachine.Get(client, dataCenter, global.RouterFodler+"/"+global.IngressVM)
+func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *object.Folder, vlans *vlan.LocalList, status *taskstatus.Status) (err error) {
+	vmObject, err := virtualmachine.Get(client, dc, global.RouterFodler+"/"+global.IngressVM)
 	if err != nil {
 		return
 	}
@@ -109,11 +109,11 @@ func cloneRouterVM(client *govmomi.Client, dataCenter string, folderObject *obje
 	return
 }
 
-func ListAll(client *govmomi.Client, dataCenter string) (*[]string, error) {
-	return folder.ListSubFolders(client, dataCenter, global.DemoFodler)
+func ListAll(client *govmomi.Client, dc *object.Datacenter) (*[]string, error) {
+	return folder.ListSubFolders(client, dc, global.DemoFodler)
 }
 
-func Delete(client *govmomi.Client, db *sql.DB, dataCenter string, demo *demo.Demo, status *taskstatus.Status) (err error) {
+func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *demo.Demo, status *taskstatus.Status) (err error) {
 	demoURL := demo.CreateDemoURl()
 	existance, err := CheckExistance(db, *demo)
 	if err != nil {
@@ -122,8 +122,8 @@ func Delete(client *govmomi.Client, db *sql.DB, dataCenter string, demo *demo.De
 	if !existance {
 		return fmt.Errorf(demoDoesNotExist)
 	}
-	if folder.Exists(client, dataCenter, demoURL) {
-		err = folder.Delete(client, dataCenter, demoURL, status)
+	if folder.Exists(client, dc, demoURL) {
+		err = folder.Delete(client, dc, demoURL, status)
 		if err != nil {
 			return
 		}
@@ -160,10 +160,10 @@ func deleteAndReleaseNetworks(client *govmomi.Client, db *sql.DB, demo *demo.Dem
 }
 
 // Get the current properties like VLANS of a new demo you would like to import.
-func GetImportProperties(client *govmomi.Client, dataCenter, folderContainingNewTemplate string) (networks []string, err error) {
+func GetImportProperties(client *govmomi.Client, dc *object.Datacenter, folderContainingNewTemplate string) (networks []string, err error) {
 	networks = make([]string, 0)
 	status := new(taskstatus.Status)
-	vmObjects, err := folder.GetVmObjectsFromPath(client, dataCenter, folderContainingNewTemplate)
+	vmObjects, err := folder.GetVmObjectsFromPath(client, dc, folderContainingNewTemplate)
 	if err != nil {
 		return
 	}
