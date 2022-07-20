@@ -5,18 +5,21 @@ package demoactions
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/host"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/network"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/portgroup"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
+	"github.com/Tinyblargon/DemoOnDemand/dod/template"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/types"
@@ -58,9 +61,9 @@ func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string,
 		return
 	}
 	err = createAndSetupDemo(client, dc, pool, demo, templateConf, status)
-	if err != nil {
-		_ = database.DeleteDemoOfUser(db, demo)
-	}
+	// if err != nil {
+	// 	_ = database.DeleteDemoOfUser(db, demo)
+	// }
 	return
 }
 
@@ -70,7 +73,7 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 	if err != nil {
 		return
 	}
-	vlans, err := createAndSetupVlans(client, demo, templateConf, status)
+	vlans, err := createAndSetupVlans(client, dc, demo, templateConf, status)
 	if err != nil {
 		return
 	}
@@ -78,19 +81,37 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 	if err != nil {
 		return
 	}
-	return folder.Clone(client, dc, global.TemplateFodler+"/"+demo.Name, basePath+"/Demo", pool, false, status)
+	return folder.Clone(client, dc, vlans, global.TemplateFodler+"/"+demo.Name, basePath+"/Demo", pool, false, status)
 }
 
-func createAndSetupVlans(client *govmomi.Client, demo *demo.Demo, templateConf *template.Config, status *taskstatus.Status) (vlans *vlan.LocalList, err error) {
+func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *demo.Demo, templateConf *template.Config, status *taskstatus.Status) (vlans *vlan.LocalList, err error) {
 	reservedVlans, err := vlan.ReserveAmount(demo, uint(len(templateConf.Networks)))
 	if err != nil {
 		return
 	}
+	err = portgroup.Create(client, host.List, &reservedVlans, vlan.List.NewPrefix, global.VMwareConfig.Vswitch, global.Concurency, status)
+	if err != nil {
+		return
+	}
+	time.Sleep(10 * time.Second)
+	networkList := make([]*types.BaseVirtualDeviceBackingInfo, len(reservedVlans))
+	for i, e := range reservedVlans {
+		var networkObj *object.NetworkReference
+		networkObj, err = network.FromName(client, dc, vlan.List.NewPrefix+strconv.Itoa(int(e)))
+		if err != nil {
+			return
+		}
+		var backing *types.BaseVirtualDeviceBackingInfo
+		backing, err = network.GetBackingInfo(networkObj)
+		if err != nil {
+			return
+		}
+		networkList[i] = backing
+	}
 	vlans = &vlan.LocalList{
 		Original: &templateConf.Networks,
-		Remapped: &reservedVlans,
+		Remapped: &networkList,
 	}
-	err = portgroup.Create(client, host.List, &reservedVlans, vlan.List.NewPrefix, global.VMwareConfig.Vswitch, global.Concurency, status)
 	return
 }
 

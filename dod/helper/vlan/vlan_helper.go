@@ -8,6 +8,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
 const OutOfVlans string = "no more vlans availible"
@@ -24,7 +25,7 @@ type VlanData struct {
 // This Stuct is for keeping track of localized vlan usage anr translation/remapping of vlans/networks.
 type LocalList struct {
 	Original *[]*template.Network
-	Remapped *[]uint
+	Remapped *[]*types.BaseVirtualDeviceBackingInfo
 }
 
 func Initialize(vlanIDs *[]uint, prefix string) (err error) {

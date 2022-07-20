@@ -204,23 +204,13 @@ func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, e
 	return vm.PowerState(ctx)
 }
 
-func SetMacToStatic(vmProperties *mo.VirtualMachine, status *taskstatus.Status) (*types.VirtualMachineCloneSpec, error) {
-	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device), status)
-
-	baseVDevices := []types.BaseVirtualDeviceConfigSpec{}
-	for _, e := range *networkInterfaces {
-		ethernetCard := e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard()
-		ethernetCard.AddressType = "manual"
-		baseVDevices = append(baseVDevices, &types.VirtualDeviceConfigSpec{
-			Operation: types.VirtualDeviceConfigSpecOperationEdit,
-			Device:    e,
-		})
+func addVmSpec(cloneSpec *types.VirtualMachineCloneSpec) *types.VirtualMachineCloneSpec {
+	if cloneSpec.Config != nil {
+		return cloneSpec
 	}
 	vmSpec := new(types.VirtualMachineConfigSpec)
-	vmSpec.DeviceChange = baseVDevices
-	cloneSpec := new(types.VirtualMachineCloneSpec)
 	cloneSpec.Config = vmSpec
-	return cloneSpec, nil
+	return cloneSpec
 }
 
 func channelInitialize(numberOfObjects, concurrencyNumner uint) (chan *object.VirtualMachine, chan error, uint) {

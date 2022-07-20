@@ -11,6 +11,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/generic"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/clustercomputeresource"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/vmware/govmomi"
@@ -28,12 +29,12 @@ type FileSystemItem struct {
 }
 
 // Clone Wil clone all items in the speciefied folder and all it's subfolders
-func Clone(client *govmomi.Client, dc *object.Datacenter, Path, newPath, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
+func Clone(client *govmomi.Client, dc *object.Datacenter, vlans *vlan.LocalList, Path, newPath, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
 	fileSystem, err := ReadFileSystem(client, dc, Path)
 	if err != nil {
 		return
 	}
-	err = fileSystem.Create(client, dc, newPath, pool, vmTemplate, status)
+	err = fileSystem.Create(client, dc, vlans, newPath, pool, vmTemplate, status)
 	return
 }
 
@@ -51,7 +52,7 @@ func ReadFileSystem(client *govmomi.Client, dc *object.Datacenter, Path string) 
 	return fileSystem, nil
 }
 
-func (fileSystem *FileSystemItem) Create(client *govmomi.Client, dc *object.Datacenter, basefolder, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
+func (fileSystem *FileSystemItem) Create(client *govmomi.Client, dc *object.Datacenter, vlans *vlan.LocalList, basefolder, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
 	_, err = Create(client, dc, basefolder)
 	if err != nil {
 		return
@@ -63,12 +64,12 @@ func (fileSystem *FileSystemItem) Create(client *govmomi.Client, dc *object.Data
 			return
 		}
 	}
-	err = fileSystem.recursiveCreate(client, dc, basefolder, vmTemplate, clusterProp, status)
+	err = fileSystem.recursiveCreate(client, dc, basefolder, vmTemplate, vlans, clusterProp, status)
 	return
 }
 
 // this function recursivly calls itself to create all items found in parent at a the location of basefolder
-func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, dc *object.Datacenter, basefolder string, vmTemplate bool, clusterProp *mo.ClusterComputeResource, status *taskstatus.Status) (err error) {
+func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, dc *object.Datacenter, basefolder string, vmTemplate bool, vlans *vlan.LocalList, clusterProp *mo.ClusterComputeResource, status *taskstatus.Status) (err error) {
 	// this can be more parallelized but would require rewriting, look at the DeleteObjects function
 	if parent.Subitems == nil {
 		return
@@ -81,7 +82,7 @@ func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, dc *object
 			if err != nil {
 				break
 			}
-			err = e.recursiveCreate(client, dc, newBaseFolder, vmTemplate, clusterProp, status)
+			err = e.recursiveCreate(client, dc, newBaseFolder, vmTemplate, vlans, clusterProp, status)
 		}
 		if e.VirtualMachine != nil {
 			vmCounter += 1
@@ -107,23 +108,21 @@ func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, dc *object
 	wg.Add(len(vmArray))
 	for _, e := range vmArray {
 		go func(client *govmomi.Client, e *FileSystemItem, vmTemplate bool, clusterProp *mo.ClusterComputeResource) {
-			var spec *types.VirtualMachineCloneSpec
+
 			var properties *mo.VirtualMachine
 			properties, err = virtualmachine.Properties(e.VirtualMachine, status)
 			if err != nil {
 				wg.Done()
 				return
 			}
-			spec, err = virtualmachine.SetMacToStatic(properties, status)
-			if err != nil {
-				wg.Done()
-				return
-			}
+			spec := &types.VirtualMachineCloneSpec{}
+			virtualmachine.ChangeNetworkInterface(properties, spec, vlans, status)
 			spec.Template = vmTemplate
 			if clusterProp != nil {
-				spec.Location.Pool = new(types.ManagedObjectReference)
-				spec.Location.Pool.Value = clusterProp.ComputeResource.ResourcePool.Value
-				spec.Location.Pool.Type = clusterProp.ComputeResource.ResourcePool.Type
+				spec.Location.Pool = &types.ManagedObjectReference{
+					Value: clusterProp.ComputeResource.ResourcePool.Value,
+					Type:  clusterProp.ComputeResource.ResourcePool.Type,
+				}
 			}
 			_, err = virtualmachine.Clone(client, e.VirtualMachine, ob, e.Name, *spec, 1000, status)
 			wg.Done()

@@ -8,19 +8,30 @@ import (
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
+func GetBackingInfo(net *object.NetworkReference) (*types.BaseVirtualDeviceBackingInfo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	defer cancel()
+	backing, err := (*net).EthernetCardBackingInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &backing, err
+}
+
 func IdFromName(client *govmomi.Client, name string, dc *object.Datacenter) (netID string, err error) {
-	net, err := fromName(client, name, dc)
+	net, err := FromName(client, dc, name)
 	if err != nil {
 		return "", fmt.Errorf("error fetching network: %s", err)
 	}
 
-	netID = net.Reference().Value
+	netID = (*net).Reference().Value
 	return
 }
 
-func fromName(client *govmomi.Client, name string, dc *object.Datacenter) (object.NetworkReference, error) {
+func FromName(client *govmomi.Client, dc *object.Datacenter, name string) (*object.NetworkReference, error) {
 	finder := find.NewFinder(client.Client, false)
 	if dc != nil {
 		finder.SetDatacenter(dc)
@@ -39,7 +50,7 @@ func fromName(client *govmomi.Client, name string, dc *object.Datacenter) (objec
 
 	switch {
 	case len(networks) == 1:
-		return networks[0], nil
+		return &networks[0], nil
 	case len(networks) > 1:
 		return nil, fmt.Errorf("path '%s' resolves to multiple %ss, Please specify", name, "network")
 	}
