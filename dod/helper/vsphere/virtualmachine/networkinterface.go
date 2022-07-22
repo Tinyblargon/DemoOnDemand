@@ -10,6 +10,23 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
+func AddNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.VirtualMachineCloneSpec, backing *types.BaseVirtualDeviceBackingInfo) (*types.VirtualMachineCloneSpec, error) {
+	spec = addVmSpec(spec)
+	devices := object.VirtualDeviceList(vmProperties.Config.Hardware.Device)
+
+	device, err := devices.CreateEthernetCard("vmxnet3", *backing)
+	if err != nil {
+		return nil, err
+	}
+
+	dspec, err := object.VirtualDeviceList{device}.ConfigSpec(types.VirtualDeviceConfigSpecOperationAdd)
+	if err != nil {
+		return nil, err
+	}
+	spec.Config.DeviceChange = append(spec.Config.DeviceChange, dspec...)
+	return spec, err
+}
+
 func ChangeNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.VirtualMachineCloneSpec, networks *vlan.LocalList, status *taskstatus.Status) *types.VirtualMachineCloneSpec {
 	spec = addVmSpec(spec)
 	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device), status)

@@ -121,17 +121,23 @@ func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *
 	if err != nil {
 		return
 	}
+	vmProperties, err := virtualmachine.Properties(vmObject, status)
+	if err != nil {
+		return
+	}
 	spec := new(types.VirtualMachineCloneSpec)
+	for _, e := range *vlans.Remapped {
+		spec, err = virtualmachine.AddNetworkInterface(vmProperties, spec, e)
+		if err != nil {
+			return
+		}
+	}
 	newVmObject, err := virtualmachine.Clone(client, vmObject, folderObject, vmObject.Name(), *spec, 999, status)
 	if err != nil {
 		return
 	}
 	err = virtualmachine.Start(newVmObject, status)
 	return
-}
-
-func ListAll(client *govmomi.Client, dc *object.Datacenter) (*[]string, error) {
-	return folder.ListSubFolders(client, dc, global.DemoFodler)
 }
 
 func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *demo.Demo, status *taskstatus.Status) (err error) {
