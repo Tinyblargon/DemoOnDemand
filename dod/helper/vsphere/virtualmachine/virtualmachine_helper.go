@@ -204,6 +204,25 @@ func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, e
 	return vm.PowerState(ctx)
 }
 
+func GetGuestIP(vmObject *object.VirtualMachine, status *taskstatus.Status) (guestIP string, err error) {
+	status.AddToInfo(fmt.Sprintf("[DEBUG] Fetching IP of guest %s", vmObject.Name()))
+	for true {
+		var startedVmProperties *mo.VirtualMachine
+		discardStatus := new(taskstatus.Status)
+		startedVmProperties, err = Properties(vmObject, discardStatus)
+		if err != nil {
+			return
+		}
+		if startedVmProperties.Guest.IpAddress != "" {
+			guestIP = startedVmProperties.Guest.IpAddress
+			status.AddToInfo(fmt.Sprintf("[DEBUG] Obtained IP (%s) of guest %s", guestIP, vmObject.Name()))
+			break
+		}
+		time.Sleep(time.Second * 1)
+	}
+	return
+}
+
 func addVmSpec(cloneSpec *types.VirtualMachineCloneSpec) *types.VirtualMachineCloneSpec {
 	if cloneSpec.Config != nil {
 		return cloneSpec
