@@ -211,12 +211,11 @@ func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter
 		time.Sleep(time.Second * 2)
 		var startedVmProperties *mo.VirtualMachine
 		var vmObject *object.VirtualMachine
-		discardStatus := new(taskstatus.Status)
 		vmObject, err = Get(client, dc, path+"/"+name)
 		if err != nil {
 			return
 		}
-		startedVmProperties, err = Properties(vmObject, discardStatus)
+		startedVmProperties, err = Properties(vmObject, nil)
 		if err != nil {
 			return
 		}
