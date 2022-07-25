@@ -30,7 +30,7 @@ type Config struct {
 	Description  string              `json:"description,omitempty" yaml:"description"`
 	Path         string              `json:"path,omitempty" yaml:"path,omitempty"`
 	PortForwards []*PortForward      `json:"portforwards" yaml:"portforwards"`
-	Networks     []*template.Network `json:"networks" yaml:"networks"`
+	Networks     *[]template.Network `json:"networks" yaml:"networks"`
 }
 
 func Get(templateName string) (templateConfig *Config, err error) {
@@ -101,7 +101,7 @@ func (c *Config) Validate(nameAndPathEmpty bool) (err error) {
 			return
 		}
 	}
-	for _, e := range c.Networks {
+	for _, e := range *(c.Networks) {
 		err = e.ValidateSubnet()
 		if err != nil {
 			return

@@ -85,7 +85,7 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 }
 
 func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *demo.Demo, templateConf *template.Config, status *taskstatus.Status) (vlans *vlan.LocalList, err error) {
-	reservedVlans, err := vlan.ReserveAmount(demo, uint(len(templateConf.Networks)))
+	reservedVlans, err := vlan.ReserveAmount(demo, uint(len(*templateConf.Networks)))
 	if err != nil {
 		return
 	}
@@ -109,7 +109,7 @@ func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *de
 		networkList[i] = backing
 	}
 	vlans = &vlan.LocalList{
-		Original: &templateConf.Networks,
+		Original: templateConf.Networks,
 		Remapped: &networkList,
 	}
 	return

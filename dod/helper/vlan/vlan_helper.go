@@ -24,7 +24,7 @@ type VlanData struct {
 
 // This Stuct is for keeping track of localized vlan usage anr translation/remapping of vlans/networks.
 type LocalList struct {
-	Original *[]*template.Network
+	Original *[]template.Network
 	Remapped *[]*types.BaseVirtualDeviceBackingInfo
 }
 
