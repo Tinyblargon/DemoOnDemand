@@ -204,17 +204,17 @@ func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, e
 	return vm.PowerState(ctx)
 }
 
-func GetGuestIP(vmObject *object.VirtualMachine, status *taskstatus.Status) (guestIP string, err error) {
+func GetGuestIP(vmObject *object.VirtualMachine, status *taskstatus.Status) (guestIP string, vmProperties *mo.VirtualMachine, err error) {
 	status.AddToInfo(fmt.Sprintf("[DEBUG] Fetching IP of guest %s", vmObject.Name()))
+	// try until the guest ip is readable from vmware tools
 	for true {
-		var startedVmProperties *mo.VirtualMachine
 		discardStatus := new(taskstatus.Status)
-		startedVmProperties, err = Properties(vmObject, discardStatus)
+		vmProperties, err = Properties(vmObject, discardStatus)
 		if err != nil {
 			return
 		}
-		if startedVmProperties.Guest.IpAddress != "" {
-			guestIP = startedVmProperties.Guest.IpAddress
+		if vmProperties.Guest.IpAddress != "" {
+			guestIP = vmProperties.Guest.IpAddress
 			status.AddToInfo(fmt.Sprintf("[DEBUG] Obtained IP (%s) of guest %s", guestIP, vmObject.Name()))
 			break
 		}

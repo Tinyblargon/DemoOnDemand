@@ -138,7 +138,7 @@ func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *
 	}
 	err = virtualmachine.Start(newVmObject, status)
 
-	guestIP, err := virtualmachine.GetGuestIP(vmObject, status)
+	guestIP, _, err := virtualmachine.GetGuestIP(vmObject, status)
 	if err != nil {
 		return
 	}
