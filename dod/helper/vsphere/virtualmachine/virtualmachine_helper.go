@@ -204,21 +204,27 @@ func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, e
 	return vm.PowerState(ctx)
 }
 
-func GetGuestIP(vmObject *object.VirtualMachine, status *taskstatus.Status) (guestIP string, vmProperties *mo.VirtualMachine, err error) {
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Fetching IP of guest %s", vmObject.Name()))
+func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter, status *taskstatus.Status) (guestIP string, vmProperties *mo.VirtualMachine, err error) {
+	status.AddToInfo(fmt.Sprintf("[DEBUG] Fetching IP of guest %s", name))
 	// try until the guest ip is readable from vmware tools
 	for true {
+		time.Sleep(time.Second * 2)
+		var startedVmProperties *mo.VirtualMachine
+		var vmObject *object.VirtualMachine
 		discardStatus := new(taskstatus.Status)
-		vmProperties, err = Properties(vmObject, discardStatus)
+		vmObject, err = Get(client, dc, path+"/"+name)
 		if err != nil {
 			return
 		}
-		if vmProperties.Guest.IpAddress != "" {
-			guestIP = vmProperties.Guest.IpAddress
+		startedVmProperties, err = Properties(vmObject, discardStatus)
+		if err != nil {
+			return
+		}
+		if startedVmProperties.Guest.IpAddress != "" {
+			guestIP = startedVmProperties.Guest.IpAddress
 			status.AddToInfo(fmt.Sprintf("[DEBUG] Obtained IP (%s) of guest %s", guestIP, vmObject.Name()))
 			break
 		}
-		time.Sleep(time.Second * 1)
 	}
 	return
 }

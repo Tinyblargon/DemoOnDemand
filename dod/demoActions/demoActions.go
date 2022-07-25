@@ -77,7 +77,7 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 	if err != nil {
 		return
 	}
-	err = cloneRouterVM(client, dc, folderObject, vlans, status)
+	err = cloneRouterVM(client, dc, folderObject, basePath, vlans, templateConf, status)
 	if err != nil {
 		return
 	}
@@ -116,7 +116,7 @@ func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *de
 }
 
 // setup the vm responsible for making all the routing work
-func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *object.Folder, vlans *vlan.LocalList, status *taskstatus.Status) (err error) {
+func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *object.Folder, basePath string, vlans *vlan.LocalList, templateConf *template.Config, status *taskstatus.Status) (err error) {
 	vmObject, err := virtualmachine.Get(client, dc, global.RouterFodler+"/"+global.IngressVM)
 	if err != nil {
 		return
@@ -137,8 +137,10 @@ func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *
 		return
 	}
 	err = virtualmachine.Start(newVmObject, status)
-
-	guestIP, _, err := virtualmachine.GetGuestIP(vmObject, status)
+	if err != nil {
+		return
+	}
+	guestIP, vmProperties, err := virtualmachine.GetGuestIP(client, basePath, global.IngressVM, dc, status)
 	if err != nil {
 		return
 	}
