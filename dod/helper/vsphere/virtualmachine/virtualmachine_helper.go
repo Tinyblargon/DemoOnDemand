@@ -209,18 +209,17 @@ func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter
 	// try until the guest ip is readable from vmware tools
 	for true {
 		time.Sleep(time.Second * 2)
-		var startedVmProperties *mo.VirtualMachine
 		var vmObject *object.VirtualMachine
 		vmObject, err = Get(client, dc, path+"/"+name)
 		if err != nil {
 			return
 		}
-		startedVmProperties, err = Properties(vmObject, nil)
+		vmProperties, err = Properties(vmObject, nil)
 		if err != nil {
 			return
 		}
-		if startedVmProperties.Guest.IpAddress != "" {
-			guestIP = startedVmProperties.Guest.IpAddress
+		if vmProperties.Guest.IpAddress != "" {
+			guestIP = vmProperties.Guest.IpAddress
 			status.AddToInfo(fmt.Sprintf("[DEBUG] Obtained IP (%s) of guest %s", guestIP, vmObject.Name()))
 			break
 		}

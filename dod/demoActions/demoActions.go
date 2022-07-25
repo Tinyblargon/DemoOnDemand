@@ -18,6 +18,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/host"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/network"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/portgroup"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualhost"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/Tinyblargon/DemoOnDemand/dod/template"
 	"github.com/vmware/govmomi"
@@ -145,6 +146,8 @@ func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *
 		return
 	}
 	_ = guestIP
+
+	virtualhost.GetInterfaceSettings(vmProperties, templateConf.Networks)
 
 	return
 }
