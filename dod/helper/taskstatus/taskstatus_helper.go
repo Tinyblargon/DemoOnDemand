@@ -36,9 +36,11 @@ func NewStatus() (status *Status) {
 }
 
 func (s *Status) AddToInfo(newLine string) {
-	s.Mutex.Lock()
-	s.unsafeAddToInfo(newLine)
-	s.Mutex.Unlock()
+	if s != nil {
+		s.Mutex.Lock()
+		s.unsafeAddToInfo(newLine)
+		s.Mutex.Unlock()
+	}
 }
 
 func (s *Status) unsafeAddToInfo(newLine string) {
