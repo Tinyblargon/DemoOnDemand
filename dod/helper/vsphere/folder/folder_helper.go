@@ -29,7 +29,7 @@ type FileSystemItem struct {
 }
 
 // Clone Wil clone all items in the speciefied folder and all it's subfolders
-func Clone(client *govmomi.Client, dc *object.Datacenter, vlans *vlan.LocalList, Path, newPath, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
+func Clone(client *govmomi.Client, dc *object.Datacenter, vlans []*vlan.LocalList, Path, newPath, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
 	fileSystem, err := ReadFileSystem(client, dc, Path)
 	if err != nil {
 		return
@@ -52,7 +52,7 @@ func ReadFileSystem(client *govmomi.Client, dc *object.Datacenter, Path string) 
 	return fileSystem, nil
 }
 
-func (fileSystem *FileSystemItem) Create(client *govmomi.Client, dc *object.Datacenter, vlans *vlan.LocalList, basefolder, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
+func (fileSystem *FileSystemItem) Create(client *govmomi.Client, dc *object.Datacenter, vlans []*vlan.LocalList, basefolder, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
 	_, err = Create(client, dc, basefolder)
 	if err != nil {
 		return
@@ -69,7 +69,7 @@ func (fileSystem *FileSystemItem) Create(client *govmomi.Client, dc *object.Data
 }
 
 // this function recursivly calls itself to create all items found in parent at a the location of basefolder
-func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, dc *object.Datacenter, basefolder string, vmTemplate bool, vlans *vlan.LocalList, clusterProp *mo.ClusterComputeResource, status *taskstatus.Status) (err error) {
+func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, dc *object.Datacenter, basefolder string, vmTemplate bool, vlans []*vlan.LocalList, clusterProp *mo.ClusterComputeResource, status *taskstatus.Status) (err error) {
 	// this can be more parallelized but would require rewriting, look at the DeleteObjects function
 	if parent.Subitems == nil {
 		return

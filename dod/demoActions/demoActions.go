@@ -23,6 +23,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/template"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -61,32 +62,39 @@ func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string,
 	if err != nil {
 		return
 	}
-	err = createAndSetupDemo(client, dc, pool, demo, templateConf, status)
+	networkList := vlan.CreateLocalList(templateConf.Networks)
+	err = createAndSetupDemo(client, dc, pool, demo, networkList, status)
 	// if err != nil {
 	// 	_ = database.DeleteDemoOfUser(db, demo)
 	// }
 	return
 }
 
-func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool string, demo *demo.Demo, templateConf *template.Config, status *taskstatus.Status) (err error) {
+func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool string, demo *demo.Demo, networkList []*vlan.LocalList, status *taskstatus.Status) (err error) {
 	basePath := demo.CreateDemoURl()
 	folderObject, err := folder.Create(client, dc, basePath)
 	if err != nil {
 		return
 	}
-	vlans, err := createAndSetupVlans(client, dc, demo, templateConf, status)
+	vlans, err := createAndSetupVlans(client, dc, demo, networkList, status)
 	if err != nil {
 		return
 	}
-	err = cloneRouterVM(client, dc, folderObject, basePath, vlans, templateConf, status)
+	vmProperties, guestIP, err := cloneRouterVM(client, dc, folderObject, basePath, vlans, status)
+	if err != nil {
+		return
+	}
+	err = configureRouterVM(vmProperties, vlans, guestIP)
 	if err != nil {
 		return
 	}
 	return folder.Clone(client, dc, vlans, global.TemplateFodler+"/"+demo.Name, basePath+"/Demo", pool, false, status)
 }
 
-func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *demo.Demo, templateConf *template.Config, status *taskstatus.Status) (vlans *vlan.LocalList, err error) {
-	reservedVlans, err := vlan.ReserveAmount(demo, uint(len(*templateConf.Networks)))
+func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *demo.Demo, networkList []*vlan.LocalList, status *taskstatus.Status) (vlans []*vlan.LocalList, err error) {
+
+	reservedVlans, err := vlan.ReserveVlans(demo, networkList)
+	// reservedVlans, err := vlan.ReserveAmount(demo, uint(len(*templateConf.Networks)))
 	if err != nil {
 		return
 	}
@@ -95,8 +103,32 @@ func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *de
 		return
 	}
 	time.Sleep(10 * time.Second)
-	networkList := make([]*types.BaseVirtualDeviceBackingInfo, len(reservedVlans))
-	for i, e := range reservedVlans {
+	backingList, err := getAllbackingInfo(client, dc, reservedVlans)
+	if err != nil {
+		return
+	}
+
+	for _, e := range backingList {
+		var networkName string
+		for _, ee := range networkList {
+			if ee.BackingInfo == nil {
+				if networkName == "" {
+					networkName = ee.OriginalNetwork
+				}
+				if networkName == ee.OriginalNetwork {
+					ee.BackingInfo = e
+				}
+			}
+		}
+	}
+	vlans = networkList
+	return
+}
+
+// get backing info of the provided vlans
+func getAllbackingInfo(client *govmomi.Client, dc *object.Datacenter, vlanList []uint) (backingList []*types.BaseVirtualDeviceBackingInfo, err error) {
+	backingList = make([]*types.BaseVirtualDeviceBackingInfo, len(vlanList))
+	for i, e := range vlanList {
 		var networkObj *object.NetworkReference
 		networkObj, err = network.FromName(client, dc, vlan.List.NewPrefix+strconv.Itoa(int(e)))
 		if err != nil {
@@ -107,28 +139,24 @@ func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *de
 		if err != nil {
 			return
 		}
-		networkList[i] = backing
-	}
-	vlans = &vlan.LocalList{
-		Original: templateConf.Networks,
-		Remapped: &networkList,
+		backingList[i] = backing
 	}
 	return
 }
 
 // setup the vm responsible for making all the routing work
-func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *object.Folder, basePath string, vlans *vlan.LocalList, templateConf *template.Config, status *taskstatus.Status) (err error) {
+func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *object.Folder, basePath string, vlans []*vlan.LocalList, status *taskstatus.Status) (vmProperties *mo.VirtualMachine, guestIP string, err error) {
 	vmObject, err := virtualmachine.Get(client, dc, global.RouterFodler+"/"+global.IngressVM)
 	if err != nil {
 		return
 	}
-	vmProperties, err := virtualmachine.Properties(vmObject, status)
+	vmProperties, err = virtualmachine.Properties(vmObject, status)
 	if err != nil {
 		return
 	}
 	spec := new(types.VirtualMachineCloneSpec)
-	for _, e := range *vlans.Remapped {
-		spec, err = virtualmachine.AddNetworkInterface(vmProperties, spec, e)
+	for _, e := range vlans {
+		spec, err = virtualmachine.AddNetworkInterface(vmProperties, spec, e.BackingInfo)
 		if err != nil {
 			return
 		}
@@ -141,14 +169,15 @@ func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *
 	if err != nil {
 		return
 	}
-	guestIP, vmProperties, err := virtualmachine.GetGuestIP(client, basePath, global.IngressVM, dc, status)
+	guestIP, vmProperties, err = virtualmachine.GetGuestIP(client, basePath, global.IngressVM, dc, status)
 	if err != nil {
 		return
 	}
-	_ = guestIP
+	return
+}
 
-	virtualhost.GetInterfaceSettings(vmProperties, templateConf.Networks)
-
+func configureRouterVM(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, ip string) (err error) {
+	virtualhost.GetInterfaceSettings(vmProperties, vlan)
 	return
 }
 
@@ -215,11 +244,7 @@ func GetImportProperties(client *govmomi.Client, dc *object.Datacenter, folderCo
 		if err != nil {
 			return
 		}
-		for _, networkID := range vmNetworks {
-			if util.IsStringUnique(&networks, networkID) {
-				networks = append(networks, networkID)
-			}
-		}
+		networks = *(util.FilterUniqueStrings(&vmNetworks))
 	}
 	return
 }

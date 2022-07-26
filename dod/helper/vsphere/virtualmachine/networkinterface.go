@@ -10,20 +10,21 @@ import (
 
 type NetworkInterfaceSettings struct {
 	IP      string
+	Subnet  string
 	Mac     string
 	Network string
 }
 
-func GetMac(vmProperties *mo.VirtualMachine) *[]NetworkInterfaceSettings {
+func GetMac(vmProperties *mo.VirtualMachine) []*NetworkInterfaceSettings {
 	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device), nil)
-	net := make([]NetworkInterfaceSettings, len(*networkInterfaces))
+	net := make([]*NetworkInterfaceSettings, len(*networkInterfaces))
 	for i, e := range *networkInterfaces {
-		net[i] = NetworkInterfaceSettings{
+		net[i] = &NetworkInterfaceSettings{
 			Mac:     e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().MacAddress,
 			Network: e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().DeviceInfo.GetDescription().Summary,
 		}
 	}
-	return &net
+	return net
 }
 
 func AddNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.VirtualMachineCloneSpec, backing *types.BaseVirtualDeviceBackingInfo) (*types.VirtualMachineCloneSpec, error) {
@@ -43,7 +44,7 @@ func AddNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.VirtualMac
 	return spec, err
 }
 
-func ChangeNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.VirtualMachineCloneSpec, networks *vlan.LocalList, status *taskstatus.Status) *types.VirtualMachineCloneSpec {
+func ChangeNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.VirtualMachineCloneSpec, networks []*vlan.LocalList, status *taskstatus.Status) *types.VirtualMachineCloneSpec {
 	spec = addVmSpec(spec)
 	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device), status)
 
@@ -67,11 +68,11 @@ func staticMac(baseVDevice types.BaseVirtualDevice) types.BaseVirtualDevice {
 }
 
 // Changes the network the network interface is connected to
-func changeConnectedNetwork(baseVDevice types.BaseVirtualDevice, networks *vlan.LocalList) types.BaseVirtualDevice {
+func changeConnectedNetwork(baseVDevice types.BaseVirtualDevice, networks []*vlan.LocalList) types.BaseVirtualDevice {
 	if networks != nil {
-		for i, e := range *networks.Original {
-			if e.Name == baseVDevice.GetVirtualDevice().DeviceInfo.GetDescription().Summary {
-				baseVDevice.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().Backing = *(*(networks.Remapped))[i]
+		for _, e := range networks {
+			if e.OriginalNetwork == baseVDevice.GetVirtualDevice().DeviceInfo.GetDescription().Summary {
+				baseVDevice.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().Backing = *(e.BackingInfo)
 				break
 			}
 		}

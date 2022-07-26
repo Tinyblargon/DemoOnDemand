@@ -9,3 +9,13 @@ func IsStringUnique(list *[]string, item string) bool {
 	}
 	return true
 }
+
+func FilterUniqueStrings(list *[]string) *[]string {
+	var uniqueList []string
+	for _, e := range *list {
+		if IsStringUnique(&uniqueList, e) {
+			uniqueList = append(uniqueList, e)
+		}
+	}
+	return &uniqueList
+}
