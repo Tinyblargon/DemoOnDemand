@@ -22,7 +22,7 @@ type VlanData struct {
 	Mutex     sync.Mutex
 }
 
-// This Stuct is for keeping track of localized vlan usage anr translation/remapping of vlans/networks.
+// This Stuct is for keeping track of localized vlan usage on translation/remapping of vlans/networks.
 type LocalList struct {
 	Original *[]template.Network
 	Remapped *[]*types.BaseVirtualDeviceBackingInfo
