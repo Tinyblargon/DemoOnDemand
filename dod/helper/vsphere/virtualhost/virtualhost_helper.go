@@ -7,7 +7,7 @@ import (
 )
 
 func GetInterfaceSettings(vmProperties *mo.VirtualMachine, vlans []*vlan.LocalList) {
-	net := virtualmachine.GetMac(vmProperties)
+	net := virtualmachine.GetMac(vmProperties, vlans)
 	_ = net
 	return
 }

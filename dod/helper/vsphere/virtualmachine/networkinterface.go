@@ -8,23 +8,19 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
-type NetworkInterfaceSettings struct {
-	IP      string
-	Subnet  string
-	Mac     string
-	Network string
-}
-
-func GetMac(vmProperties *mo.VirtualMachine) []*NetworkInterfaceSettings {
+func GetMac(vmProperties *mo.VirtualMachine, networkList []*vlan.LocalList) []*vlan.LocalList {
 	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device), nil)
-	net := make([]*NetworkInterfaceSettings, len(*networkInterfaces))
-	for i, e := range *networkInterfaces {
-		net[i] = &NetworkInterfaceSettings{
-			Mac:     e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().MacAddress,
-			Network: e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().DeviceInfo.GetDescription().Summary,
+	for _, e := range *networkInterfaces {
+		for _, ee := range networkList {
+			if e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().DeviceInfo.GetDescription().Summary == (*ee.BackingInfo).(types.BaseVirtualDeviceDeviceBackingInfo).GetVirtualDeviceDeviceBackingInfo().DeviceName {
+				if ee.Mac == "" {
+					ee.Mac = e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().MacAddress
+					break
+				}
+			}
 		}
 	}
-	return net
+	return networkList
 }
 
 func AddNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.VirtualMachineCloneSpec, backing *types.BaseVirtualDeviceBackingInfo) (*types.VirtualMachineCloneSpec, error) {
