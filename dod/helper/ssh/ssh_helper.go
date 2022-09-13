@@ -3,6 +3,7 @@ package ssh
 import (
 	"context"
 	"errors"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -81,6 +82,35 @@ func GetMacAddresses(vs *vssh.VSSH, networkInterfaces *[]NetworkInterfaces) (err
 		(*networkInterfaces)[i].Mac = removeNewline(response[0].OutTxt)
 	}
 	return
+}
+
+func CreateDirectory(vs *vssh.VSSH, path string) error {
+	return returnResponseError(command(vs, "mkdir -p "+path))
+}
+
+func WriteToFile(vs *vssh.VSSH, filePath string, content *[]string) (err error) {
+	err = CreateDirectory(vs, filepath.Dir(filePath))
+	if err != nil {
+		return
+	}
+	for i, e := range *content {
+		if i == 0 {
+			response := command(vs, "echo "+"\""+e+"\""+">"+filePath)
+			err = returnResponseError(response)
+		} else {
+			response := command(vs, "echo "+"\""+e+"\""+">>"+filePath)
+			err = returnResponseError(response)
+		}
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func LineToList(content string) *[]string {
+	lines := strings.Split(content, "/n")
+	return &lines
 }
 
 func returnResponseError(response []Response) error {
