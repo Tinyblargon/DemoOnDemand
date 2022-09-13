@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -56,21 +57,47 @@ type NetworkInterfaces struct {
 	Mac  string
 }
 
-func ListNetworkInterfaces(vs *vssh.VSSH) *[]NetworkInterfaces {
+func ListNetworkInterfaces(vs *vssh.VSSH) (*[]NetworkInterfaces, error) {
 	response := command(vs, "ls /sys/class/net")
+	err := returnResponseError(response)
+	if err != nil {
+		return nil, err
+	}
 	interfaces := strings.Split(removeNewline(tabToSpaces(response[0].OutTxt)), "  ")
 	networkInterfaces := make([]NetworkInterfaces, len(interfaces))
 	for i, e := range interfaces {
 		networkInterfaces[i].Name = e
 	}
-	return &networkInterfaces
+	return &networkInterfaces, nil
 }
 
-func GetMacAddresses(vs *vssh.VSSH, networkInterfaces *[]NetworkInterfaces) {
+func GetMacAddresses(vs *vssh.VSSH, networkInterfaces *[]NetworkInterfaces) (err error) {
 	for i := range *networkInterfaces {
 		response := command(vs, "cat /sys/class/net/"+(*networkInterfaces)[i].Name+"/address")
+		err = returnResponseError(response)
+		if err != nil {
+			return
+		}
 		(*networkInterfaces)[i].Mac = removeNewline(response[0].OutTxt)
 	}
+	return
+}
+
+func returnResponseError(response []Response) error {
+	for _, e := range response {
+		if e.Exitcode > 0 {
+			if e.Err != nil {
+				return e.Err
+			}
+			if e.ErrText != "" {
+				return errors.New(e.ErrText)
+			}
+			if e.OutTxt != "" {
+				return errors.New(e.OutTxt)
+			}
+		}
+	}
+	return nil
 }
 
 func tabToSpaces(text string) string {
