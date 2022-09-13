@@ -10,6 +10,7 @@ require (
 	github.com/lib/pq v1.10.6
 	github.com/spf13/viper v1.11.0
 	github.com/vmware/govmomi v0.28.0
+	github.com/yahoo/vssh v0.0.0-20201122023451-bfa903e660fc
 	gopkg.in/yaml.v2 v2.4.0
 )
 
