@@ -36,17 +36,19 @@ func command(vs *vssh.VSSH, cmd string) (response []Response) {
 	respChan := vs.Run(ctx, cmd, timeout)
 
 	for resp := range respChan {
-		var err error
-		if err = resp.Err(); err != nil {
-			continue
-		}
-		outTxt, errTxt, _ := resp.GetText(vs)
-
-		currentResponse := Response{
-			OutTxt:   outTxt,
-			ErrText:  errTxt,
-			Exitcode: resp.ExitStatus(),
-			Err:      err,
+		var currentResponse Response
+		if err := resp.Err(); err != nil {
+			currentResponse = Response{
+				Err: err,
+			}
+		} else {
+			outTxt, errTxt, err := resp.GetText(vs)
+			currentResponse = Response{
+				OutTxt:   outTxt,
+				ErrText:  errTxt,
+				Exitcode: resp.ExitStatus(),
+				Err:      err,
+			}
 		}
 		response = append(response, currentResponse)
 	}
@@ -84,6 +86,10 @@ func GetMacAddresses(vs *vssh.VSSH, networkInterfaces *[]NetworkInterfaces) (err
 	return
 }
 
+func RestartVM(vs *vssh.VSSH) error {
+	return returnResponseError(command(vs, "reboot"))
+}
+
 func CreateDirectory(vs *vssh.VSSH, path string) error {
 	return returnResponseError(command(vs, "mkdir -p "+path))
 }
@@ -115,10 +121,10 @@ func LineToList(content string) *[]string {
 
 func returnResponseError(response []Response) error {
 	for _, e := range response {
+		if e.Err != nil {
+			return e.Err
+		}
 		if e.Exitcode > 0 {
-			if e.Err != nil {
-				return e.Err
-			}
 			if e.ErrText != "" {
 				return errors.New(e.ErrText)
 			}

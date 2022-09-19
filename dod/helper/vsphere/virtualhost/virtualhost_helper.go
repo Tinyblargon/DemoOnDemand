@@ -6,8 +6,6 @@ import (
 	"github.com/vmware/govmomi/vim25/mo"
 )
 
-func GetInterfaceSettings(vmProperties *mo.VirtualMachine, vlans []*vlan.LocalList) {
-	net := virtualmachine.GetMac(vmProperties, vlans)
-	_ = net
-	return
+func GetInterfaceSettings(vmProperties *mo.VirtualMachine, vlans []*vlan.LocalList) []*vlan.LocalList {
+	return virtualmachine.GetMac(vmProperties, vlans)
 }

@@ -9,18 +9,24 @@ import (
 )
 
 func GetMac(vmProperties *mo.VirtualMachine, networkList []*vlan.LocalList) []*vlan.LocalList {
-	networkInterfaces := ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device), nil)
+	networkInterfaces := getNetworkInterfaces(vmProperties)
 	for _, e := range *networkInterfaces {
 		for _, ee := range networkList {
 			if e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().DeviceInfo.GetDescription().Summary == (*ee.BackingInfo).(types.BaseVirtualDeviceDeviceBackingInfo).GetVirtualDeviceDeviceBackingInfo().DeviceName {
 				if ee.Mac == "" {
-					ee.Mac = e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().MacAddress
+					ee.Mac = getMac(e)
 					break
 				}
 			}
 		}
 	}
 	return networkList
+}
+
+// Get the MAC address of the first network interface
+func GetFirstMac(vmProperties *mo.VirtualMachine) string {
+	networkInterfaces := getNetworkInterfaces(vmProperties)
+	return getMac((*networkInterfaces)[0])
 }
 
 func AddNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.VirtualMachineCloneSpec, backing *types.BaseVirtualDeviceBackingInfo) (*types.VirtualMachineCloneSpec, error) {
@@ -55,6 +61,14 @@ func ChangeNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.Virtual
 	}
 	spec.Config.DeviceChange = baseVDevices
 	return spec
+}
+
+func getNetworkInterfaces(vmProperties *mo.VirtualMachine) *object.VirtualDeviceList {
+	return ReadNetworkInterfaces(object.VirtualDeviceList(vmProperties.Config.Hardware.Device), nil)
+}
+
+func getMac(nic types.BaseVirtualDevice) string {
+	return nic.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().MacAddress
 }
 
 // converts the mac address of the network adapter to a static address

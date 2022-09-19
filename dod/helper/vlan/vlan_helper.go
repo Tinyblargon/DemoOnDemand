@@ -2,6 +2,7 @@ package vlan
 
 import (
 	"fmt"
+	"net"
 	"sync"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
@@ -25,18 +26,24 @@ type VlanData struct {
 
 type LocalList struct {
 	OriginalNetwork string
-	Subnet          string
+	RouterIP        net.IP
+	Net             *net.IPNet
 	Mac             string
 	BackingInfo     *types.BaseVirtualDeviceBackingInfo
 }
 
 // Create a list containg all the localy needed vlan/network information
-func CreateLocalList(configList *[]template.Network) (list []*LocalList) {
+func CreateLocalList(configList *[]template.Network) (list []*LocalList, err error) {
 	list = make([]*LocalList, len(*configList))
 	for i, e := range *configList {
+		routerIP, net, err := net.ParseCIDR(e.RouterSubnet)
+		if err != nil {
+			return nil, err
+		}
 		list[i] = &LocalList{
 			OriginalNetwork: e.Name,
-			Subnet:          e.Subnet,
+			RouterIP:        routerIP,
+			Net:             net,
 		}
 	}
 	return

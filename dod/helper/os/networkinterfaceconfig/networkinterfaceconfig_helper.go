@@ -1,7 +1,7 @@
 package networkinterfaceconfig
 
 import (
-	"strings"
+	"net"
 )
 
 func Base() []string {
@@ -19,8 +19,8 @@ func Base() []string {
 	return content
 }
 
-func New(interfaceName, address string) []string {
-	if strings.ToLower(address) == "dhcp" {
+func New(interfaceName string, address *net.IPNet, dhcp bool) []string {
+	if dhcp {
 		return newDHCP(interfaceName)
 	}
 	return newStatic(interfaceName, address)
@@ -33,10 +33,10 @@ func newDHCP(interfaceName string) []string {
 	return content
 }
 
-func newStatic(interfaceName, address string) []string {
+func newStatic(interfaceName string, cidr *net.IPNet) []string {
 	content := make([]string, 4)
 	content[0] = "allow-hotplug " + interfaceName
 	content[1] = "iface " + interfaceName + " inet static"
-	content[2] = "  address " + address + "/24"
+	content[2] = "  address " + cidr.String()
 	return content
 }

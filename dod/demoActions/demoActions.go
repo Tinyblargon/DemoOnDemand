@@ -5,12 +5,15 @@ package demoactions
 import (
 	"database/sql"
 	"fmt"
+	"net"
 	"strconv"
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/os/networkinterfaceconfig"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/ssh"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
@@ -25,6 +28,7 @@ import (
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
+	"github.com/yahoo/vssh"
 )
 
 const demoDoesNotExist string = "demo does not exist"
@@ -62,7 +66,10 @@ func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string,
 	if err != nil {
 		return
 	}
-	networkList := vlan.CreateLocalList(templateConf.Networks)
+	networkList, err := vlan.CreateLocalList(templateConf.Networks)
+	if err != nil {
+		return
+	}
 	err = createAndSetupDemo(client, dc, pool, demo, networkList, status)
 	// if err != nil {
 	// 	_ = database.DeleteDemoOfUser(db, demo)
@@ -84,7 +91,7 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 	if err != nil {
 		return
 	}
-	err = configureRouterVM(vmProperties, vlans, guestIP)
+	err = configureRouterVM(vmProperties, vlans, guestIP, "root", "Enter123!")
 	if err != nil {
 		return
 	}
@@ -92,7 +99,6 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 }
 
 func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *demo.Demo, networkList []*vlan.LocalList, status *taskstatus.Status) (vlans []*vlan.LocalList, err error) {
-
 	reservedVlans, err := vlan.ReserveVlans(demo, networkList)
 	// reservedVlans, err := vlan.ReserveAmount(demo, uint(len(*templateConf.Networks)))
 	if err != nil {
@@ -176,9 +182,68 @@ func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *
 	return
 }
 
-func configureRouterVM(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, ip string) (err error) {
-	virtualhost.GetInterfaceSettings(vmProperties, vlan)
+func configureRouterVM(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, ip, username, password string) (err error) {
+	vs, err := ssh.New(username, password, ip, 22)
+	if err != nil {
+		return
+	}
+	err = writeNetConfig(vmProperties, vlan, vs)
+	if err != nil {
+		return
+	}
+	err = writeFirewallConfig()
+	if err != nil {
+		return
+	}
+	return ssh.RestartVM(vs)
+}
+
+func writeNetConfig(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, vs *vssh.VSSH) (err error) {
+	networks := virtualhost.GetInterfaceSettings(vmProperties, vlan)
+	firstMac := virtualmachine.GetFirstMac(vmProperties)
+
+	interfaces, err := ssh.ListNetworkInterfaces(vs)
+	if err != nil {
+		return
+	}
+	err = ssh.GetMacAddresses(vs, interfaces)
+	if err != nil {
+		return
+	}
+	netconfig := buildNetConfig(networks, interfaces, firstMac)
+	err = ssh.WriteToFile(vs, "/etc/network/interfaces", &netconfig)
 	return
+}
+
+func buildNetConfig(networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstMac string) (netconfig []string) {
+	netconfig = networkinterfaceconfig.Base()
+	for _, e := range *interfaces {
+		if e.Mac == firstMac {
+			netconfig = append(netconfig, networkinterfaceconfig.New(e.Name, nil, true)...)
+			break
+		}
+	}
+	for _, e := range networks {
+		for _, ee := range *interfaces {
+			if e.Mac == ee.Mac {
+				cidr := net.IPNet{
+					IP:   e.RouterIP,
+					Mask: e.Net.Mask,
+				}
+				netconfig = append(netconfig, networkinterfaceconfig.New(ee.Name, &cidr, false)...)
+			}
+		}
+	}
+	return
+}
+
+func writeFirewallConfig() (err error) {
+	buildFirewallConfig()
+	return
+}
+
+func buildFirewallConfig() {
+
 }
 
 func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *demo.Demo, status *taskstatus.Status) (err error) {

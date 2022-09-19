@@ -6,14 +6,14 @@ import (
 )
 
 type Network struct {
-	Name   string `json:"name" yaml:"name"`
-	Subnet string `json:"subnet" yaml:"subnet"`
+	Name         string `json:"name" yaml:"name"`
+	RouterSubnet string `json:"router-cidr" yaml:"router-cidr"`
 }
 
-func (n *Network) ValidateSubnet() error {
-	_, _, err := net.ParseCIDR(n.Subnet)
+func (n *Network) ValidateRouterCIDR() error {
+	_, _, err := net.ParseCIDR(n.RouterSubnet)
 	if err != nil {
-		return fmt.Errorf("%v is not an valid subnet.", n.Subnet)
+		return fmt.Errorf("%v is not an valid router CIDR", n.RouterSubnet)
 	}
 	return nil
 }

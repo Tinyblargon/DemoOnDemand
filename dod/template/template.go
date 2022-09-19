@@ -102,7 +102,7 @@ func (c *Config) Validate(nameAndPathEmpty bool) (err error) {
 		}
 	}
 	for _, e := range *(c.Networks) {
-		err = e.ValidateSubnet()
+		err = e.ValidateRouterCIDR()
 		if err != nil {
 			return
 		}
