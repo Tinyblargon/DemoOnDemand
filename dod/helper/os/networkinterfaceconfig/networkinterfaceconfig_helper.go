@@ -4,19 +4,19 @@ import (
 	"net"
 )
 
-func Base() []string {
-	content := make([]string, 10)
-	content[0] = "# This file describes the network interfaces available on your system"
-	content[1] = "# and how to activate them. For more information, see interfaces(5)."
-	content[2] = ""
-	content[3] = "source /etc/network/interfaces.d/*"
-	content[4] = ""
-	content[5] = "# The loopback network interface"
-	content[6] = "auto lo"
-	content[7] = "iface lo inet loopback"
-	content[8] = ""
-	content[9] = "# The primary network interface"
-	return content
+func Base() *[]string {
+	return &[]string{
+		"# This file describes the network interfaces available on your system",
+		"# and how to activate them. For more information, see interfaces(5).",
+		"",
+		"source /etc/network/interfaces.d/*",
+		"",
+		"# The loopback network interface",
+		"auto lo",
+		"iface lo inet loopback",
+		"",
+		"# The primary network interface",
+	}
 }
 
 func New(interfaceName string, address *net.IPNet, dhcp bool) []string {

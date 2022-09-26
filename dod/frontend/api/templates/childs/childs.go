@@ -62,7 +62,7 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		Name: id,
 	}
 	newTemplate := job.Template{
-		Config:       newConfig,
+		Config:       &newConfig,
 		ChildDestroy: true,
 	}
 	newjob := job.Job{

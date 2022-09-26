@@ -12,6 +12,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/os/firewallconfig"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/os/networkinterfaceconfig"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/ssh"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
@@ -50,7 +51,7 @@ func Stop(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *demo.
 }
 
 // Creates a new demo of the the speciefied template
-func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string, demo *demo.Demo, demoLimit uint, status *taskstatus.Status) (err error) {
+func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string, demo *demo.Demo, demoLimit uint, config *template.Config, status *taskstatus.Status) (err error) {
 	numberOfDemos, err := database.NumberOfDomosOfUser(db, demo.User)
 	if err != nil {
 		return
@@ -70,14 +71,14 @@ func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string,
 	if err != nil {
 		return
 	}
-	err = createAndSetupDemo(client, dc, pool, demo, networkList, status)
+	err = createAndSetupDemo(client, dc, pool, demo, config, networkList, status)
 	// if err != nil {
 	// 	_ = database.DeleteDemoOfUser(db, demo)
 	// }
 	return
 }
 
-func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool string, demo *demo.Demo, networkList []*vlan.LocalList, status *taskstatus.Status) (err error) {
+func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool string, demo *demo.Demo, config *template.Config, networkList []*vlan.LocalList, status *taskstatus.Status) (err error) {
 	basePath := demo.CreateDemoURl()
 	folderObject, err := folder.Create(client, dc, basePath)
 	if err != nil {
@@ -91,7 +92,9 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 	if err != nil {
 		return
 	}
-	err = configureRouterVM(vmProperties, vlans, guestIP, "root", "Enter123!")
+	// TO DO
+	// get ssh config from config file
+	err = configureRouterVM(vmProperties, vlans, config, guestIP, "root", "Enter123!", 22)
 	if err != nil {
 		return
 	}
@@ -182,47 +185,33 @@ func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *
 	return
 }
 
-func configureRouterVM(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, ip, username, password string) (err error) {
-	vs, err := ssh.New(username, password, ip, 22)
+func configureRouterVM(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, config *template.Config, ip, username, password string, sshPort uint16) (err error) {
+	vs, err := ssh.New(username, password, ip, sshPort)
 	if err != nil {
 		return
 	}
-	err = writeNetConfig(vmProperties, vlan, vs)
+	networks, interfaces, firstInterface, err := getInterfaces(vs, vmProperties, vlan)
 	if err != nil {
 		return
 	}
-	err = writeFirewallConfig()
+	err = writeNetConfig(vs, networks, interfaces, firstInterface)
 	if err != nil {
 		return
 	}
-	return ssh.RestartVM(vs)
+	err = writeFirewallConfig(vs, config.PortForwards, firstInterface, sshPort)
+	if err != nil {
+		return
+	}
+	return ssh.RestartOS(vs)
 }
 
-func writeNetConfig(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, vs *vssh.VSSH) (err error) {
-	networks := virtualhost.GetInterfaceSettings(vmProperties, vlan)
-	firstMac := virtualmachine.GetFirstMac(vmProperties)
-
-	interfaces, err := ssh.ListNetworkInterfaces(vs)
-	if err != nil {
-		return
-	}
-	err = ssh.GetMacAddresses(vs, interfaces)
-	if err != nil {
-		return
-	}
-	netconfig := buildNetConfig(networks, interfaces, firstMac)
-	err = ssh.WriteToFile(vs, "/etc/network/interfaces", &netconfig)
-	return
+func writeNetConfig(vs *vssh.VSSH, networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstInterface string) error {
+	return ssh.WriteToFile(vs, "/etc/network/interfaces", buildNetConfig(networks, interfaces, firstInterface))
 }
 
-func buildNetConfig(networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstMac string) (netconfig []string) {
-	netconfig = networkinterfaceconfig.Base()
-	for _, e := range *interfaces {
-		if e.Mac == firstMac {
-			netconfig = append(netconfig, networkinterfaceconfig.New(e.Name, nil, true)...)
-			break
-		}
-	}
+func buildNetConfig(networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstInterface string) (netConfig *[]string) {
+	netConfig = networkinterfaceconfig.Base()
+	*netConfig = append(*netConfig, networkinterfaceconfig.New(firstInterface, nil, true)...)
 	for _, e := range networks {
 		for _, ee := range *interfaces {
 			if e.Mac == ee.Mac {
@@ -230,20 +219,52 @@ func buildNetConfig(networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfa
 					IP:   e.RouterIP,
 					Mask: e.Net.Mask,
 				}
-				netconfig = append(netconfig, networkinterfaceconfig.New(ee.Name, &cidr, false)...)
+				*netConfig = append(*netConfig, networkinterfaceconfig.New(ee.Name, &cidr, false)...)
 			}
 		}
 	}
 	return
 }
 
-func writeFirewallConfig() (err error) {
-	buildFirewallConfig()
+func writeFirewallConfig(vs *vssh.VSSH, portForwards []*template.PortForward, firstInterface string, sshPort uint16) (err error) {
+	err = ssh.WriteToFile(vs, firewallconfig.FirewallFile, buildFirewallConfig(portForwards, firstInterface, sshPort))
+	if err != nil {
+		return
+	}
+	return ssh.ChangeModifiers(vs, "755", firewallconfig.FirewallFile)
+}
+
+func buildFirewallConfig(portForwards []*template.PortForward, firstInterface string, sshPort uint16) (firewallConfig *[]string) {
+	firewallConfig = firewallconfig.Base(firstInterface)
+	*firewallConfig = append(*firewallConfig, firewallconfig.New("TCP", sshPort))
+	for _, e := range portForwards {
+		*firewallConfig = append(*firewallConfig, firewallconfig.NewPrerouting(uint16(e.SourcePort), uint16(e.DestinationPort), e.DestinationIP, e.Protocol, firstInterface))
+	}
 	return
 }
 
-func buildFirewallConfig() {
+func getFirstNetworkInterface(interfaces *[]ssh.NetworkInterfaces, firstMac string) (firstInterface string) {
+	for _, e := range *interfaces {
+		if e.Mac == firstMac {
+			firstInterface = e.Name
+			break
+		}
+	}
+	return
+}
 
+func getInterfaces(vs *vssh.VSSH, vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList) (networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstInterface string, err error) {
+	networks = virtualhost.GetInterfaceSettings(vmProperties, vlan)
+	interfaces, err = ssh.ListNetworkInterfaces(vs)
+	if err != nil {
+		return
+	}
+	err = ssh.GetMacAddresses(vs, interfaces)
+	if err != nil {
+		return
+	}
+	firstInterface = getFirstNetworkInterface(interfaces, virtualmachine.GetFirstMac(vmProperties))
+	return
 }
 
 func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *demo.Demo, status *taskstatus.Status) (err error) {

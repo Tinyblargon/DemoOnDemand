@@ -86,12 +86,16 @@ func GetMacAddresses(vs *vssh.VSSH, networkInterfaces *[]NetworkInterfaces) (err
 	return
 }
 
-func RestartVM(vs *vssh.VSSH) error {
+func RestartOS(vs *vssh.VSSH) error {
 	return returnResponseError(command(vs, "reboot"))
 }
 
 func CreateDirectory(vs *vssh.VSSH, path string) error {
 	return returnResponseError(command(vs, "mkdir -p "+path))
+}
+
+func ChangeModifiers(vs *vssh.VSSH, perms, path string) error {
+	return returnResponseError(command(vs, "chmod "+perms+" "+path))
 }
 
 func WriteToFile(vs *vssh.VSSH, filePath string, content *[]string) (err error) {

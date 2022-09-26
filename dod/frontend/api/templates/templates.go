@@ -96,7 +96,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	newTemplate := job.Template{
-		Config: newConfig,
+		Config: &newConfig,
 		Import: true,
 	}
 	newjob := job.Job{
@@ -120,7 +120,7 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		Name: id,
 	}
 	newTemplate := job.Template{
-		Config:  newConfig,
+		Config:  &newConfig,
 		Destroy: true,
 	}
 	newjob := job.Job{
