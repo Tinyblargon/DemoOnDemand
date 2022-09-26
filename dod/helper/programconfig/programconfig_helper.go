@@ -8,14 +8,15 @@ import (
 
 // Configurations exported
 type Configuration struct {
-	ConfigFolder    string
-	ConcurrentTasks uint
-	Vlan            *Vlan
-	API             *APIConfiguration
-	VMware          *VMwareConfiguration
-	PostgreSQL      *PostgreSQLConfiguration
-	LDAP            *LDAPConfiguration
-	Router          *SSHConfiguration
+	ConfigFolder     string
+	ConcurrentTasks  uint
+	TaskHistoryDepth uint
+	Vlan             *Vlan
+	API              *APIConfiguration
+	VMware           *VMwareConfiguration
+	PostgreSQL       *PostgreSQLConfiguration
+	LDAP             *LDAPConfiguration
+	Router           *SSHConfiguration
 }
 
 type Vlan struct {

@@ -54,7 +54,7 @@ func SetAll(config *programconfig.Configuration, db *sql.DB) {
 	// 	BindUser:     config.LDAP.BindUser,
 	// 	BindPassword: config.LDAP.BindPassword,
 	// }
-	TaskHistoryDepth = 50
+	TaskHistoryDepth = config.TaskHistoryDepth
 	RouterConfiguration = config.Router
 	DB = db
 }
