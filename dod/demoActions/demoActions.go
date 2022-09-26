@@ -92,9 +92,7 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 	if err != nil {
 		return
 	}
-	// TO DO
-	// get ssh config from config file
-	err = configureRouterVM(vmProperties, vlans, config, guestIP, "root", "Enter123!", 22)
+	err = configureRouterVM(vmProperties, vlans, config, guestIP, global.RouterConfiguration.User, global.RouterConfiguration.Password, global.RouterConfiguration.Port)
 	if err != nil {
 		return
 	}

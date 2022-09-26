@@ -22,6 +22,7 @@ var PostgreSQLConfig *programconfig.PostgreSQLConfiguration
 var TaskHistoryDepth uint
 var DB *sql.DB
 var VMwareConfig *programconfig.VMwareConfiguration
+var RouterConfiguration *programconfig.SSHConfiguration
 
 func SetAll(config *programconfig.Configuration, db *sql.DB) {
 	ConfigFolder = config.ConfigFolder
@@ -54,5 +55,6 @@ func SetAll(config *programconfig.Configuration, db *sql.DB) {
 	// 	BindPassword: config.LDAP.BindPassword,
 	// }
 	TaskHistoryDepth = 50
+	RouterConfiguration = config.Router
 	DB = db
 }

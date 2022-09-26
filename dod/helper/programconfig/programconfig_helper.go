@@ -15,6 +15,7 @@ type Configuration struct {
 	VMware          *VMwareConfiguration
 	PostgreSQL      *PostgreSQLConfiguration
 	LDAP            *LDAPConfiguration
+	Router          *SSHConfiguration
 }
 
 type Vlan struct {
@@ -24,7 +25,7 @@ type Vlan struct {
 
 type APIConfiguration struct {
 	PathPrefix string
-	Port       uint
+	Port       uint16
 }
 
 // DatabaseConfigurations exported
@@ -45,7 +46,7 @@ type PostgreSQLConfiguration struct {
 	User     string
 	Password string
 	Database string
-	Port     uint
+	Port     uint16
 }
 
 type LDAPConfiguration_Group struct {
@@ -61,6 +62,12 @@ type LDAPConfiguration struct {
 	UsernameAttribute  string
 	UserGroup          LDAPConfiguration_Group
 	AdminGroup         LDAPConfiguration_Group
+}
+
+type SSHConfiguration struct {
+	User     string
+	Password string
+	Port     uint16
 }
 
 func GetConfigProgramConfig(path ...string) (configuration *Configuration, err error) {

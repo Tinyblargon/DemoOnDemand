@@ -24,7 +24,7 @@ type Post struct {
 	Body   string `json:"body"`
 }
 
-func HandleRequests(pathPrefix string, port uint) {
+func HandleRequests(pathPrefix string, port uint16) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc(pathPrefix+"/auth", authenticate).Methods("POST") //Authenticates the user/returns a session token

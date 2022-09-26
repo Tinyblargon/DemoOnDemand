@@ -8,6 +8,10 @@ Vlan:
 API:
   PathPrefix: ''
   Port: 8080
+Router:
+  User: ''
+  Password: ''
+  Port: 22
 VMware:
   URL: ''
   User: ''
