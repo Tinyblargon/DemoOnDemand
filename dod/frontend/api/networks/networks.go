@@ -35,16 +35,12 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	}
 	c, err := session.New(*global.VMwareConfig)
 	if err != nil {
-		api.OutputServerError(w, "")
-		// TODO
-		// LOG to disk
+		api.OutputServerError(w, "", err)
 		return
 	}
 	networks, err := demoactions.GetImportProperties(c.VimClient, datacenter.DatacenterObj, input.Path)
 	if err != nil {
-		api.OutputServerError(w, "")
-		// TODO
-		// LOG to disk
+		api.OutputServerError(w, "", err)
 		return
 	}
 	api.ErrorToManyNetworks(w, &networks)

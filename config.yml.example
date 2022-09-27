@@ -13,6 +13,10 @@ Router:
   User: ''
   Password: ''
   Port: 22
+LogPath:
+  Access: 'log/access.log'
+  Error: 'log/error.log'
+  Info: 'log/info.log'
 VMware:
   URL: ''
   User: ''

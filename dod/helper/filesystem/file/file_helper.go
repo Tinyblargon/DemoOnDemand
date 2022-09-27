@@ -1,10 +1,11 @@
 package file
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
+
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem"
 )
 
 const fileExists string = "file already exists"
@@ -27,7 +28,7 @@ func ReadDir(root string) ([]string, error) {
 }
 
 func Creat(filePath string) (err error) {
-	if CheckExistance(filePath) {
+	if filesystem.CheckExistance(filePath) {
 		return fmt.Errorf(fileExists)
 	}
 	myfile, err := os.Create(filePath)
@@ -38,25 +39,19 @@ func Creat(filePath string) (err error) {
 	return
 }
 
-func CheckExistance(filePath string) bool {
-	_, error := os.Stat(filePath)
-	//return !os.IsNotExist(err)
-	return !errors.Is(error, os.ErrNotExist)
-}
-
 func Delete(filePath string) error {
 	return os.Remove(filePath)
 }
 
 func Write(filePath string, data []byte) error {
-	if CheckExistance(filePath) {
+	if filesystem.CheckExistance(filePath) {
 		return fmt.Errorf(fileExists)
 	}
 	return ioutil.WriteFile(filePath, data, 0644)
 }
 
 func Read(filePath string) ([]byte, error) {
-	if !CheckExistance(filePath) {
+	if !filesystem.CheckExistance(filePath) {
 		return nil, fmt.Errorf("file does not exist")
 	}
 	return ioutil.ReadFile(filePath)

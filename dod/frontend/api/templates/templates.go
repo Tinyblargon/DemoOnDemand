@@ -6,7 +6,7 @@ import (
 	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
@@ -40,18 +40,14 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	var templateConfig *template.Config
 	var templateList *[]string
 	if err != nil {
-		api.OutputServerError(w, "")
-		// TODO
-		// Log the error to error log
+		api.OutputServerError(w, "", err)
 		return
 	}
 	if id != "" {
 		if !util.IsStringUnique(&templates, id) {
 			templateConfig, err = template.Get(id)
 			if err != nil {
-				api.OutputServerError(w, "")
-				// TODO
-				// Log the error to error log
+				api.OutputServerError(w, "", err)
 				return
 			}
 		}
@@ -82,12 +78,14 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	}
 	c, err := session.New(*global.VMwareConfig)
 	if err != nil {
-		api.OutputServerError(w, "")
-		// TODO
-		// LOG to disk
+		api.OutputServerError(w, "", err)
 		return
 	}
 	networks, err := demoactions.GetImportProperties(c.VimClient, datacenter.DatacenterObj, newConfig.Path)
+	if err != nil {
+		api.OutputServerError(w, "", err)
+		return
+	}
 	api.ErrorToManyNetworks(w, &networks)
 	newConfig.Defaults()
 	err = newConfig.Validate(false)
@@ -112,7 +110,7 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		api.OutputInvalidPermission(w)
 		return
 	}
-	if !file.CheckExistance(global.ConfigFolder + "/" + id) {
+	if !filesystem.CheckExistance(global.ConfigFolder + "/" + id) {
 		api.OutputInvalidID(w)
 		return
 	}

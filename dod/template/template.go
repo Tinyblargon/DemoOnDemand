@@ -8,7 +8,7 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem/file"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
@@ -134,7 +134,7 @@ func (c *Config) ValidatePortforwards() (err error) {
 		}
 		item := e.Protocol + strconv.Itoa(int(e.SourcePort))
 		if !util.IsStringUnique(&list, item) {
-			return fmt.Errorf("duplicate sourceport.")
+			return fmt.Errorf("duplicate sourceport")
 		}
 		list = append(list, item)
 	}
@@ -143,21 +143,21 @@ func (c *Config) ValidatePortforwards() (err error) {
 
 func ValidateSourcePort(port uint) error {
 	if port == 0 && port > 65353 {
-		return fmt.Errorf("%d is not an valid sourceport.", port)
+		return fmt.Errorf("%d is not an valid sourceport", port)
 	}
 	return nil
 }
 
 func ValidateDestinationPort(port uint) error {
 	if port > 65353 {
-		return fmt.Errorf("%d is not an valid destinationport.", port)
+		return fmt.Errorf("%d is not an valid destinationport", port)
 	}
 	return nil
 }
 
 func ValidateProtocol(protocol string) error {
 	if !strings.EqualFold(protocol, "TCP") && !strings.EqualFold(protocol, "UDP") {
-		return fmt.Errorf("%s is not an valid protocol.", protocol)
+		return fmt.Errorf("%s is not an valid protocol", protocol)
 	}
 	return nil
 }
@@ -165,7 +165,7 @@ func ValidateProtocol(protocol string) error {
 func (p *PortForward) ValidateIP() error {
 	trial := net.ParseIP(p.DestinationIP)
 	if trial.To4() == nil && trial.To16() == nil {
-		return fmt.Errorf("%v is not an valid IP address.", trial)
+		return fmt.Errorf("%v is not an valid IP address", trial)
 	}
 	return nil
 }

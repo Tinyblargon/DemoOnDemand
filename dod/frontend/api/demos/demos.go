@@ -47,18 +47,14 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		var err error
 		demos, err = database.ListAllDemos(global.DB)
 		if err != nil {
-			api.OutputServerError(w, "")
-			// TODO
-			// Log error to file
+			api.OutputServerError(w, "", err)
 			return
 		}
 	} else {
 		var err error
 		demos, err = database.ListDemosOfUser(global.DB, r.Header.Get("name"))
 		if err != nil {
-			api.OutputServerError(w, "")
-			// TODO
-			// Log error to file
+			api.OutputServerError(w, "", err)
 			return
 		}
 	}
@@ -94,9 +90,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	}
 	existance, err := demoactions.CheckExistance(global.DB, demoObj)
 	if err != nil {
-		api.OutputServerError(w, "")
-		// TODO
-		// Log error to file
+		api.OutputServerError(w, "", err)
 		return
 	}
 	if existance {
@@ -124,16 +118,12 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 	}
 	demo, err := database.GetSpecificDemo(global.DB, demoObj)
 	if err != nil {
-		api.OutputServerError(w, "")
-		// TODO
-		// Log to disk
+		api.OutputServerError(w, "", err)
 		return
 	}
 	existance, err := demoactions.CheckExistance(global.DB, demoObj)
 	if err != nil {
-		api.OutputServerError(w, "")
-		// TODO
-		// Log error to file
+		api.OutputServerError(w, "", err)
 		return
 	}
 	if !existance {
@@ -160,9 +150,7 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	existance, err := demoactions.CheckExistance(global.DB, demoObj)
 	if err != nil {
-		api.OutputServerError(w, "")
-		// TODO
-		// Log error to file
+		api.OutputServerError(w, "", err)
 		return
 	}
 	if !existance {

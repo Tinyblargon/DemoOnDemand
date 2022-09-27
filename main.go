@@ -10,6 +10,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/logger"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
@@ -22,20 +23,21 @@ import (
 
 func main() {
 	config, err := programconfig.GetConfigProgramConfig()
-	LogFatal(err)
+	OutFatal(err)
+	OutFatal(logger.Initialize(*config.LogPath))
 	scheduler.Main = NewSchedulerBackend(config.ConcurrentTasks)
 	authentication.Main = NewAuthBackend(config.LDAP)
 	db, err := database.New(*config.PostgreSQL)
-	LogFatal(err)
+	logger.Fatal(err)
 	global.SetAll(config, db)
 
 	c, err := session.New(*config.VMware)
-	LogFatal(err)
+	logger.Fatal(err)
 	datacenterObj, err := datacenter.FromName(c.VimClient, global.VMwareConfig.DataCenter)
-	LogFatal(err)
+	logger.Fatal(err)
 	datacenter.SetGlobal(datacenterObj)
 	hosts, err := host.ListAll(c.VimClient, datacenter.DatacenterObj, global.VMwareConfig.Hosts)
-	LogFatal(err)
+	logger.Fatal(err)
 	host.SetGlobal(hosts)
 
 	vlan.Initialize(config.Vlan.Id, config.Vlan.Prefix)
@@ -50,7 +52,7 @@ func main() {
 	os.Exit(0)
 }
 
-func LogFatal(err error) {
+func OutFatal(err error) {
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -77,6 +79,6 @@ func NewAuthBackend(LDAPsettings *programconfig.LDAPConfiguration) authenticatio
 		AdminGroup:         &adminGroup,
 	}
 	validatedSettigns, err := ldap.New(&settings)
-	LogFatal(err)
+	logger.Fatal(err)
 	return validatedSettigns
 }

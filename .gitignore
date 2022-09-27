@@ -2,3 +2,5 @@
 config.yml
 Demos
 __debug_bin
+**.log
+log

@@ -6,7 +6,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/file"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 	"github.com/Tinyblargon/DemoOnDemand/dod/template"
 	"github.com/gorilla/mux"
@@ -33,9 +33,7 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 	}
 	childs, err := database.CountTemplateInUse(global.DB, id)
 	if err != nil {
-		api.OutputServerError(w, "")
-		// TODO
-		// LOG this error to file
+		api.OutputServerError(w, "", err)
 		return
 	}
 	data := Data{
@@ -54,7 +52,7 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		api.OutputInvalidPermission(w)
 		return
 	}
-	if !file.CheckExistance(global.ConfigFolder + "/" + id) {
+	if !filesystem.CheckExistance(global.ConfigFolder + "/" + id) {
 		api.OutputInvalidID(w)
 		return
 	}

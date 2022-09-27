@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/logger"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 )
@@ -60,12 +61,13 @@ func OutputUserInputError(w http.ResponseWriter, err string) {
 	fmt.Fprint(w, err)
 }
 
-func OutputServerError(w http.ResponseWriter, err string) {
+func OutputServerError(w http.ResponseWriter, message string, err error) {
 	w.WriteHeader(http.StatusInternalServerError)
-	if err == "" {
-		err = "internal server error"
+	if message == "" {
+		message = "internal server error"
 	}
-	fmt.Fprint(w, err)
+	fmt.Fprint(w, message)
+	logger.Error(err)
 }
 
 func OutputDemoAlreadyExists(w http.ResponseWriter) {

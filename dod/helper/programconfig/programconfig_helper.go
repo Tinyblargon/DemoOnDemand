@@ -17,6 +17,7 @@ type Configuration struct {
 	PostgreSQL       *PostgreSQLConfiguration
 	LDAP             *LDAPConfiguration
 	Router           *SSHConfiguration
+	LogPath          *Logging
 }
 
 type Vlan struct {
@@ -69,6 +70,12 @@ type SSHConfiguration struct {
 	User     string
 	Password string
 	Port     uint16
+}
+
+type Logging struct {
+	Access string
+	Error  string
+	Info   string
 }
 
 func GetConfigProgramConfig(path ...string) (configuration *Configuration, err error) {

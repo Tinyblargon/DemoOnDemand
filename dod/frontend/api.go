@@ -1,7 +1,6 @@
 package frontend
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/tasks"
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/templates"
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/templates/childs"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/logger"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
@@ -61,6 +61,6 @@ func HandleRequests(pathPrefix string, port uint16) {
 	router.Handle(pathPrefix+"/templates/{id}/childs", authMiddleware(childs.IdDeleteHandler)).Methods("DELETE") //deletes all demos based on the speciefied template
 
 	// TODO
-	// This should log to a file instead of os.Stdout
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(port)), handlers.LoggingHandler(os.Stdout, router)))
+	// log access log to file
+	logger.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(port)), handlers.LoggingHandler(os.Stdout, router)))
 }
