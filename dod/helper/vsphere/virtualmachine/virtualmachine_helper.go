@@ -207,7 +207,7 @@ func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, e
 func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter, status *taskstatus.Status) (guestIP string, vmProperties *mo.VirtualMachine, err error) {
 	status.AddToInfo(fmt.Sprintf("[DEBUG] Fetching IP of guest %s", name))
 	// try until the guest ip is readable from vmware tools
-	for true {
+	for {
 		time.Sleep(time.Second * 2)
 		var vmObject *object.VirtualMachine
 		vmObject, err = Get(client, dc, path+"/"+name)

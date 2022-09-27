@@ -79,12 +79,10 @@ func staticMac(baseVDevice types.BaseVirtualDevice) types.BaseVirtualDevice {
 
 // Changes the network the network interface is connected to
 func changeConnectedNetwork(baseVDevice types.BaseVirtualDevice, networks []*vlan.LocalList) types.BaseVirtualDevice {
-	if networks != nil {
-		for _, e := range networks {
-			if e.OriginalNetwork == baseVDevice.GetVirtualDevice().DeviceInfo.GetDescription().Summary {
-				baseVDevice.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().Backing = *(e.BackingInfo)
-				break
-			}
+	for _, e := range networks {
+		if e.OriginalNetwork == baseVDevice.GetVirtualDevice().DeviceInfo.GetDescription().Summary {
+			baseVDevice.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().Backing = *(e.BackingInfo)
+			break
 		}
 	}
 	return baseVDevice
