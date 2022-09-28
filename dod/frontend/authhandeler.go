@@ -10,7 +10,7 @@ import (
 
 var rootUser string
 var rootPassword string
-var cookieSecret string
+var cookieSecret []byte
 
 type Auth struct {
 	Username string `json:"username"`
@@ -22,12 +22,21 @@ type Data struct {
 }
 
 func Initialize(user, password, CookieSecret string) error {
+	if rootUser != "" {
+		return fmt.Errorf("user can only be set once")
+	}
+	if rootPassword != "" {
+		return fmt.Errorf("password can only be set once")
+	}
+	if len(cookieSecret) != 0 {
+		return fmt.Errorf("cookieSecret can only be set once")
+	}
 	rootUser = user
 	rootPassword = password
 	if CookieSecret == "" {
-		return fmt.Errorf("CookieSecret may not be empty")
+		return fmt.Errorf("cookieSecret may not be empty")
 	}
-	cookieSecret = CookieSecret
+	cookieSecret = []byte(CookieSecret)
 	return nil
 }
 
