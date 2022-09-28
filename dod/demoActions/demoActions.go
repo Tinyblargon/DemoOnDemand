@@ -51,7 +51,7 @@ func Stop(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *demo.
 }
 
 // Creates a new demo of the the speciefied template
-func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string, demo *demo.Demo, demoLimit uint, config *template.Config, status *taskstatus.Status) (err error) {
+func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string, demo *demo.Demo, demoLimit uint, status *taskstatus.Status) (err error) {
 	numberOfDemos, err := database.NumberOfDomosOfUser(db, demo.User)
 	if err != nil {
 		return
@@ -71,7 +71,7 @@ func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string,
 	if err != nil {
 		return
 	}
-	err = createAndSetupDemo(client, dc, pool, demo, config, networkList, status)
+	err = createAndSetupDemo(client, dc, pool, demo, templateConf, networkList, status)
 	// if err != nil {
 	// 	_ = database.DeleteDemoOfUser(db, demo)
 	// }

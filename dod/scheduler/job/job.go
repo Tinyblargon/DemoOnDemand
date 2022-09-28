@@ -51,7 +51,7 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 			return
 		}
 		if j.Demo.Create {
-			err = demoactions.New(c.VimClient, global.DB, datacenter.DatacenterObj, global.VMwareConfig.Pool, &demoObj, 5, j.Template.Config, status)
+			err = demoactions.New(c.VimClient, global.DB, datacenter.DatacenterObj, global.VMwareConfig.Pool, &demoObj, 5, status)
 		}
 		if j.Demo.Destroy {
 			err = demoactions.Delete(c.VimClient, global.DB, datacenter.DatacenterObj, &demoObj, status)
