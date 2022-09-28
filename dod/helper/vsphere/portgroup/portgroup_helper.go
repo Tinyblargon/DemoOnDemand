@@ -40,7 +40,7 @@ func Create(c *govmomi.Client, hosts []*object.HostSystem, vlans *[]uint, prefix
 func createSingle(c *govmomi.Client, host *object.HostSystem, prefix, vSwitch string, vlan uint, status *taskstatus.Status) (err error) {
 	ns, err := hostNetworkSystemFromHostSystem(host)
 	spec := expandHostPortGroupSpec(prefix, vSwitch, vlan)
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Create portgroup %s on host %s", spec.Name, host.Name()))
+	status.AddToInfo(fmt.Sprintf("Create portgroup %s on host %s", spec.Name, host.Name()))
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 	err = ns.AddPortGroup(ctx, *spec)
@@ -84,7 +84,7 @@ func deleteSingle(c *govmomi.Client, host *object.HostSystem, prefix string, vla
 	if err != nil {
 		return fmt.Errorf("error loading host network system: %s", err)
 	}
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Delete portgroup %s on host %s", prefix+strconv.Itoa(int(vlan)), host.Name()))
+	status.AddToInfo(fmt.Sprintf("Delete portgroup %s on host %s", prefix+strconv.Itoa(int(vlan)), host.Name()))
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 	if err := ns.RemovePortGroup(ctx, prefix+strconv.Itoa(int(vlan))); err != nil {

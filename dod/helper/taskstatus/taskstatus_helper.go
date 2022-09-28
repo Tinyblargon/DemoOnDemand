@@ -2,6 +2,10 @@ package taskstatus
 
 import "sync"
 
+const prefixError string = "[ERROR] "
+const prefixInfo string = "[INFO] "
+const prefixSuccess string = "[SUCCESS] "
+
 type Status struct {
 	Info   []byte
 	Status string
@@ -10,27 +14,27 @@ type Status struct {
 
 func (s *Status) AddError(err error) {
 	s.Mutex.Lock()
-	s.unsafeAddToInfo(err.Error())
-	s.unsafeAddToInfo("Task Failed!")
+	s.unsafeAddToInfo(prefixError, err.Error())
+	s.unsafeAddToInfo(prefixError, "Task Failed!")
 	s.unsafeSetStatus("error")
 	s.Mutex.Unlock()
 }
 
 func (s *Status) UnsafeSetStarted() {
-	s.Info = []byte("Task Started.")
+	s.Info = []byte(prefixInfo + "Task Started.")
 	s.unsafeSetStatus("started")
 }
 
 func (s *Status) AddCompleted() {
 	s.Mutex.Lock()
-	s.unsafeAddToInfo("OK")
+	s.unsafeAddToInfo(prefixSuccess, "OK")
 	s.unsafeSetStatus("ok")
 	s.Mutex.Unlock()
 }
 
 func NewStatus() (status *Status) {
 	return &Status{
-		Info:   []byte("Task Added to Queue."),
+		Info:   []byte(prefixInfo + "Task Added to Queue."),
 		Status: "queued",
 	}
 }
@@ -38,13 +42,13 @@ func NewStatus() (status *Status) {
 func (s *Status) AddToInfo(newLine string) {
 	if s != nil {
 		s.Mutex.Lock()
-		s.unsafeAddToInfo(newLine)
+		s.unsafeAddToInfo(prefixInfo, newLine)
 		s.Mutex.Unlock()
 	}
 }
 
-func (s *Status) unsafeAddToInfo(newLine string) {
-	s.Info = append(s.Info, []byte("\n"+newLine)...)
+func (s *Status) unsafeAddToInfo(prefix, newLine string) {
+	s.Info = append(s.Info, []byte("\n"+prefix+newLine)...)
 }
 
 func (s *Status) unsafeSetStatus(statusCode string) {

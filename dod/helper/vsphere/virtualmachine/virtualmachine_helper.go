@@ -18,7 +18,7 @@ import (
 )
 
 func Properties(vm *object.VirtualMachine, status *taskstatus.Status) (*mo.VirtualMachine, error) {
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Fetching properties for VM %q", vm.InventoryPath))
+	status.AddToInfo(fmt.Sprintf("Fetching properties for VM %q", vm.InventoryPath))
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 	var props mo.VirtualMachine
@@ -41,7 +41,7 @@ func Get(client *govmomi.Client, dc *object.Datacenter, Path string) (*object.Vi
 // Clone wraps the creation of a virtual machine and the subsequent waiting of
 // the task. A higher-level virtual machine object is returned.
 func Clone(c *govmomi.Client, src *object.VirtualMachine, f *object.Folder, name string, spec types.VirtualMachineCloneSpec, timeout int, status *taskstatus.Status) (*object.VirtualMachine, error) {
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Cloning virtual machine %q", fmt.Sprintf("%s/%s", f.InventoryPath, name)))
+	status.AddToInfo(fmt.Sprintf("Cloning virtual machine %q", fmt.Sprintf("%s/%s", f.InventoryPath, name)))
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(timeout))
 	defer cancel()
 	task, err := src.Clone(ctx, f, name, spec)
@@ -58,7 +58,7 @@ func Clone(c *govmomi.Client, src *object.VirtualMachine, f *object.Folder, name
 		}
 		return nil, err
 	}
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Virtual machine %q: clone complete (MOID: %q)", fmt.Sprintf("%s/%s", f.InventoryPath, name), result.Result.(types.ManagedObjectReference).Value))
+	status.AddToInfo(fmt.Sprintf("Virtual machine %q: clone complete (MOID: %q)", fmt.Sprintf("%s/%s", f.InventoryPath, name), result.Result.(types.ManagedObjectReference).Value))
 	return FromID(c, result.Result.(types.ManagedObjectReference).Value)
 }
 
@@ -126,7 +126,7 @@ func Start(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Starting virtual machine %s", vm.InventoryPath))
+	status.AddToInfo(fmt.Sprintf("Starting virtual machine %s", vm.InventoryPath))
 	task, err := vm.PowerOn(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot start virtualmachine: %s", err)
@@ -159,7 +159,7 @@ func Stop(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Stopping virtual machine %s", vm.InventoryPath))
+	status.AddToInfo(fmt.Sprintf("Stopping virtual machine %s", vm.InventoryPath))
 	task, err := vm.PowerOff(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot stop virtualmachine: %s", err)
@@ -176,7 +176,7 @@ func Delete(vm *object.VirtualMachine, status *taskstatus.Status) error {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
 	defer cancel()
 
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Removing virtual machine %s", vm.InventoryPath))
+	status.AddToInfo(fmt.Sprintf("Removing virtual machine %s", vm.InventoryPath))
 	task, err := vm.Destroy(ctx)
 	if err != nil {
 		return fmt.Errorf("cannot delete virtualmachine: %s", err)
@@ -205,7 +205,7 @@ func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, e
 }
 
 func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter, status *taskstatus.Status) (guestIP string, vmProperties *mo.VirtualMachine, err error) {
-	status.AddToInfo(fmt.Sprintf("[DEBUG] Fetching IP of guest %s", name))
+	status.AddToInfo(fmt.Sprintf("Fetching IP of guest %s", name))
 	// try until the guest ip is readable from vmware tools
 	for {
 		time.Sleep(time.Second * 2)
@@ -220,7 +220,7 @@ func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter
 		}
 		if vmProperties.Guest.IpAddress != "" {
 			guestIP = vmProperties.Guest.IpAddress
-			status.AddToInfo(fmt.Sprintf("[DEBUG] Obtained IP (%s) of guest %s", guestIP, vmObject.Name()))
+			status.AddToInfo(fmt.Sprintf("Obtained IP (%s) of guest %s", guestIP, vmObject.Name()))
 			break
 		}
 	}
