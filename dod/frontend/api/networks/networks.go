@@ -6,8 +6,8 @@ import (
 	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
 )
 
 type Input struct {
