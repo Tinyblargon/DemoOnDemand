@@ -28,6 +28,7 @@ type Vlan struct {
 type APIConfiguration struct {
 	PathPrefix string
 	Port       uint16
+	SuperUser  *SuperUser
 }
 
 // DatabaseConfigurations exported
@@ -76,6 +77,11 @@ type Logging struct {
 	Access string
 	Error  string
 	Info   string
+}
+
+type SuperUser struct {
+	User     string
+	Password string
 }
 
 func GetConfigProgramConfig(path ...string) (configuration *Configuration, err error) {

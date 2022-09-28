@@ -40,7 +40,7 @@ func main() {
 
 	// err = dod.Intialize(c.VimClient, global.VMwareConfig.DataCenter)
 	// c.VimClient.Logout()
-
+	frontend.Initialize(config.API.SuperUser.User, config.API.SuperUser.Password)
 	frontend.HandleRequests(config.API.PathPrefix, config.API.Port)
 
 	db.Close()

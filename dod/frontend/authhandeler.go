@@ -7,6 +7,9 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 )
 
+var rootUser string
+var rootPassword string
+
 type Auth struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -14,6 +17,11 @@ type Auth struct {
 
 type Data struct {
 	Token string `json:"token"`
+}
+
+func Initialize(user, password string) {
+	rootUser = user
+	rootPassword = password
 }
 
 func authenticate(w http.ResponseWriter, r *http.Request) {
@@ -32,8 +40,8 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 	var succecfulLogin bool
 	var role string
 
-	if auth.Username == "root" {
-		if auth.Password == "root" {
+	if auth.Username == rootUser && rootUser != "" {
+		if auth.Password == rootPassword && rootPassword != "" {
 			succecfulLogin = true
 			role = "root"
 		}

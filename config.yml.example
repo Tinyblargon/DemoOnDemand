@@ -9,6 +9,9 @@ Vlan:
 API:
   PathPrefix: ''
   Port: 8080
+  SuperUser:
+    User: 'root'
+    Password: 'root'
 Router:
   User: ''
   Password: ''
