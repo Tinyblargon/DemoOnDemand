@@ -9,8 +9,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
-
 type UserLinkedList struct {
 	LinkedList *UserLinkedList
 	UserName   string
