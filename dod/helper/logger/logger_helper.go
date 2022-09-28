@@ -10,19 +10,19 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 )
 
-var File programconfig.Logging
+var file programconfig.Logging
 
 func Initialize(logFiles programconfig.Logging) (err error) {
-	File = logFiles
-	err = dir.Create(path.Dir(File.Access))
+	file = logFiles
+	err = dir.Create(path.Dir(file.Access))
 	if err != nil {
 		return
 	}
-	err = dir.Create(path.Dir(File.Error))
+	err = dir.Create(path.Dir(file.Error))
 	if err != nil {
 		return
 	}
-	return dir.Create(path.Dir(File.Info))
+	return dir.Create(path.Dir(file.Info))
 }
 
 func Fatal(err error) {
@@ -36,7 +36,7 @@ var ErrorMutex sync.Mutex
 
 func Error(err error) {
 	ErrorMutex.Lock()
-	initialize(File.Error, err.Error())
+	initialize(file.Error, err.Error())
 	ErrorMutex.Unlock()
 }
 
@@ -44,7 +44,7 @@ var InfoMutex sync.Mutex
 
 func Info(text string) {
 	InfoMutex.Lock()
-	initialize(File.Info, text)
+	initialize(file.Info, text)
 	InfoMutex.Unlock()
 }
 
