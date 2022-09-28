@@ -9,16 +9,21 @@ import (
 	"github.com/vmware/govmomi/object"
 )
 
-var DatacenterObj *object.Datacenter
+var obj *object.Datacenter
 
-func SetGlobal(datacenter *object.Datacenter) {
-	DatacenterObj = datacenter
+func Initialize(client *govmomi.Client, datacenter string) (err error) {
+	obj, err = fromName(client, datacenter)
+	return
+}
+
+func GetObject() *object.Datacenter {
+	return obj
 }
 
 // code borrowed from "github.com/hashicorp/terraform-provider-vsphere/vsphere/internal/virtualdevice"
 
 // FromName returns a Datacenter via its supplied name.
-func FromName(client *govmomi.Client, datacenter string) (*object.Datacenter, error) {
+func fromName(client *govmomi.Client, datacenter string) (*object.Datacenter, error) {
 	finder := find.NewFinder(client.Client, false)
 
 	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)

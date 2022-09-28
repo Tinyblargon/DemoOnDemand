@@ -10,13 +10,18 @@ import (
 	"github.com/vmware/govmomi/object"
 )
 
-var List []*object.HostSystem
+var list []*object.HostSystem
 
-func SetGlobal(hostList []*object.HostSystem) {
-	List = hostList
+func Initialize(client *govmomi.Client, datacenter *object.Datacenter, hostsArray []string) (err error) {
+	list, err = listAll(client, datacenter, hostsArray)
+	return
 }
 
-func ListAll(client *govmomi.Client, datacenter *object.Datacenter, hostsArray []string) (hostList []*object.HostSystem, err error) {
+func GetList() []*object.HostSystem {
+	return list
+}
+
+func listAll(client *govmomi.Client, datacenter *object.Datacenter, hostsArray []string) (hostList []*object.HostSystem, err error) {
 	hostList = make([]*object.HostSystem, len(hostsArray))
 	for i, e := range hostsArray {
 		hostOBJ, err := objectFromName(client, e, datacenter)

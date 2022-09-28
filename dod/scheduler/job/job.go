@@ -51,13 +51,13 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 			return
 		}
 		if j.Demo.Create {
-			err = demoactions.New(c.VimClient, global.DB, datacenter.DatacenterObj, global.VMwareConfig.Pool, &demoObj, 5, status)
+			err = demoactions.New(c.VimClient, global.DB, datacenter.GetObject(), global.VMwareConfig.Pool, &demoObj, 5, status)
 		}
 		if j.Demo.Destroy {
-			err = demoactions.Delete(c.VimClient, global.DB, datacenter.DatacenterObj, &demoObj, status)
+			err = demoactions.Delete(c.VimClient, global.DB, datacenter.GetObject(), &demoObj, status)
 		}
 		if j.Demo.Stop {
-			err = demoactions.Stop(c.VimClient, global.DB, datacenter.DatacenterObj, &demoObj, status)
+			err = demoactions.Stop(c.VimClient, global.DB, datacenter.GetObject(), &demoObj, status)
 			if err != nil {
 				status.AddError(err)
 				demoLock.Unlock(ID)
@@ -65,7 +65,7 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 			}
 		}
 		if j.Demo.Start {
-			err = demoactions.Start(c.VimClient, global.DB, datacenter.DatacenterObj, &demoObj, status)
+			err = demoactions.Start(c.VimClient, global.DB, datacenter.GetObject(), &demoObj, status)
 		}
 		demoLock.Unlock(ID)
 	}
@@ -75,10 +75,10 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 			return
 		}
 		if j.Template.Import {
-			err = j.Template.Config.Import(c.VimClient, datacenter.DatacenterObj, global.VMwareConfig.Pool, status)
+			err = j.Template.Config.Import(c.VimClient, datacenter.GetObject(), global.VMwareConfig.Pool, status)
 		}
 		if j.Template.Destroy {
-			err = template.Destroy(c.VimClient, datacenter.DatacenterObj, j.Template.Config.Name, status)
+			err = template.Destroy(c.VimClient, datacenter.GetObject(), j.Template.Config.Name, status)
 		}
 		if j.Template.ChildDestroy {
 			err = deleteTemplateChilds(status, demoLock, c, j.Template.Config.Name)
@@ -112,7 +112,7 @@ func deleteTemplateChilds(status *taskstatus.Status, demoLock *demolock.DemoLock
 		}
 		ID := demoObj.CreateID()
 		demoLock.Lock(ID, status)
-		err = demoactions.Delete(c.VimClient, global.DB, datacenter.DatacenterObj, &demoObj, status)
+		err = demoactions.Delete(c.VimClient, global.DB, datacenter.GetObject(), &demoObj, status)
 		demoLock.Unlock(ID)
 		if err != nil {
 			return

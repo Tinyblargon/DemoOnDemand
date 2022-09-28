@@ -33,12 +33,8 @@ func main() {
 
 	c, err := session.New(*config.VMware)
 	logger.Fatal(err)
-	datacenterObj, err := datacenter.FromName(c.VimClient, global.VMwareConfig.DataCenter)
-	logger.Fatal(err)
-	datacenter.SetGlobal(datacenterObj)
-	hosts, err := host.ListAll(c.VimClient, datacenter.DatacenterObj, global.VMwareConfig.Hosts)
-	logger.Fatal(err)
-	host.SetGlobal(hosts)
+	logger.Fatal(datacenter.Initialize(c.VimClient, global.VMwareConfig.DataCenter))
+	logger.Fatal(host.Initialize(c.VimClient, datacenter.GetObject(), global.VMwareConfig.Hosts))
 
 	vlan.Initialize(config.Vlan.Id, config.Vlan.Prefix)
 
