@@ -92,7 +92,7 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 	if err != nil {
 		return
 	}
-	err = configureRouterVM(vmProperties, vlans, config, guestIP, global.RouterConfiguration.User, global.RouterConfiguration.Password, global.RouterConfiguration.Port)
+	err = configureRouterVM(vmProperties, vlans, config, guestIP, global.RouterConfiguration.User, global.RouterConfiguration.Password, global.RouterConfiguration.Port, status)
 	if err != nil {
 		return
 	}
@@ -183,27 +183,33 @@ func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *
 	return
 }
 
-func configureRouterVM(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, config *template.Config, ip, username, password string, sshPort uint16) (err error) {
+func configureRouterVM(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, config *template.Config, ip, username, password string, sshPort uint16, status *taskstatus.Status) (err error) {
 	vs, err := ssh.New(username, password, ip, sshPort)
 	if err != nil {
 		return
 	}
-	networks, interfaces, firstInterface, err := getInterfaces(vs, vmProperties, vlan)
+	networks, interfaces, firstInterface, err := getInterfaces(vs, vmProperties, vlan, status)
 	if err != nil {
 		return
 	}
-	err = writeNetConfig(vs, networks, interfaces, firstInterface)
+	err = writeNetConfig(vs, networks, interfaces, firstInterface, status)
 	if err != nil {
 		return
 	}
-	err = writeFirewallConfig(vs, config.PortForwards, firstInterface, sshPort)
+	err = writeFirewallConfig(vs, config.PortForwards, firstInterface, sshPort, status)
 	if err != nil {
 		return
 	}
+	return restartRouterVM(vs, status)
+}
+
+func restartRouterVM(vs *vssh.VSSH, status *taskstatus.Status) error {
+	status.AddToInfo("Restarting routervm")
 	return ssh.RestartOS(vs)
 }
 
-func writeNetConfig(vs *vssh.VSSH, networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstInterface string) error {
+func writeNetConfig(vs *vssh.VSSH, networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstInterface string, status *taskstatus.Status) error {
+	status.AddToInfo("Writing network config")
 	return ssh.WriteToFile(vs, "/etc/network/interfaces", buildNetConfig(networks, interfaces, firstInterface))
 }
 
@@ -224,7 +230,8 @@ func buildNetConfig(networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfa
 	return
 }
 
-func writeFirewallConfig(vs *vssh.VSSH, portForwards []*template.PortForward, firstInterface string, sshPort uint16) (err error) {
+func writeFirewallConfig(vs *vssh.VSSH, portForwards []*template.PortForward, firstInterface string, sshPort uint16, status *taskstatus.Status) (err error) {
+	status.AddToInfo("Writing firewall config")
 	err = ssh.WriteToFile(vs, firewallconfig.FirewallFile, buildFirewallConfig(portForwards, firstInterface, sshPort))
 	if err != nil {
 		return
@@ -251,7 +258,8 @@ func getFirstNetworkInterface(interfaces *[]ssh.NetworkInterfaces, firstMac stri
 	return
 }
 
-func getInterfaces(vs *vssh.VSSH, vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList) (networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstInterface string, err error) {
+func getInterfaces(vs *vssh.VSSH, vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, status *taskstatus.Status) (networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstInterface string, err error) {
+	status.AddToInfo("Obtaining network interfaces of routervm")
 	networks = virtualhost.GetInterfaceSettings(vmProperties, vlan)
 	interfaces, err = ssh.ListNetworkInterfaces(vs)
 	if err != nil {
