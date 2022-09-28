@@ -9,6 +9,7 @@ Vlan:
 API:
   PathPrefix: ''
   Port: 8080
+  CookieSecret: 'supersecretvalue'
   SuperUser:
     User: 'root'
     Password: 'root'

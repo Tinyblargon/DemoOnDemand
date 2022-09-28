@@ -1,6 +1,7 @@
 package frontend
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/authentication"
@@ -9,6 +10,7 @@ import (
 
 var rootUser string
 var rootPassword string
+var cookieSecret string
 
 type Auth struct {
 	Username string `json:"username"`
@@ -19,9 +21,14 @@ type Data struct {
 	Token string `json:"token"`
 }
 
-func Initialize(user, password string) {
+func Initialize(user, password, CookieSecret string) error {
 	rootUser = user
 	rootPassword = password
+	if CookieSecret == "" {
+		return fmt.Errorf("CookieSecret may not be empty")
+	}
+	cookieSecret = CookieSecret
+	return nil
 }
 
 func authenticate(w http.ResponseWriter, r *http.Request) {

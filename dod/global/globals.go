@@ -9,8 +9,6 @@ import (
 
 const Concurency uint = 5
 
-var CookieSecret []byte = []byte("keymaker")
-
 var ConfigFolder string
 var TemplateFodler string
 var RouterFodler string
