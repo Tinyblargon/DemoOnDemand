@@ -11,6 +11,8 @@ import (
 var rootUser string
 var rootPassword string
 var cookieSecret []byte
+var tokenISS string //"iss" (Issuer) Claim
+var tokenEXP uint   //"exp" (Expiration Time) Claim
 
 type Auth struct {
 	Username string `json:"username"`
@@ -21,7 +23,7 @@ type Data struct {
 	Token string `json:"token"`
 }
 
-func Initialize(user, password, CookieSecret string) error {
+func Initialize(user, password, CookieSecret, tokenIssuer string, tokenExpirationTime uint) error {
 	if rootUser != "" {
 		return fmt.Errorf("user can only be set once")
 	}
@@ -31,12 +33,26 @@ func Initialize(user, password, CookieSecret string) error {
 	if len(cookieSecret) != 0 {
 		return fmt.Errorf("cookieSecret can only be set once")
 	}
+	if tokenISS != "" {
+		return fmt.Errorf("tokenIssuer can only be set once")
+	}
+	if tokenEXP != 0 {
+		return fmt.Errorf("tokenExpirationTime can only be set once")
+	}
 	rootUser = user
 	rootPassword = password
 	if CookieSecret == "" {
 		return fmt.Errorf("cookieSecret may not be empty")
 	}
 	cookieSecret = []byte(CookieSecret)
+	if tokenIssuer == "" {
+		return fmt.Errorf("cookieSecret may not be empty")
+	}
+	tokenISS = tokenIssuer
+	if tokenExpirationTime < 60 {
+		return fmt.Errorf("tokenExpirationTime must be greater than 60")
+	}
+	tokenEXP = tokenExpirationTime
 	return nil
 }
 

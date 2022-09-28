@@ -14,13 +14,13 @@ type MyCustomClaims struct {
 }
 
 func newToken(name, role string) (string, error) {
-	t := time.Now().Add(time.Second * 3600)
+	t := time.Now().Add(time.Duration(tokenEXP) * time.Second)
 	claims := MyCustomClaims{
 		name,
 		role,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(t),
-			Issuer:    "dod",
+			Issuer:    tokenISS,
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

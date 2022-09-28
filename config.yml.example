@@ -11,7 +11,10 @@ Vlan:
 API:
   PathPrefix: ''
   Port: 8080
-  CookieSecret: 'supersecretvalue'
+  Token:
+    Secret: 'supersecretvalue'
+    IssuerClaim: 'dod'
+    ExpirationTime: '3600'
   SuperUser:
     User: 'root'
     Password: 'root'

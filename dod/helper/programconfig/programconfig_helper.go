@@ -31,10 +31,16 @@ type Vlan struct {
 }
 
 type APIConfiguration struct {
-	PathPrefix   string
-	Port         uint16
-	CookieSecret string
-	SuperUser    *SuperUser
+	PathPrefix string
+	Port       uint16
+	SuperUser  *SuperUser
+	Token      *Token
+}
+
+type Token struct {
+	Secret         string
+	IssuerClaim    string
+	ExpirationTime uint
 }
 
 // DatabaseConfigurations exported
