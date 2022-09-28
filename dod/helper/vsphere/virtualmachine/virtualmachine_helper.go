@@ -250,7 +250,7 @@ func addVmSpec(cloneSpec *types.VirtualMachineCloneSpec) *types.VirtualMachineCl
 
 func channelInitialize(numberOfObjects, concurrencyNumber uint) (chan *object.VirtualMachine, *concurrency.Object) {
 	in := make(chan *object.VirtualMachine)
-	return in, concurrency.Initialize(numberOfObjects, concurrencyNumber)
+	return in, concurrency.New(numberOfObjects, concurrencyNumber)
 }
 
 // Loops over the in and ret channels

@@ -7,8 +7,6 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 )
 
-const Concurency uint = 5
-
 var ConfigFolder string
 var TemplateFodler string
 var RouterFodler string

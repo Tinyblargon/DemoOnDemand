@@ -9,6 +9,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/authentication/backends/ldap"
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/logger"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
@@ -25,7 +26,8 @@ func main() {
 	config, err := programconfig.GetConfigProgramConfig()
 	OutFatal(err)
 	OutFatal(logger.Initialize(*config.LogPath))
-	scheduler.Main = NewSchedulerBackend(config.ConcurrentTasks)
+	logger.Fatal(concurrency.Initialize(config.Concurrency.TreadsPerTask))
+	scheduler.Main = NewSchedulerBackend(config.Concurrency.ConcurrentTasks)
 	authentication.Main = NewAuthBackend(config.LDAP)
 	db, err := database.New(*config.PostgreSQL)
 	logger.Fatal(err)

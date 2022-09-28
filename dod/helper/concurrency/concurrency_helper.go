@@ -1,9 +1,12 @@
 package concurrency
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
+
+var threads uint
 
 type Object struct {
 	Mutex           sync.Mutex
@@ -13,7 +16,22 @@ type Object struct {
 	Threads         uint
 }
 
-func Initialize(numberOfObjects, requestedThreads uint) *Object {
+func Initialize(Threads uint) error {
+	if threads > 0 {
+		return fmt.Errorf("threads can only be set once")
+	}
+	if Threads == 0 {
+		return fmt.Errorf("threads per task may not be 0")
+	}
+	threads = Threads
+	return nil
+}
+
+func Threads() uint {
+	return threads
+}
+
+func New(numberOfObjects, requestedThreads uint) *Object {
 	threads := decideMinimumTreads(numberOfObjects, requestedThreads)
 	return &Object{
 		Cycles:  numberOfObjects,

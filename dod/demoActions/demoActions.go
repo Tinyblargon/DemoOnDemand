@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/os/firewallconfig"
@@ -105,7 +106,7 @@ func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *de
 	if err != nil {
 		return
 	}
-	err = portgroup.Create(client, host.GetList(), &reservedVlans, vlan.List.NewPrefix, global.VMwareConfig.Vswitch, global.Concurency, status)
+	err = portgroup.Create(client, host.GetList(), &reservedVlans, vlan.List.NewPrefix, global.VMwareConfig.Vswitch, concurrency.Threads(), status)
 	if err != nil {
 		return
 	}
@@ -310,7 +311,7 @@ func deleteAndReleaseNetworks(client *govmomi.Client, db *sql.DB, demo *demo.Dem
 		vlanIdList[i] = e.ID
 	}
 	if len(*vlanObjList) != 0 {
-		err = portgroup.Delete(client, host.GetList(), (*vlanObjList)[0].Prefix, &vlanIdList, global.Concurency, status)
+		err = portgroup.Delete(client, host.GetList(), (*vlanObjList)[0].Prefix, &vlanIdList, concurrency.Threads(), status)
 		if err != nil {
 			return
 		}

@@ -1,5 +1,7 @@
 ConfigFolder: './Demos'
-ConcurrentTasks: 4
+Concurrency:
+  ConcurrentTasks: 4
+  TreadsPerTask: 5
 TaskHistoryDepth: 50
 Vlan:
   Id: [

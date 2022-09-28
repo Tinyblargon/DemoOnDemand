@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
@@ -241,7 +241,7 @@ func Delete(client *govmomi.Client, dc *object.Datacenter, Path string, status *
 		if err != nil {
 			return err
 		}
-		err = virtualmachine.DeleteObjects(fileSystem.GetVmObjects(), global.Concurency, status)
+		err = virtualmachine.DeleteObjects(fileSystem.GetVmObjects(), concurrency.Threads(), status)
 		if err != nil {
 			return err
 		}
@@ -265,11 +265,11 @@ func ReStart(client *govmomi.Client, dc *object.Datacenter, Path string, status 
 		return
 	}
 	if len(vmObjects) != 0 {
-		err = virtualmachine.StopObjects(vmObjects, global.Concurency, status)
+		err = virtualmachine.StopObjects(vmObjects, concurrency.Threads(), status)
 		if err != nil {
 			return
 		}
-		err = virtualmachine.StartObjects(vmObjects, global.Concurency, status)
+		err = virtualmachine.StartObjects(vmObjects, concurrency.Threads(), status)
 	}
 	return
 }
@@ -281,7 +281,7 @@ func Start(client *govmomi.Client, dc *object.Datacenter, Path string, status *t
 		return
 	}
 	if len(vmObjects) != 0 {
-		err = virtualmachine.StartObjects(vmObjects, global.Concurency, status)
+		err = virtualmachine.StartObjects(vmObjects, concurrency.Threads(), status)
 	}
 	return
 }
@@ -293,7 +293,7 @@ func Stop(client *govmomi.Client, dc *object.Datacenter, Path string, status *ta
 		return
 	}
 	if len(vmObjects) != 0 {
-		err = virtualmachine.StopObjects(vmObjects, global.Concurency, status)
+		err = virtualmachine.StopObjects(vmObjects, concurrency.Threads(), status)
 	}
 	return
 }

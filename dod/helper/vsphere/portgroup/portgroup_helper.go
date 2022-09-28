@@ -107,7 +107,7 @@ func hostNetworkSystemFromHostSystem(hs *object.HostSystem) (*object.HostNetwork
 
 func channelInitialize(numberOfObjects, concurrencyNumber uint) (chan *Networks, *concurrency.Object) {
 	in := make(chan *Networks)
-	return in, concurrency.Initialize(numberOfObjects, concurrencyNumber)
+	return in, concurrency.New(numberOfObjects, concurrencyNumber)
 }
 
 // Loops over the in and ret channels

@@ -9,7 +9,7 @@ import (
 // Configurations exported
 type Configuration struct {
 	ConfigFolder     string
-	ConcurrentTasks  uint
+	Concurrency      *Concurrency
 	TaskHistoryDepth uint
 	Vlan             *Vlan
 	API              *APIConfiguration
@@ -18,6 +18,11 @@ type Configuration struct {
 	LDAP             *LDAPConfiguration
 	Router           *SSHConfiguration
 	LogPath          *Logging
+}
+
+type Concurrency struct {
+	ConcurrentTasks uint
+	TreadsPerTask   uint
 }
 
 type Vlan struct {
