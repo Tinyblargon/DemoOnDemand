@@ -14,8 +14,6 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
-const hostPortGroupIDPrefix = "tf-HostPortGroup"
-
 type Networks struct {
 	Vlan uint
 	Host *object.HostSystem
@@ -23,16 +21,19 @@ type Networks struct {
 
 func Create(c *govmomi.Client, hosts []*object.HostSystem, vlans *[]uint, prefix, vSwitch string, concurrencyNumber uint, status *taskstatus.Status) (err error) {
 	numberOfTasks := uint(len(*vlans) * len(hosts))
-	in, ret, concurrencyNumber := channelInitialize(numberOfTasks, concurrencyNumber)
-	// spawn "concurrencyNumber" amount of threads
-	for x := 0; x < int(concurrencyNumber); x++ {
+	in, conObject := channelInitialize(numberOfTasks, concurrencyNumber)
+	// spawn "conObject.Threads" amount of threads
+	for x := 0; x < int(conObject.Threads); x++ {
 		go func() {
 			for x := range in {
-				ret <- createSingle(c, x.Host, prefix, vSwitch, x.Vlan, status)
+				conObject.Cycle(createSingle(c, x.Host, prefix, vSwitch, x.Vlan, status))
+				if conObject.Err != nil {
+					break
+				}
 			}
 		}()
 	}
-	err = channelLooper(in, ret, hosts, vlans, numberOfTasks)
+	err = channelLooper(in, conObject, hosts, vlans)
 	return
 }
 
@@ -66,16 +67,19 @@ func expandHostPortGroupSpec(prefix, vSwitchName string, vlan uint) *types.HostP
 
 func Delete(c *govmomi.Client, hosts []*object.HostSystem, prefix string, vlans *[]uint, concurrencyNumber uint, status *taskstatus.Status) (err error) {
 	numberOfTasks := uint(len(*vlans) * len(hosts))
-	in, ret, concurrencyNumber := channelInitialize(numberOfTasks, concurrencyNumber)
-	// spawn "concurrencyNumber" amount of threads
-	for x := 0; x < int(concurrencyNumber); x++ {
+	in, conObject := channelInitialize(numberOfTasks, concurrencyNumber)
+	// spawn "conObject.Threads" amount of threads
+	for x := 0; x < int(conObject.Threads); x++ {
 		go func() {
 			for x := range in {
-				ret <- deleteSingle(c, x.Host, prefix, x.Vlan, status)
+				conObject.Cycle(deleteSingle(c, x.Host, prefix, x.Vlan, status))
+				if conObject.Err != nil {
+					break
+				}
 			}
 		}()
 	}
-	return channelLooper(in, ret, hosts, vlans, numberOfTasks)
+	return channelLooper(in, conObject, hosts, vlans)
 }
 
 // Deletest a portgroup on a singular host
@@ -101,14 +105,13 @@ func hostNetworkSystemFromHostSystem(hs *object.HostSystem) (*object.HostNetwork
 	return hs.ConfigManager().NetworkSystem(ctx)
 }
 
-func channelInitialize(numberOfObjects, concurrencyNumner uint) (chan *Networks, chan error, uint) {
+func channelInitialize(numberOfObjects, concurrencyNumber uint) (chan *Networks, *concurrency.Object) {
 	in := make(chan *Networks)
-	ret := make(chan error)
-	return in, ret, concurrency.DecideMinimumTreads(numberOfObjects, concurrencyNumner)
+	return in, concurrency.Initialize(numberOfObjects, concurrencyNumber)
 }
 
 // Loops over the in and ret channels
-func channelLooper(in chan *Networks, ret chan error, hosts []*object.HostSystem, vlans *[]uint, cycles uint) (err error) {
+func channelLooper(in chan *Networks, conObject *concurrency.Object, hosts []*object.HostSystem, vlans *[]uint) error {
 	go func() {
 		// loop over all items
 		for _, e := range *vlans {
@@ -122,7 +125,5 @@ func channelLooper(in chan *Networks, ret chan error, hosts []*object.HostSystem
 		}
 		close(in)
 	}()
-	err = concurrency.ChannelLooperError(ret, cycles)
-	close(ret)
-	return
+	return conObject.ChannelLooperError()
 }

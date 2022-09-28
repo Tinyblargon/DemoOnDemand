@@ -102,15 +102,19 @@ func CreateSnapshot(vm *object.VirtualMachine, SnapshotName string, memory bool)
 }
 
 func StartObjects(vmObjects []*object.VirtualMachine, concurrency uint, status *taskstatus.Status) (err error) {
-	in, ret, concurrency := channelInitialize(uint(len(vmObjects)), concurrency)
-	for x := 0; x < int(concurrency); x++ {
+	in, conObject := channelInitialize(uint(len(vmObjects)), concurrency)
+	// spawn "conObject.Threads" amount of threads
+	for x := 0; x < int(conObject.Threads); x++ {
 		go func() {
 			for x := range in {
-				ret <- Start(x, status)
+				conObject.Cycle(Start(x, status))
+				if conObject.Err != nil {
+					break
+				}
 			}
 		}()
 	}
-	err = channelLooper(in, ret, &vmObjects, uint(len(vmObjects)))
+	err = channelLooper(in, conObject, &vmObjects, uint(len(vmObjects)))
 	return
 }
 
@@ -135,15 +139,19 @@ func Start(vm *object.VirtualMachine, status *taskstatus.Status) error {
 }
 
 func StopObjects(vmObjects []*object.VirtualMachine, concurrency uint, status *taskstatus.Status) (err error) {
-	in, ret, concurrency := channelInitialize(uint(len(vmObjects)), concurrency)
-	for x := 0; x < int(concurrency); x++ {
+	in, conObject := channelInitialize(uint(len(vmObjects)), concurrency)
+	// spawn "conObject.Threads" amount of threads
+	for x := 0; x < int(conObject.Threads); x++ {
 		go func() {
 			for x := range in {
-				ret <- Stop(x, status)
+				conObject.Cycle(Stop(x, status))
+				if conObject.Err != nil {
+					break
+				}
 			}
 		}()
 	}
-	err = channelLooper(in, ret, &vmObjects, uint(len(vmObjects)))
+	err = channelLooper(in, conObject, &vmObjects, uint(len(vmObjects)))
 	return
 }
 
@@ -185,15 +193,19 @@ func Delete(vm *object.VirtualMachine, status *taskstatus.Status) error {
 }
 
 func DeleteObjects(vmObjects []*object.VirtualMachine, concurrency uint, status *taskstatus.Status) (err error) {
-	in, ret, concurrency := channelInitialize(uint(len(vmObjects)), concurrency)
-	for x := 0; x < int(concurrency); x++ {
+	in, conObject := channelInitialize(uint(len(vmObjects)), concurrency)
+	// spawn "conObject.Threads" amount of threads
+	for x := 0; x < int(conObject.Threads); x++ {
 		go func() {
 			for x := range in {
-				ret <- Delete(x, status)
+				conObject.Cycle(Delete(x, status))
+				if conObject.Err != nil {
+					break
+				}
 			}
 		}()
 	}
-	err = channelLooper(in, ret, &vmObjects, uint(len(vmObjects)))
+	err = channelLooper(in, conObject, &vmObjects, uint(len(vmObjects)))
 	return
 }
 
@@ -236,14 +248,13 @@ func addVmSpec(cloneSpec *types.VirtualMachineCloneSpec) *types.VirtualMachineCl
 	return cloneSpec
 }
 
-func channelInitialize(numberOfObjects, concurrencyNumner uint) (chan *object.VirtualMachine, chan error, uint) {
+func channelInitialize(numberOfObjects, concurrencyNumber uint) (chan *object.VirtualMachine, *concurrency.Object) {
 	in := make(chan *object.VirtualMachine)
-	ret := make(chan error)
-	return in, ret, concurrency.DecideMinimumTreads(numberOfObjects, concurrencyNumner)
+	return in, concurrency.Initialize(numberOfObjects, concurrencyNumber)
 }
 
 // Loops over the in and ret channels
-func channelLooper(in chan *object.VirtualMachine, ret chan error, vmObjects *[]*object.VirtualMachine, cycles uint) (err error) {
+func channelLooper(in chan *object.VirtualMachine, conObject *concurrency.Object, vmObjects *[]*object.VirtualMachine, cycles uint) error {
 	go func() {
 		for _, e := range *vmObjects {
 			// loop over all items
@@ -251,9 +262,7 @@ func channelLooper(in chan *object.VirtualMachine, ret chan error, vmObjects *[]
 		}
 		close(in)
 	}()
-	err = concurrency.ChannelLooperError(ret, cycles)
-	close(ret)
-	return
+	return conObject.ChannelLooperError()
 }
 
 // Returns the networks of the vmObject
