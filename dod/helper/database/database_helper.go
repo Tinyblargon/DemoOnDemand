@@ -65,7 +65,7 @@ func GetSpecificDemo(db *sql.DB, demoObj demo.Demo) (demo *Demo, err error) {
 		return
 	}
 	if demos != nil {
-		if (*demos)[0] != nil {
+		if len(*demos) > 0 {
 			demo = (*demos)[0]
 		}
 	}
