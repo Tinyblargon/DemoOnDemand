@@ -38,7 +38,7 @@ func main() {
 	logger.Fatal(datacenter.Initialize(c.VimClient, global.VMwareConfig.DataCenter))
 	logger.Fatal(host.Initialize(c.VimClient, datacenter.GetObject(), global.VMwareConfig.Hosts))
 
-	vlan.Initialize(config.Vlan.Id, config.Vlan.Prefix)
+	logger.Fatal(vlan.Initialize(config.Vlan.Id, config.Vlan.Prefix))
 
 	// err = dod.Intialize(c.VimClient, global.VMwareConfig.DataCenter)
 	// c.VimClient.Logout()
