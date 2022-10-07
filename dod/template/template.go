@@ -20,17 +20,18 @@ import (
 
 type PortForward struct {
 	SourcePort      uint   `json:"sourceport" yaml:"sourceport"`
-	DestinationPort uint   `json:"destinationport,omitempty" yaml:"destinationport,omitempty"`
+	DestinationPort uint   `json:"destinationport" yaml:"destinationport"`
 	DestinationIP   string `json:"destinationip" yaml:"destinationip"`
-	Protocol        string `json:"protocol,omitempty" yaml:"protocol,omitempty"`
+	Protocol        string `json:"protocol" yaml:"protocol"`
+	Comment         string `json:"comment" yaml:"comment"`
 }
 
 type Config struct {
 	Name         string              `json:"name,omitempty" yaml:"name,omitempty"`
 	Description  string              `json:"description,omitempty" yaml:"description"`
 	Path         string              `json:"path,omitempty" yaml:"path,omitempty"`
-	PortForwards []*PortForward      `json:"portforwards" yaml:"portforwards"`
-	Networks     *[]template.Network `json:"networks" yaml:"networks"`
+	PortForwards []*PortForward      `json:"portforwards,omitempty" yaml:"portforwards"`
+	Networks     *[]template.Network `json:"networks,omitempty" yaml:"networks"`
 }
 
 func Get(templateName string) (templateConfig *Config, err error) {
@@ -39,6 +40,23 @@ func Get(templateName string) (templateConfig *Config, err error) {
 		return
 	}
 	err = yaml.Unmarshal(contents, &templateConfig)
+	return
+}
+
+func GetDescriptions(templateNames *[]string) (templateConfigs *[]Config, err error) {
+	tmp := make([]Config, len(*templateNames))
+	templateConfigs = &tmp
+	var tmpConfig *Config
+	for i, e := range *templateNames {
+		tmpConfig, err = Get(e)
+		if err != nil {
+			return
+		}
+		(*templateConfigs)[i] = Config{
+			Name:        e,
+			Description: tmpConfig.Description,
+		}
+	}
 	return
 }
 

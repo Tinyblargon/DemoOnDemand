@@ -16,8 +16,8 @@ import (
 )
 
 type Data struct {
-	TemplateConfig *template.Config `json:"config,omitempty"`
-	Templates      *[]string        `json:"templates,omitempty"`
+	TemplateConfig *template.Config   `json:"config,omitempty"`
+	Templates      *[]template.Config `json:"templates,omitempty"`
 }
 
 var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,12 +37,12 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 
 	templates, err := template.List()
-	var templateConfig *template.Config
-	var templateList *[]string
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return
 	}
+	var templateConfigList *[]template.Config
+	var templateConfig *template.Config
 	if id != "" {
 		if !util.IsStringUnique(&templates, id) {
 			templateConfig, err = template.Get(id)
@@ -52,15 +52,17 @@ func Get(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else {
-		templateList = &templates
-	}
-
-	data := Data{
-		TemplateConfig: templateConfig,
-		Templates:      templateList,
+		templateConfigList, err = template.GetDescriptions(&templates)
+		if err != nil {
+			api.OutputServerError(w, "", err)
+			return
+		}
 	}
 	response := api.JsonResponse{
-		Data: data,
+		Data: Data{
+			TemplateConfig: templateConfig,
+			Templates:      templateConfigList,
+		},
 	}
 	response.Output(w)
 }
