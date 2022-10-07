@@ -40,6 +40,9 @@ func Get(templateName string) (templateConfig *Config, err error) {
 		return
 	}
 	err = yaml.Unmarshal(contents, &templateConfig)
+	for i, e := range templateConfig.PortForwards {
+		templateConfig.PortForwards[i].Protocol = strings.ToUpper(e.Protocol)
+	}
 	return
 }
 
