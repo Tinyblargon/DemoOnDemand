@@ -20,8 +20,8 @@ import (
 
 type PortForward struct {
 	SourcePort      uint   `json:"sourceport" yaml:"sourceport"`
-	DestinationPort uint   `json:"destinationport" yaml:"destinationport"`
-	DestinationIP   string `json:"destinationip" yaml:"destinationip"`
+	DestinationPort uint   `json:"destinationport,omitempty" yaml:"destinationport"`
+	DestinationIP   string `json:"destinationip,omitempty" yaml:"destinationip"`
 	Protocol        string `json:"protocol" yaml:"protocol"`
 	Comment         string `json:"comment" yaml:"comment"`
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
+	"github.com/Tinyblargon/DemoOnDemand/dod/template"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +18,16 @@ type StartStopRestart struct {
 }
 
 type Data struct {
-	Demos *[]*database.Demo `json:"demos"`
+	Demos *[]*Demo `json:"demos"`
+}
+
+type Demo struct {
+	UserName    string                  `json:"user"`
+	DemoName    string                  `json:"demo"`
+	DemoNumber  uint                    `json:"demonumber"`
+	Running     bool                    `json:"active"`
+	Description string                  `json:"description,omitempty"`
+	PortForward []*template.PortForward `json:"portforwards,omitempty"`
 }
 
 var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,27 +52,45 @@ var IdPutHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 
 func Get(w http.ResponseWriter, r *http.Request) {
 	var demos *[]*database.Demo
+	var err error
+	var allDemos bool
 	if r.Header.Get("role") == "root" {
-		// demos = new(database.Demos)
-		var err error
+		allDemos = true
 		demos, err = database.ListAllDemos(global.DB)
-		if err != nil {
-			api.OutputServerError(w, "", err)
-			return
-		}
 	} else {
-		var err error
 		demos, err = database.ListDemosOfUser(global.DB, r.Header.Get("name"))
-		if err != nil {
-			api.OutputServerError(w, "", err)
-			return
-		}
 	}
-	data := Data{
-		Demos: demos,
+	if err != nil {
+		api.OutputServerError(w, "", err)
+		return
+	}
+	uniqueDemos, err := getUniqueDemo(demos)
+	if err != nil {
+		api.OutputServerError(w, "", err)
+		return
+	}
+	demolist := make([]*Demo, len(*demos))
+	for i, e := range *demos {
+		var userName string
+		if allDemos {
+			userName = e.UserName
+		}
+		for _, ee := range *uniqueDemos {
+			if e.DemoName == ee.DemoName {
+				demolist[i] = &Demo{
+					UserName:    userName,
+					DemoName:    e.DemoName,
+					DemoNumber:  e.DemoNumber,
+					Running:     e.Running,
+					Description: ee.Description,
+				}
+			}
+		}
 	}
 	response := api.JsonResponse{
-		Data: data,
+		Data: Data{
+			Demos: &demolist,
+		},
 	}
 	response.Output(w)
 }
@@ -104,7 +132,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 }
 
 type IdData struct {
-	Demo *database.Demo `json:"demo"`
+	Demo *Demo `json:"demo"`
 }
 
 func IdGet(w http.ResponseWriter, r *http.Request) {
@@ -130,11 +158,31 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 		api.OutputDemoDoesNotExists(w)
 		return
 	}
-	data := IdData{
-		Demo: demo,
+	templateConf, err := template.Get(demoObj.Name)
+	if err != nil {
+		api.OutputServerError(w, "", err)
+		return
+	}
+
+	portForwards := make([]*template.PortForward, len(templateConf.PortForwards))
+	for i, e := range templateConf.PortForwards {
+		portForwards[i] = &template.PortForward{
+			SourcePort: e.SourcePort,
+			Protocol:   e.Protocol,
+			Comment:    e.Comment,
+		}
 	}
 	response := api.JsonResponse{
-		Data: data,
+		Data: IdData{
+			Demo: &Demo{
+				UserName:    demo.UserName,
+				DemoName:    demo.DemoName,
+				DemoNumber:  demo.DemoNumber,
+				Running:     demo.Running,
+				Description: templateConf.Description,
+				PortForward: portForwards,
+			},
+		},
 	}
 	response.Output(w)
 }
@@ -215,4 +263,35 @@ func checkID(w http.ResponseWriter, r *http.Request) (demoObj demo.Demo, err err
 		api.OutputInvalidID(w)
 	}
 	return
+}
+
+// gets the file information of every unique demo in the list
+func getUniqueDemo(list *[]*database.Demo) (uniqueList *[]Demo, err error) {
+	tmplist := make([]Demo, 0)
+	uniqueList = &tmplist
+	for _, e := range *list {
+		var templateConf *template.Config
+		if isDemoUnique(uniqueList, e.DemoName) {
+			templateConf, err = template.Get(e.DemoName)
+			if err != nil {
+				return
+			}
+			demo := Demo{
+				DemoName:    e.DemoName,
+				Description: templateConf.Description,
+			}
+			*uniqueList = append(*uniqueList, demo)
+		}
+	}
+	return
+}
+
+// checks if a demo with a specific name already exists in the list
+func isDemoUnique(list *[]Demo, item string) bool {
+	for _, e := range *list {
+		if e.DemoName == item {
+			return false
+		}
+	}
+	return true
 }
