@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/session"
 	"github.com/vmware/govmomi/vim25"
@@ -33,8 +34,6 @@ type Client struct {
 	VimClient *govmomi.Client
 }
 
-var defaultAPITimeout = time.Minute * 5
-
 func New(VMware programconfig.VMwareConfiguration) (*Client, error) {
 	sessionConfig := &Config{
 		User:            VMware.User,
@@ -48,7 +47,7 @@ func New(VMware programconfig.VMwareConfiguration) (*Client, error) {
 		VimSessionPath:  "",
 		RestSessionPath: "",
 		KeepAlive:       100,
-		APITimeout:      defaultAPITimeout,
+		APITimeout:      provider.GetTimeout(),
 	}
 	c, err := sessionConfig.client()
 	return c, err
@@ -83,7 +82,7 @@ func (c *Config) vimURL() (*url.URL, error) {
 }
 
 func (c *Config) SavedVimSessionOrNew(u *url.URL) (*govmomi.Client, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), defaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 
 	client, err := newClientWithKeepAlive(ctx, u, c.InsecureFlag, c.KeepAlive)
