@@ -7,6 +7,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/backends/memory/demolock"
@@ -46,12 +47,12 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 		}
 		ID := demoObj.CreateID()
 		demoLock.Lock(ID, status)
-		c, err = newSession(status, global.VMwareConfig)
+		c, err = newSession(status, vsphere.GetConfig())
 		if err != nil {
 			return
 		}
 		if j.Demo.Create {
-			err = demoactions.New(c.VimClient, global.DB, datacenter.GetObject(), global.VMwareConfig.Pool, &demoObj, 5, status)
+			err = demoactions.New(c.VimClient, global.DB, datacenter.GetObject(), vsphere.GetConfig().Pool, &demoObj, 5, status)
 		}
 		if j.Demo.Destroy {
 			err = demoactions.Delete(c.VimClient, global.DB, datacenter.GetObject(), &demoObj, status)
@@ -70,12 +71,12 @@ func (j *Job) Execute(status *taskstatus.Status, demoLock *demolock.DemoLock) {
 		demoLock.Unlock(ID)
 	}
 	if j.Template != nil {
-		c, err = newSession(status, global.VMwareConfig)
+		c, err = newSession(status, vsphere.GetConfig())
 		if err != nil {
 			return
 		}
 		if j.Template.Import {
-			err = j.Template.Config.Import(c.VimClient, datacenter.GetObject(), global.VMwareConfig.Pool, status)
+			err = j.Template.Config.Import(c.VimClient, datacenter.GetObject(), vsphere.GetConfig().Pool, status)
 		}
 		if j.Template.Destroy {
 			err = template.Destroy(c.VimClient, datacenter.GetObject(), j.Template.Config.Name, status)

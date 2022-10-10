@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
-	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
 )
@@ -33,7 +33,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		api.OutputUserInputError(w, err.Error())
 		return
 	}
-	c, err := session.New(*global.VMwareConfig)
+	c, err := session.New(*vsphere.GetConfig())
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return

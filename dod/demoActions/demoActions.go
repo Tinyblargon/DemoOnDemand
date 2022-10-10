@@ -19,6 +19,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/host"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/network"
@@ -106,7 +107,7 @@ func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *de
 	if err != nil {
 		return
 	}
-	err = portgroup.Create(client, host.GetList(), &reservedVlans, vlan.List.NewPrefix, global.VMwareConfig.Vswitch, concurrency.Threads(), status)
+	err = portgroup.Create(client, host.GetList(), &reservedVlans, vlan.List.NewPrefix, vsphere.GetConfig().Vswitch, concurrency.Threads(), status)
 	if err != nil {
 		return
 	}

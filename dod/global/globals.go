@@ -17,7 +17,7 @@ var PostgreSQLConfig *programconfig.PostgreSQLConfiguration
 // var LDAPConfig *programconfig.LDAPConfiguration
 var TaskHistoryDepth uint
 var DB *sql.DB
-var VMwareConfig *programconfig.VMwareConfiguration
+
 var RouterConfiguration *programconfig.SSHConfiguration
 
 func SetAll(config *programconfig.Configuration, db *sql.DB) {
@@ -28,28 +28,6 @@ func SetAll(config *programconfig.Configuration, db *sql.DB) {
 	DemoFodler = baseFolder + "/Demos"
 	IngressVM = "routervm"
 
-	VMwareConfig = &programconfig.VMwareConfiguration{
-		URL:        config.VMware.URL,
-		User:       config.VMware.User,
-		Password:   config.VMware.Password,
-		Insecure:   config.VMware.Insecure,
-		DataCenter: config.VMware.DataCenter,
-		Pool:       config.VMware.Pool,
-		Hosts:      config.VMware.Hosts,
-		Vswitch:    config.VMware.Vswitch,
-	}
-
-	// PostgreSQLConfig = &programconfig.PostgreSQLConfiguration{
-	// 	Database: config.PostgreSQL.Database,
-	// 	Password: config.PostgreSQL.Password,
-	// 	Host:     config.PostgreSQL.Host,
-	// 	User:     config.PostgreSQL.User,
-	// 	Port:     config.PostgreSQL.Port,
-	// }
-	// LDAPConfig = &programconfig.LDAPConfiguration{
-	// 	BindUser:     config.LDAP.BindUser,
-	// 	BindPassword: config.LDAP.BindPassword,
-	// }
 	TaskHistoryDepth = config.TaskHistoryDepth
 	RouterConfiguration = config.Router
 	DB = db

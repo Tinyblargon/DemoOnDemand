@@ -8,6 +8,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
@@ -78,7 +79,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		api.OutputInvalidPermission(w)
 		return
 	}
-	c, err := session.New(*global.VMwareConfig)
+	c, err := session.New(*vsphere.GetConfig())
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return
