@@ -61,7 +61,7 @@ func (o *Object) ChannelLooperError() error {
 func (o *Object) Cycle(err error) {
 	if err != nil {
 		o.Mutex.Lock()
-		if o.Err != nil {
+		if o.Err == nil {
 			o.Err = err
 		}
 	} else {
