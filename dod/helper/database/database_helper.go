@@ -155,15 +155,9 @@ func CheckTemplateInUse(db *sql.DB, demoName string) (inUse bool, err error) {
 	if err != nil {
 		return
 	}
-	for rows.Next() {
-		var tmp string
-		err = rows.Scan(&tmp)
-		if err != nil {
-			break
-		}
-		inUse = true
-		break
-	}
+	inUse = rows.Next()
+	var tmp string
+	err = rows.Scan(&tmp)
 	rows.Close()
 	return
 }
