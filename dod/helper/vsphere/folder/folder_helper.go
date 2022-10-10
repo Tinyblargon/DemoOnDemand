@@ -152,6 +152,9 @@ func (parent *FileSystemItem) recursiveRead(client *govmomi.Client) ([]*FileSyst
 			array[i].Folder = subOb
 			array[i].Name = path.Base(subOb.InventoryPath)
 			obList, err := array[i].recursiveRead(client)
+			if err != nil {
+				return nil, err
+			}
 			array[i].Subitems = obList
 		case "VirtualMachine":
 			subOb, err := virtualmachine.FromID(client, e.Reference().Value)
@@ -331,10 +334,7 @@ func CreateSingleFolder(client *govmomi.Client, dc *object.Datacenter, Path stri
 
 func Exists(client *govmomi.Client, dc *object.Datacenter, Path string) bool {
 	_, err := Get(client, dc, Path)
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func ListSubFolders(client *govmomi.Client, dc *object.Datacenter, Path string) (*[]string, error) {
@@ -353,7 +353,9 @@ func ListFolderItems(client *govmomi.Client, dc *object.Datacenter, Path, Type s
 	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	children, err := parentFolder.Children(ctx)
-
+	if err != nil {
+		return nil, err
+	}
 	var amountOfTypeItems int
 	for _, e := range children {
 		if e.Reference().Type == Type {

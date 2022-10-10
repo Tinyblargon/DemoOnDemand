@@ -58,7 +58,7 @@ func (c *Config) client() (*Client, error) {
 
 	u, err := c.vimURL()
 	if err != nil {
-		return nil, fmt.Errorf("Error generating SOAP endpoint url: %s", err)
+		return nil, fmt.Errorf("error generating SOAP endpoint url: %s", err)
 	}
 
 	// Set up the VIM/govmomi client connection, or load a previous session
@@ -73,7 +73,7 @@ func (c *Config) client() (*Client, error) {
 func (c *Config) vimURL() (*url.URL, error) {
 	u, err := url.Parse("https://" + c.VSphereServer + "/sdk")
 	if err != nil {
-		return nil, fmt.Errorf("Error parse url: %s", err)
+		return nil, fmt.Errorf("error parse url: %s", err)
 	}
 
 	u.User = url.UserPassword(c.User, c.Password)
