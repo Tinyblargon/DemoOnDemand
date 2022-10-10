@@ -61,22 +61,19 @@ func NewSchedulerBackend(concurrency uint) scheduler.Backend {
 }
 
 func NewAuthBackend(LDAPsettings *programconfig.LDAPConfiguration) authentication.Backend {
-	userGroup := ldap.Settings_Group{
-		UsersDN: LDAPsettings.UserGroup.UsersDN,
-	}
-	adminGroup := ldap.Settings_Group{
-		UsersDN: LDAPsettings.AdminGroup.UsersDN,
-	}
-	settings := ldap.Settings{
+	validatedSettigns, err := ldap.New(&ldap.Settings{
 		URL:                LDAPsettings.URL,
 		BindDN:             LDAPsettings.BindDN,
 		BindCredential:     LDAPsettings.BindPassword,
 		InsecureSkipVerify: LDAPsettings.InsecureSkipVerify,
 		UsernameAttribute:  LDAPsettings.UsernameAttribute,
-		UserGroup:          &userGroup,
-		AdminGroup:         &adminGroup,
-	}
-	validatedSettigns, err := ldap.New(&settings)
+		UserGroup: &ldap.Settings_Group{
+			UsersDN: LDAPsettings.UserGroup.UsersDN,
+		},
+		AdminGroup: &ldap.Settings_Group{
+			UsersDN: LDAPsettings.AdminGroup.UsersDN,
+		},
+	})
 	logger.Fatal(err)
 	return validatedSettigns
 }
