@@ -142,6 +142,9 @@ func Release(demo string) (err error) {
 }
 
 func setGlobals(prefixLocal string) (err error) {
+	if list.NewPrefix != "" {
+		return fmt.Errorf("prefix can only be set once")
+	}
 	err = validatedSettigns(prefixLocal)
 	if err != nil {
 		return
