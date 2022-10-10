@@ -107,7 +107,7 @@ func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *de
 	if err != nil {
 		return
 	}
-	err = portgroup.Create(client, host.GetList(), &reservedVlans, vlan.List.NewPrefix, vsphere.GetConfig().Vswitch, concurrency.Threads(), status)
+	err = portgroup.Create(client, host.GetList(), &reservedVlans, vlan.GetPrefix(), vsphere.GetConfig().Vswitch, concurrency.Threads(), status)
 	if err != nil {
 		return
 	}
@@ -139,7 +139,7 @@ func getAllbackingInfo(client *govmomi.Client, dc *object.Datacenter, vlanList [
 	backingList = make([]*types.BaseVirtualDeviceBackingInfo, len(vlanList))
 	for i, e := range vlanList {
 		var networkObj *object.NetworkReference
-		networkObj, err = network.FromName(client, dc, vlan.List.NewPrefix+strconv.Itoa(int(e)))
+		networkObj, err = network.FromName(client, dc, vlan.GetPrefix()+strconv.Itoa(int(e)))
 		if err != nil {
 			return
 		}

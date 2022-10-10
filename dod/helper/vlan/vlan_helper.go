@@ -16,7 +16,7 @@ import (
 const OutOfVlans string = "no more vlans availible"
 
 // This is used to keep track of wich vlans have been reserved. it should be synced to the database after every change.
-var List *VlanData
+var list *VlanData
 
 type VlanData struct {
 	Vlans     *[]*database.Vlan
@@ -33,14 +33,14 @@ type LocalList struct {
 }
 
 // Create a list containg all the localy needed vlan/network information
-func CreateLocalList(configList *[]template.Network) (list []*LocalList, err error) {
-	list = make([]*LocalList, len(*configList))
+func CreateLocalList(configList *[]template.Network) (List []*LocalList, err error) {
+	List = make([]*LocalList, len(*configList))
 	for i, e := range *configList {
 		routerIP, net, err := net.ParseCIDR(e.RouterSubnet)
 		if err != nil {
 			return nil, err
 		}
-		list[i] = &LocalList{
+		List[i] = &LocalList{
 			OriginalNetwork: e.Name,
 			RouterIP:        routerIP,
 			Net:             net,
@@ -50,6 +50,10 @@ func CreateLocalList(configList *[]template.Network) (list []*LocalList, err err
 }
 
 func Initialize(vlanIDs *[]uint, prefix string) (err error) {
+	err = setGlobals(prefix)
+	if err != nil {
+		return
+	}
 	dbVlans, err := database.ListUsedVlans(global.DB)
 	if err != nil {
 		return
@@ -69,11 +73,10 @@ func Initialize(vlanIDs *[]uint, prefix string) (err error) {
 		}
 		vlans[i] = &vlan
 	}
-	vlanData := VlanData{
+	list = &VlanData{
 		Vlans:     &vlans,
 		NewPrefix: prefix,
 	}
-	List = &vlanData
 	return
 }
 
@@ -103,23 +106,21 @@ func reserveAmount(demo *demo.Demo, numberOfVlans uint) (idList []uint, err erro
 // Reseves a vlan from the list of availible vlans
 func reserve(demo *demo.Demo) (id uint, err error) {
 	var counter int
-	test := List
-	_ = test
-	List.Mutex.Lock()
-	for _, e := range *List.Vlans {
+	list.Mutex.Lock()
+	for _, e := range *list.Vlans {
 		if e.Demo == "" {
 			e.Demo = demo.Name
-			e.Prefix = List.NewPrefix
+			e.Prefix = list.NewPrefix
 			id = e.ID
 			break
 		}
 		counter++
 	}
-	List.Mutex.Unlock()
-	if counter == len(*List.Vlans) {
+	list.Mutex.Unlock()
+	if counter == len(*list.Vlans) {
 		err = fmt.Errorf(OutOfVlans)
 	} else {
-		err = database.SetVlanInUse(global.DB, id, List.NewPrefix, demo)
+		err = database.SetVlanInUse(global.DB, id, list.NewPrefix, demo)
 	}
 	return
 }
@@ -130,12 +131,32 @@ func Release(demo string) (err error) {
 	if err != nil {
 		return
 	}
-	for _, e := range *List.Vlans {
+	for _, e := range *list.Vlans {
 		if e.Demo == demo {
-			List.Mutex.Lock()
+			list.Mutex.Lock()
 			e.Demo = ""
-			List.Mutex.Unlock()
+			list.Mutex.Unlock()
 		}
 	}
 	return
+}
+
+func setGlobals(prefixLocal string) (err error) {
+	err = validatedSettigns(prefixLocal)
+	if err != nil {
+		return
+	}
+	list.NewPrefix = prefixLocal
+	return
+}
+
+func GetPrefix() string {
+	return list.NewPrefix
+}
+
+func validatedSettigns(prefix string) error {
+	if prefix == "" {
+		return fmt.Errorf("vlan prefix may not be empty")
+	}
+	return nil
 }
