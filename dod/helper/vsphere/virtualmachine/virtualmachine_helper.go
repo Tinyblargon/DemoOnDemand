@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/generic"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
@@ -19,7 +19,7 @@ import (
 
 func Properties(vm *object.VirtualMachine, status *taskstatus.Status) (*mo.VirtualMachine, error) {
 	status.AddToInfo(fmt.Sprintf("Fetching properties for VM %q", vm.InventoryPath))
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	var props mo.VirtualMachine
 	if err := vm.Properties(ctx, vm.Reference(), nil, &props); err != nil {
@@ -71,7 +71,7 @@ func FromID(client *govmomi.Client, id string) (*object.VirtualMachine, error) {
 		Value: id,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	vm, err := finder.ObjectReference(ctx, ref)
 	if err != nil {
@@ -91,7 +91,7 @@ func CreateSnapshots(vmObjects []*object.VirtualMachine, SnapshotName string, me
 }
 
 func CreateSnapshot(vm *object.VirtualMachine, SnapshotName string, memory bool) error {
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	task, err := vm.CreateSnapshot(ctx, SnapshotName, "", memory, true)
 
@@ -127,7 +127,7 @@ func Start(vm *object.VirtualMachine, status *taskstatus.Status) error {
 		return nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 
 	status.AddToInfo(fmt.Sprintf("Starting virtual machine %s", vm.InventoryPath))
@@ -164,7 +164,7 @@ func Stop(vm *object.VirtualMachine, status *taskstatus.Status) error {
 		return nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 
 	status.AddToInfo(fmt.Sprintf("Stopping virtual machine %s", vm.InventoryPath))
@@ -181,7 +181,7 @@ func Delete(vm *object.VirtualMachine, status *taskstatus.Status) error {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 
 	status.AddToInfo(fmt.Sprintf("Removing virtual machine %s", vm.InventoryPath))
@@ -211,7 +211,7 @@ func DeleteObjects(vmObjects []*object.VirtualMachine, concurrency uint, status 
 
 // Returns the powerstate of the given Virtualmachine object
 func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	return vm.PowerState(ctx)
 }

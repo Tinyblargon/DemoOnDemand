@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
@@ -34,7 +34,7 @@ func FromPath(client *govmomi.Client, name string, dc *object.Datacenter, status
 		status.AddToInfo(fmt.Sprintf("Attempting to locate compute cluster at absolute path %q", name))
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	return finder.ClusterComputeResource(ctx, name)
 }
@@ -42,7 +42,7 @@ func FromPath(client *govmomi.Client, name string, dc *object.Datacenter, status
 // Properties is a convenience method that wraps fetching the
 // ClusterComputeResource MO from its higher-level object.
 func Properties(cluster *object.ClusterComputeResource) (*mo.ClusterComputeResource, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	var props mo.ClusterComputeResource
 	if err := cluster.Properties(ctx, cluster.Reference(), nil, &props); err != nil {

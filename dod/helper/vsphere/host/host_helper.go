@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
@@ -48,7 +48,7 @@ func systemOrDefault(client *govmomi.Client, name string, dc *object.Datacenter)
 	finder := find.NewFinder(client.Client, false)
 	finder.SetDatacenter(dc)
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	t := client.ServiceContent.About.ApiType
 	switch t {

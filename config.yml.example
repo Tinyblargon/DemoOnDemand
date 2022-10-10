@@ -27,6 +27,7 @@ LogPath:
   Error: 'log/error.log'
   Info: 'log/info.log'
 VMware:
+  APITimeout: 60
   URL: ''
   User: ''
   Password: ''

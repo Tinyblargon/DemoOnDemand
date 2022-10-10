@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
@@ -12,7 +12,7 @@ import (
 )
 
 func GetBackingInfo(net *object.NetworkReference) (*types.BaseVirtualDeviceBackingInfo, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	backing, err := (*net).EthernetCardBackingInfo(ctx)
 	if err != nil {
@@ -37,7 +37,7 @@ func FromName(client *govmomi.Client, dc *object.Datacenter, name string) (*obje
 		finder.SetDatacenter(dc)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 
 	networks, err := finder.NetworkList(ctx, name)

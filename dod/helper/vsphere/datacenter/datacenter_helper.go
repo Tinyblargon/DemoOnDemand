@@ -3,7 +3,7 @@ package datacenter
 import (
 	"context"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
@@ -26,7 +26,7 @@ func GetObject() *object.Datacenter {
 func fromName(client *govmomi.Client, datacenter string) (*object.Datacenter, error) {
 	finder := find.NewFinder(client.Client, false)
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	return finder.Datacenter(ctx, datacenter)
 }

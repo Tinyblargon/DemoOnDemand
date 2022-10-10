@@ -43,7 +43,6 @@ type Token struct {
 	ExpirationTime uint
 }
 
-// DatabaseConfigurations exported
 type VMwareConfiguration struct {
 	URL        string
 	User       string
@@ -54,6 +53,7 @@ type VMwareConfiguration struct {
 	Pool       string
 	Hosts      []string
 	Vswitch    string
+	APITimeout uint
 }
 
 type PostgreSQLConfiguration struct {

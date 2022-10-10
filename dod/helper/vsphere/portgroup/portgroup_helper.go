@@ -7,8 +7,8 @@ import (
 	"context"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/types"
@@ -42,7 +42,7 @@ func createSingle(c *govmomi.Client, host *object.HostSystem, prefix, vSwitch st
 	ns, err := hostNetworkSystemFromHostSystem(host)
 	spec := expandHostPortGroupSpec(prefix, vSwitch, vlan)
 	status.AddToInfo(fmt.Sprintf("Create portgroup %s on host %s", spec.Name, host.Name()))
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	err = ns.AddPortGroup(ctx, *spec)
 	if err != nil {
@@ -89,7 +89,7 @@ func deleteSingle(c *govmomi.Client, host *object.HostSystem, prefix string, vla
 		return fmt.Errorf("error loading host network system: %s", err)
 	}
 	status.AddToInfo(fmt.Sprintf("Delete portgroup %s on host %s", prefix+strconv.Itoa(int(vlan)), host.Name()))
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	if err := ns.RemovePortGroup(ctx, prefix+strconv.Itoa(int(vlan))); err != nil {
 		return fmt.Errorf("error deleting port group: %s", err)
@@ -100,7 +100,7 @@ func deleteSingle(c *govmomi.Client, host *object.HostSystem, prefix string, vla
 // hostNetworkSystemFromHostSystem locates a HostNetworkSystem from a specified
 // HostSystem.
 func hostNetworkSystemFromHostSystem(hs *object.HostSystem) (*object.HostNetworkSystem, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	return hs.ConfigManager().NetworkSystem(ctx)
 }

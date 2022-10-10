@@ -8,11 +8,11 @@ import (
 	"sync"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/clustercomputeresource"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/generic"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
@@ -247,7 +247,7 @@ func Delete(client *govmomi.Client, dc *object.Datacenter, Path string, status *
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 
 	task, err := folder.Destroy(ctx)
@@ -316,7 +316,7 @@ func CreateSingleFolder(client *govmomi.Client, dc *object.Datacenter, Path stri
 	if err != nil {
 		return nil, fmt.Errorf("error trying to determine parent targetFolder: %s", err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 
 	if !Exists(client, dc, Path) {
@@ -350,7 +350,7 @@ func ListFolderItems(client *govmomi.Client, dc *object.Datacenter, Path, Type s
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	children, err := parentFolder.Children(ctx)
 
@@ -387,7 +387,7 @@ func ListFolderItems(client *govmomi.Client, dc *object.Datacenter, Path, Type s
 }
 
 func HasChildren(f *object.Folder) (bool, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	children, err := f.Children(ctx)
 	if err != nil {
@@ -427,7 +427,7 @@ func FromID(client *govmomi.Client, id string) (*object.Folder, error) {
 		Value: id,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), provider.DefaultAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	folder, err := finder.ObjectReference(ctx, ref)
 	if err != nil {

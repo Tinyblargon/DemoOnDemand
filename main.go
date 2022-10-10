@@ -16,6 +16,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/host"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/backends/memory"
@@ -33,6 +34,7 @@ func main() {
 	logger.Fatal(err)
 	global.SetAll(config, db)
 
+	logger.Fatal(provider.Initialize(config.VMware.APITimeout))
 	c, err := session.New(*config.VMware)
 	logger.Fatal(err)
 	logger.Fatal(datacenter.Initialize(c.VimClient, global.VMwareConfig.DataCenter))
