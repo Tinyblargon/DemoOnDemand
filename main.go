@@ -31,11 +31,8 @@ func main() {
 	logger.Fatal(err)
 	global.SetAll(config, db)
 
-	logger.Fatal(vsphere.Initialize(config.VMware))
 	logger.Fatal(vlan.Initialize(config.Vlan.Id, config.Vlan.Prefix))
-
-	// err = dod.Intialize(c.VimClient, global.VMwareConfig.DataCenter)
-	// c.VimClient.Logout()
+	logger.Fatal(vsphere.Initialize(config.VMware, vlan.GetPrefix()))
 	logger.Fatal(frontend.Initialize(config.API.SuperUser.User, config.API.SuperUser.Password, config.API.Token.Secret, config.API.Token.IssuerClaim, config.API.Token.ExpirationTime))
 	frontend.HandleRequests(config.API.PathPrefix, config.API.Port)
 
