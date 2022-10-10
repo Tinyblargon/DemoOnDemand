@@ -41,7 +41,7 @@ func Clone(client *govmomi.Client, dc *object.Datacenter, vlans []*vlan.LocalLis
 func ReadFileSystem(client *govmomi.Client, dc *object.Datacenter, Path string) (*FileSystemItem, error) {
 	var err error
 	fileSystem := new(FileSystemItem)
-	fileSystem.Folder, err = Get(client, dc, Path)
+	fileSystem.Folder, err = Get(client, dc, VSphereFolderTypeVM, Path)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func ReadFileSystem(client *govmomi.Client, dc *object.Datacenter, Path string) 
 }
 
 func (fileSystem *FileSystemItem) Create(client *govmomi.Client, dc *object.Datacenter, vlans []*vlan.LocalList, basefolder, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
-	_, err = Create(client, dc, basefolder)
+	_, err = Create(client, dc, VSphereFolderTypeVM, basefolder)
 	if err != nil {
 		return
 	}
@@ -78,7 +78,7 @@ func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, dc *object
 	for _, e := range parent.Subitems {
 		if e.Folder != nil {
 			newBaseFolder := basefolder + "/" + e.Name
-			_, err = CreateSingleFolder(client, dc, newBaseFolder)
+			_, err = CreateSingleFolder(client, dc, VSphereFolderTypeVM, newBaseFolder)
 			if err != nil {
 				break
 			}
@@ -101,7 +101,7 @@ func (parent *FileSystemItem) recursiveCreate(client *govmomi.Client, dc *object
 		}
 	}
 	var ob *object.Folder
-	ob, err = Get(client, dc, basefolder)
+	ob, err = Get(client, dc, VSphereFolderTypeVM, basefolder)
 	if err != nil {
 		return
 	}
@@ -207,7 +207,7 @@ func (fileSystem *FileSystemItem) RecursiveGetVmObjects(vmArray []*object.Virtua
 }
 
 func CreateSnapshot(client *govmomi.Client, dc *object.Datacenter, Path, SnapshotName string, memory bool) error {
-	folder, err := Get(client, dc, Path)
+	folder, err := Get(client, dc, VSphereFolderTypeVM, Path)
 	if err != nil {
 		return err
 	}
@@ -230,7 +230,7 @@ func CreateSnapshot(client *govmomi.Client, dc *object.Datacenter, Path, Snapsho
 
 func Delete(client *govmomi.Client, dc *object.Datacenter, Path string, status *taskstatus.Status) error {
 
-	folder, err := Get(client, dc, Path)
+	folder, err := Get(client, dc, VSphereFolderTypeVM, Path)
 	if err != nil {
 		return err
 	}
@@ -302,38 +302,36 @@ func Stop(client *govmomi.Client, dc *object.Datacenter, Path string, status *ta
 }
 
 // CreateFolder Creates the full folder path spaeciefied
-func Create(client *govmomi.Client, dc *object.Datacenter, Path string) (folderObject *object.Folder, err error) {
+func Create(client *govmomi.Client, dc *object.Datacenter, ft VSphereFolderType, Path string) (folderObject *object.Folder, err error) {
 	folders := strings.Split(strings.Trim(Path, "/"), "/")
 	var CurrentPath string
 	for _, e := range folders {
 		CurrentPath += "/" + e
-		folderObject, err = CreateSingleFolder(client, dc, CurrentPath)
+		folderObject, err = CreateSingleFolder(client, dc, ft, CurrentPath)
 	}
 	return
 }
 
 // CreateFolder only creates last subfolder, it fails if the path doesnt exist
-func CreateSingleFolder(client *govmomi.Client, dc *object.Datacenter, Path string) (*object.Folder, error) {
+func CreateSingleFolder(client *govmomi.Client, dc *object.Datacenter, ft VSphereFolderType, Path string) (*object.Folder, error) {
 	var folderObject *object.Folder
-	parent, err := Get(client, dc, path.Dir(Path))
+	parent, err := Get(client, dc, ft, path.Dir(Path))
 	if err != nil {
 		return nil, fmt.Errorf("error trying to determine parent targetFolder: %s", err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
-	defer cancel()
-
-	if !Exists(client, dc, Path) {
+	if !Exists(client, dc, ft, Path) {
+		ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
+		defer cancel()
 		folderObject, err = parent.CreateFolder(ctx, path.Base(Path))
 		if err != nil {
 			return nil, fmt.Errorf("error creating targetFolder: %s", err)
 		}
 	}
-
 	return folderObject, nil
 }
 
-func Exists(client *govmomi.Client, dc *object.Datacenter, Path string) bool {
-	_, err := Get(client, dc, Path)
+func Exists(client *govmomi.Client, dc *object.Datacenter, ft VSphereFolderType, Path string) bool {
+	_, err := Get(client, dc, ft, Path)
 	return err == nil
 }
 
@@ -346,7 +344,7 @@ func ListVirtualMachinesInFolder(client *govmomi.Client, dc *object.Datacenter, 
 }
 
 func ListFolderItems(client *govmomi.Client, dc *object.Datacenter, Path, Type string) (*[]string, error) {
-	parentFolder, err := Get(client, dc, Path)
+	parentFolder, err := Get(client, dc, VSphereFolderTypeVM, Path)
 	if err != nil {
 		return nil, err
 	}
@@ -398,16 +396,10 @@ func HasChildren(f *object.Folder) (bool, error) {
 	return len(children) > 0, nil
 }
 
-// GetFolder returns an *object.Folder from a given absolute path.
-// If no such folder is found, an appropriate error will be returned.
-func Get(client *govmomi.Client, dc *object.Datacenter, Path string) (*object.Folder, error) {
-	ctx, cancel, finder, checkPath := generic.NewFinder(client, dc, Path)
-	defer cancel()
-	folder, err := finder.Folder(ctx, checkPath)
-	if err != nil {
-		return nil, fmt.Errorf("cannot locate folder: %s", err)
-	}
-	return folder, nil
+// GetFolder returns an *object.Folder from a given path.
+func Get(c *govmomi.Client, dc *object.Datacenter, ft VSphereFolderType, Path string) (*object.Folder, error) {
+	pt := rootPathParticle(ft)
+	return fromAbsolutePath(c, pt.pathFromDatacenter(dc, Path))
 }
 
 func GetChildrenFromPath(client *govmomi.Client, dc *object.Datacenter, Path string) ([]*object.Folder, error) {
@@ -439,7 +431,7 @@ func FromID(client *govmomi.Client, id string) (*object.Folder, error) {
 }
 
 func GetVmObjectsFromPath(client *govmomi.Client, dc *object.Datacenter, Path string) (vmObjects []*object.VirtualMachine, err error) {
-	folder, err := Get(client, dc, Path)
+	folder, err := Get(client, dc, VSphereFolderTypeVM, Path)
 	if err != nil {
 		return
 	}
@@ -457,4 +449,17 @@ func GetVmObjectsFromPath(client *govmomi.Client, dc *object.Datacenter, Path st
 		vmObjects = fileSystem.GetVmObjects()
 	}
 	return
+}
+
+// fromAbsolutePath returns an *object.Folder from a given absolute path.
+// If no such folder is found, an appropriate error will be returned.
+func fromAbsolutePath(client *govmomi.Client, path string) (*object.Folder, error) {
+	finder := find.NewFinder(client.Client, false)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
+	defer cancel()
+	folder, err := finder.Folder(ctx, path)
+	if err != nil {
+		return nil, err
+	}
+	return folder, nil
 }

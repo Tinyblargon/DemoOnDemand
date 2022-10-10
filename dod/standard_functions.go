@@ -8,14 +8,14 @@ import (
 )
 
 func Intialize(client *govmomi.Client, dc *object.Datacenter) (err error) {
-	_, err = folder.Create(client, dc, global.TemplateFodler)
+	_, err = folder.Create(client, dc, folder.VSphereFolderTypeVM, global.TemplateFodler)
 	if err != nil {
 		return
 	}
-	_, err = folder.Create(client, dc, global.RouterFodler)
+	_, err = folder.Create(client, dc, folder.VSphereFolderTypeVM, global.RouterFodler)
 	if err != nil {
 		return
 	}
-	_, err = folder.Create(client, dc, global.DemoFodler)
+	_, err = folder.Create(client, dc, folder.VSphereFolderTypeVM, global.DemoFodler)
 	return
 }

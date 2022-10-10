@@ -81,7 +81,7 @@ func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string,
 
 func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool string, demo *demo.Demo, config *template.Config, networkList []*vlan.LocalList, status *taskstatus.Status) (err error) {
 	basePath := demo.CreateDemoURl()
-	folderObject, err := folder.Create(client, dc, basePath)
+	folderObject, err := folder.Create(client, dc, folder.VSphereFolderTypeVM, basePath)
 	if err != nil {
 		return
 	}
@@ -283,7 +283,7 @@ func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *dem
 	if !existance {
 		return fmt.Errorf(demoDoesNotExist)
 	}
-	if folder.Exists(client, dc, demoURL) {
+	if folder.Exists(client, dc, folder.VSphereFolderTypeVM, demoURL) {
 		err = folder.Delete(client, dc, demoURL, status)
 		if err != nil {
 			return
