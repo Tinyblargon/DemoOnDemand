@@ -50,7 +50,10 @@ func CreateLocalList(configList *[]template.Network) (List []*LocalList, err err
 }
 
 func Initialize(vlanIDs *[]uint, prefix string) (err error) {
-	err = setGlobals(prefix)
+	if list != nil {
+		return fmt.Errorf("list can only be initialized once")
+	}
+	err = validatedSettigns(prefix)
 	if err != nil {
 		return
 	}
@@ -138,18 +141,6 @@ func Release(demo string) (err error) {
 			list.Mutex.Unlock()
 		}
 	}
-	return
-}
-
-func setGlobals(prefixLocal string) (err error) {
-	if list.NewPrefix != "" {
-		return fmt.Errorf("prefix can only be set once")
-	}
-	err = validatedSettigns(prefixLocal)
-	if err != nil {
-		return
-	}
-	list.NewPrefix = prefixLocal
 	return
 }
 
