@@ -168,7 +168,10 @@ func CountTemplateInUse(db *sql.DB, demoName string) (demos uint, err error) {
 		return
 	}
 	for rows.Next() {
-		rows.Scan(&demos)
+		err = rows.Scan(&demos)
+		if err != nil {
+			return
+		}
 	}
 	return
 }
