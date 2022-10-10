@@ -7,7 +7,7 @@ import (
 
 const FirewallFile string = "/etc/network/if-pre-up.d/iptables"
 
-func Base(mainInterface string) *[]string {
+func Base() *[]string {
 	return &[]string{
 		"#!/bin/sh",
 		"echo 1 > /proc/sys/net/ipv4/ip_forward",
@@ -23,7 +23,7 @@ func Base(mainInterface string) *[]string {
 		"iptables -A INPUT -i lo -j ACCEPT",
 		"iptables -A OUTPUT -o lo -j ACCEPT",
 		"iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT",
-		"iptables --table nat --append POSTROUTING --out-interface " + mainInterface + " -j MASQUERADE",
+		"iptables --table nat --append POSTROUTING -j MASQUERADE",
 	}
 }
 

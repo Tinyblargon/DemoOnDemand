@@ -241,7 +241,7 @@ func writeFirewallConfig(vs *vssh.VSSH, portForwards []*template.PortForward, fi
 }
 
 func buildFirewallConfig(portForwards []*template.PortForward, firstInterface string, sshPort uint16) (firewallConfig *[]string) {
-	firewallConfig = firewallconfig.Base(firstInterface)
+	firewallConfig = firewallconfig.Base()
 	*firewallConfig = append(*firewallConfig, firewallconfig.New("TCP", sshPort))
 	for _, e := range portForwards {
 		*firewallConfig = append(*firewallConfig, firewallconfig.NewPrerouting(uint16(e.SourcePort), uint16(e.DestinationPort), e.DestinationIP, e.Protocol, firstInterface))
