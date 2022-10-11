@@ -56,13 +56,12 @@ func createSingle(c *govmomi.Client, host *object.HostSystem, prefix, vSwitch st
 // expandHostPortGroupSpec reads certain ResourceData keys and returns a
 // HostPortGroupSpec.
 func expandHostPortGroupSpec(prefix, vSwitchName string, vlan uint) *types.HostPortGroupSpec {
-	obj := &types.HostPortGroupSpec{
+	return &types.HostPortGroupSpec{
 		Name:        prefix + strconv.Itoa(int(vlan)),
 		VlanId:      int32(vlan),
 		VswitchName: vSwitchName,
 		// Policy:      *expandHostNetworkPolicy(d),
 	}
-	return obj
 }
 
 // ##############################################################################################
