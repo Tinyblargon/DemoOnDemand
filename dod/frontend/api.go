@@ -12,7 +12,6 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/tasks"
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/templates"
 	"github.com/Tinyblargon/DemoOnDemand/dod/frontend/api/templates/childs"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/logger"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
@@ -24,7 +23,7 @@ type Post struct {
 	Body   string `json:"body"`
 }
 
-func HandleRequests(pathPrefix string, port uint16) {
+func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc(pathPrefix+"/auth", authenticate).Methods("POST") //Authenticates the user/returns a session token
@@ -60,7 +59,9 @@ func HandleRequests(pathPrefix string, port uint16) {
 	router.Handle(pathPrefix+"/templates/{id}/childs", authMiddleware(childs.IdGetHandler)).Methods("GET")       //returns the amount of demos that exist based on the speciefied template
 	router.Handle(pathPrefix+"/templates/{id}/childs", authMiddleware(childs.IdDeleteHandler)).Methods("DELETE") //deletes all demos based on the speciefied template
 
-	// TODO
-	// log access log to file
-	logger.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(port)), handlers.LoggingHandler(os.Stdout, router)))
+	accessLog, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return
+	}
+	return http.ListenAndServe(":"+strconv.Itoa(int(port)), handlers.LoggingHandler(accessLog, router))
 }
