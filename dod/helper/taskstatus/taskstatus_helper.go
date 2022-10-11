@@ -4,6 +4,7 @@ import "sync"
 
 const prefixError string = "[ERROR] "
 const prefixInfo string = "[INFO] "
+const prefixWarning string = "[WARN] "
 const prefixSuccess string = "[SUCCESS] "
 
 type Status struct {
@@ -43,6 +44,14 @@ func (s *Status) AddToInfo(newLine string) {
 	if s != nil {
 		s.Mutex.Lock()
 		s.unsafeAddToInfo(prefixInfo, newLine)
+		s.Mutex.Unlock()
+	}
+}
+
+func (s *Status) AddWarnign(newLine string) {
+	if s != nil {
+		s.Mutex.Lock()
+		s.unsafeAddToInfo(prefixWarning, newLine)
 		s.Mutex.Unlock()
 	}
 }

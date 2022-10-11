@@ -14,6 +14,8 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 )
 
+const itemDoesntExist string = "ServerFaultCode: The object or item referred to could not be found."
+
 type Networks struct {
 	Vlan uint
 	Host *object.HostSystem
@@ -85,7 +87,6 @@ func Delete(c *govmomi.Client, hosts []*object.HostSystem, prefix string, vlans 
 
 // Deletest a portgroup on a singular host
 func deleteSingle(c *govmomi.Client, host *object.HostSystem, prefix string, vlan uint, status *taskstatus.Status) error {
-	// TODO Check if networks have been deleted already
 	ns, err := hostNetworkSystemFromHostSystem(host)
 	if err != nil {
 		return networkSystemError(err)
@@ -94,7 +95,11 @@ func deleteSingle(c *govmomi.Client, host *object.HostSystem, prefix string, vla
 	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	if err := ns.RemovePortGroup(ctx, prefix+strconv.Itoa(int(vlan))); err != nil {
-		return fmt.Errorf("error deleting port group: %s", err)
+		if err.Error() == itemDoesntExist {
+			status.AddWarnign(fmt.Sprintf("Portgroup %s on host %s does not exist", prefix+strconv.Itoa(int(vlan)), host.Name()))
+		} else {
+			return fmt.Errorf("error deleting port group: %s", err)
+		}
 	}
 	return nil
 }
