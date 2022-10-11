@@ -19,7 +19,7 @@ type Networks struct {
 	Host *object.HostSystem
 }
 
-func Create(c *govmomi.Client, hosts []*object.HostSystem, vlans *[]uint, prefix, vSwitch string, concurrencyNumber uint, status *taskstatus.Status) (err error) {
+func Create(c *govmomi.Client, hosts []*object.HostSystem, vlans *[]uint, prefix, vSwitch string, concurrencyNumber uint, status *taskstatus.Status) error {
 	numberOfTasks := uint(len(*vlans) * len(hosts))
 	in, conObject := channelInitialize(numberOfTasks, concurrencyNumber)
 	// spawn "conObject.Threads" amount of threads
@@ -33,13 +33,15 @@ func Create(c *govmomi.Client, hosts []*object.HostSystem, vlans *[]uint, prefix
 			}
 		}()
 	}
-	err = channelLooper(in, conObject, hosts, vlans)
-	return
+	return channelLooper(in, conObject, hosts, vlans)
 }
 
 // Creates a portgroup on a singular host
 func createSingle(c *govmomi.Client, host *object.HostSystem, prefix, vSwitch string, vlan uint, status *taskstatus.Status) (err error) {
 	ns, err := hostNetworkSystemFromHostSystem(host)
+	if err != nil {
+		return networkSystemError(err)
+	}
 	spec := expandHostPortGroupSpec(prefix, vSwitch, vlan)
 	status.AddToInfo(fmt.Sprintf("Create portgroup %s on host %s", spec.Name, host.Name()))
 	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
@@ -65,7 +67,7 @@ func expandHostPortGroupSpec(prefix, vSwitchName string, vlan uint) *types.HostP
 
 // ##############################################################################################
 
-func Delete(c *govmomi.Client, hosts []*object.HostSystem, prefix string, vlans *[]uint, concurrencyNumber uint, status *taskstatus.Status) (err error) {
+func Delete(c *govmomi.Client, hosts []*object.HostSystem, prefix string, vlans *[]uint, concurrencyNumber uint, status *taskstatus.Status) error {
 	numberOfTasks := uint(len(*vlans) * len(hosts))
 	in, conObject := channelInitialize(numberOfTasks, concurrencyNumber)
 	// spawn "conObject.Threads" amount of threads
@@ -84,9 +86,10 @@ func Delete(c *govmomi.Client, hosts []*object.HostSystem, prefix string, vlans 
 
 // Deletest a portgroup on a singular host
 func deleteSingle(c *govmomi.Client, host *object.HostSystem, prefix string, vlan uint, status *taskstatus.Status) error {
+	// TODO Check if networks have been deleted already
 	ns, err := hostNetworkSystemFromHostSystem(host)
 	if err != nil {
-		return fmt.Errorf("error loading host network system: %s", err)
+		return networkSystemError(err)
 	}
 	status.AddToInfo(fmt.Sprintf("Delete portgroup %s on host %s", prefix+strconv.Itoa(int(vlan)), host.Name()))
 	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
@@ -126,4 +129,8 @@ func channelLooper(in chan *Networks, conObject *concurrency.Object, hosts []*ob
 		close(in)
 	}()
 	return conObject.ChannelLooperError()
+}
+
+func networkSystemError(err error) error {
+	return fmt.Errorf("error loading host network system: %s", err)
 }
