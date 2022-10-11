@@ -74,9 +74,6 @@ func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string,
 		return
 	}
 	err = createAndSetupDemo(client, dc, pool, demo, templateConf, networkList, status)
-	// if err != nil {
-	// 	_ = database.DeleteDemoOfUser(db, demo)
-	// }
 	return
 }
 
@@ -289,10 +286,6 @@ func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *dem
 		if err != nil {
 			return
 		}
-		// err = database.DeleteDemoOfUser(db, demo)
-		// if err != nil {
-		// 	return
-		// }
 	}
 	err = deleteAndReleaseNetworks(client, db, demo, status)
 	if err != nil {
