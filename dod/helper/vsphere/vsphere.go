@@ -1,7 +1,6 @@
 package vsphere
 
 import (
-	"context"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
@@ -33,14 +32,7 @@ func Initialize(config *programconfig.VMwareConfiguration, vlanPrefix string) (e
 	if err != nil {
 		return
 	}
-	err = setupFolderStructure(c.VimClient, datacenter.GetObject(), vlanPrefix)
-	if err != nil {
-		return
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
-	defer cancel()
-	err = c.VimClient.Logout(ctx)
-	return
+	return setupFolderStructure(c.VimClient, datacenter.GetObject(), vlanPrefix)
 }
 
 func GetConfig() *programconfig.VMwareConfiguration {
