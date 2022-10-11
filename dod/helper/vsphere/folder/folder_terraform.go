@@ -13,8 +13,8 @@ type VSphereFolderType string
 // to help determine base paths and also to validate folder types in the
 // vsphere_folder resource.
 const (
-	VSphereFolderTypeVM      = VSphereFolderType("vm")
-	VSphereFolderTypeNetwork = VSphereFolderType("network")
+	VSphereFolderTypeVM = VSphereFolderType("vm")
+	// VSphereFolderTypeNetwork = VSphereFolderType("network")
 	// VSphereFolderTypeHost      = VSphereFolderType("host")
 	// VSphereFolderTypeDatastore = VSphereFolderType("datastore")
 

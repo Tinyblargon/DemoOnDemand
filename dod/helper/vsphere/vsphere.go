@@ -50,9 +50,5 @@ func setupFolderStructure(c *govmomi.Client, dc *object.Datacenter, vlanPrefix s
 		return
 	}
 	_, err = folder.Create(c, dc, folder.VSphereFolderTypeVM, global.DemoFodler)
-	if err != nil {
-		return
-	}
-	_, err = folder.CreateSingleFolder(c, dc, folder.VSphereFolderTypeNetwork, vlanPrefix)
 	return
 }
