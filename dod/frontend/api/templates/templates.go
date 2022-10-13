@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"context"
 	"net/http"
 
 	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
@@ -10,6 +11,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 	"github.com/Tinyblargon/DemoOnDemand/dod/template"
@@ -80,6 +82,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c, err := session.New(*vsphere.GetConfig())
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
+	defer cancel()
+	defer c.VimClient.Logout(ctx)
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return
