@@ -272,9 +272,9 @@ func getInterfaces(vs *vssh.VSSH, vmProperties *mo.VirtualMachine, vlan []*vlan.
 	return
 }
 
-func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *demo.Demo, status *taskstatus.Status) (err error) {
-	demoURL := demo.CreateDemoURl()
-	existance, err := CheckExistance(db, *demo)
+func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demoObj *demo.Demo, status *taskstatus.Status) (err error) {
+	demoURL := demoObj.CreateDemoURl()
+	existance, err := CheckExistance(db, *demoObj)
 	if err != nil {
 		return
 	}
@@ -287,16 +287,15 @@ func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demo *dem
 			return
 		}
 	}
-	err = deleteAndReleaseNetworks(client, db, demo, status)
+	err = deleteAndReleaseNetworks(client, db, demoObj, status)
 	if err != nil {
 		return
 	}
-	return database.DeleteDemoOfUser(db, demo)
+	return database.DeleteDemoOfUser(db, demoObj)
 }
 
-func deleteAndReleaseNetworks(client *govmomi.Client, db *sql.DB, demo *demo.Demo, status *taskstatus.Status) (err error) {
-	demoID := demo.CreateID()
-	vlanObjList, err := database.ListUsedVlansOfDemo(db, demoID)
+func deleteAndReleaseNetworks(client *govmomi.Client, db *sql.DB, demoObj *demo.Demo, status *taskstatus.Status) (err error) {
+	vlanObjList, err := database.ListUsedVlansOfDemo(db, demoObj)
 	if err != nil {
 		return
 	}
@@ -309,7 +308,7 @@ func deleteAndReleaseNetworks(client *govmomi.Client, db *sql.DB, demo *demo.Dem
 		if err != nil {
 			return
 		}
-		err = vlan.Release(demoID)
+		err = vlan.Release(demoObj)
 	}
 	return
 }

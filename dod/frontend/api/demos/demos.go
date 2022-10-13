@@ -170,6 +170,11 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 		api.OutputServerError(w, "", err)
 		return
 	}
+	// networks, err := database.ListUsedNetworksOfDemo(global.DB, &demoObj)
+	// if err != nil {
+	// 	api.OutputServerError(w, "", err)
+	// 	return
+	// }
 	guestIp, err := obtainGuestIP(demoObj)
 	if err != nil {
 		api.OutputServerError(w, "", err)
@@ -270,7 +275,7 @@ func IdPut(w http.ResponseWriter, r *http.Request) {
 func checkID(w http.ResponseWriter, r *http.Request) (demoObj demo.Demo, err error) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	demoObj.User, demoObj.Name, demoObj.ID, err = demo.ReverseID(id)
+	demoObj, err = demo.CreateObject(id)
 	if err != nil {
 		api.OutputInvalidID(w)
 	}

@@ -129,13 +129,14 @@ func reserve(demo *demo.Demo) (id uint, err error) {
 }
 
 // Releases all vlans associated with the speciefied demo from the list of availible vlans
-func Release(demo string) (err error) {
-	err = database.DeleteVlanInUse(global.DB, demo)
+func Release(demoObj *demo.Demo) (err error) {
+	err = database.DeleteVlanInUse(global.DB, demoObj)
 	if err != nil {
 		return
 	}
+	demoId := demoObj.CreateID()
 	for _, e := range *list.Vlans {
-		if e.Demo == demo {
+		if e.Demo == demoId {
 			list.Mutex.Lock()
 			e.Demo = ""
 			list.Mutex.Unlock()

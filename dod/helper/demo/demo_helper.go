@@ -25,8 +25,8 @@ func (demoObj Demo) CreateID() string {
 	return demoObj.User + "_" + strconv.Itoa(int(demoObj.ID)) + "_" + demoObj.Name
 }
 
-// Spits the demo ID into its seperate parts
-func ReverseID(id string) (username, demoName string, demoNumber uint, err error) {
+// reates a demo object from its seperate parts
+func CreateObject(id string) (demo Demo, err error) {
 	idString := strings.Split(id, "_")
 	if len(idString) != 3 {
 		err = fmt.Errorf(invalidString)
@@ -37,8 +37,10 @@ func ReverseID(id string) (username, demoName string, demoNumber uint, err error
 		err = fmt.Errorf(invalidString)
 		return
 	}
-	demoNumber = uint(tmpNumber)
-	username = idString[0]
-	demoName = idString[2]
+	demo = Demo{
+		Name: idString[2],
+		User: idString[0],
+		ID:   uint(tmpNumber),
+	}
 	return
 }

@@ -117,21 +117,21 @@ func ListUsedVlans(db *sql.DB) (*[]Vlan, error) {
 	return getVlansFromRows(rows)
 }
 
-func ListUsedVlansOfDemo(db *sql.DB, demo string) (*[]Vlan, error) {
-	rows, err := db.Query(`SELECT "prefix","id","demo" FROM "vlans" WHERE demo=$1`, demo)
+func ListUsedVlansOfDemo(db *sql.DB, demoObj *demo.Demo) (*[]Vlan, error) {
+	rows, err := db.Query(`SELECT "prefix","id","demo" FROM "vlans" WHERE demo=$1`, demoObj.CreateID())
 	if err != nil {
 		return nil, err
 	}
 	return getVlansFromRows(rows)
 }
 
-func SetVlanInUse(db *sql.DB, id uint, prefix string, demo *demo.Demo) (err error) {
-	_, err = db.Exec(`INSERT INTO "vlans"("prefix","id","demo") VALUES($1, $2, $3)`, prefix, id, demo.CreateID())
+func SetVlanInUse(db *sql.DB, id uint, prefix string, demoObj *demo.Demo) (err error) {
+	_, err = db.Exec(`INSERT INTO "vlans"("prefix","id","demo") VALUES($1, $2, $3)`, prefix, id, demoObj.CreateID())
 	return
 }
 
-func DeleteVlanInUse(db *sql.DB, demo string) (err error) {
-	_, err = db.Exec(`DELETE FROM "vlans" WHERE demo=$1`, demo)
+func DeleteVlanInUse(db *sql.DB, demoObj *demo.Demo) (err error) {
+	_, err = db.Exec(`DELETE FROM "vlans" WHERE demo=$1`, demoObj.CreateID())
 	return
 }
 
