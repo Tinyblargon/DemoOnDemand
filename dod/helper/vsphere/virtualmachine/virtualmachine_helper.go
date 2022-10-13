@@ -220,7 +220,6 @@ func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter
 	status.AddToInfo(fmt.Sprintf("Fetching IP of guest %s", name))
 	// try until the guest ip is readable from vmware tools
 	for {
-		time.Sleep(time.Second * 2)
 		var vmObject *object.VirtualMachine
 		vmObject, err = Get(client, dc, path+"/"+name)
 		if err != nil {
@@ -235,6 +234,7 @@ func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter
 			status.AddToInfo(fmt.Sprintf("Obtained IP (%s) of guest %s", guestIP, vmObject.Name()))
 			break
 		}
+		time.Sleep(time.Second * 2)
 	}
 	return
 }
