@@ -10,6 +10,11 @@ func IsStringUnique(list *[]string, item string) bool {
 	return true
 }
 
+// Removes all duplicates form the input list, only returning the unique items in the list
+// for example
+// []string{"string1","string1","string1","string2"}
+// Will be returned as:
+// []string{"string1","string2"}
 func FilterUniqueStrings(list *[]string) *[]string {
 	var uniqueList []string
 	for _, e := range *list {
