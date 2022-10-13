@@ -1,6 +1,7 @@
 package demos
 
 import (
+	"context"
 	"net/http"
 
 	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
@@ -8,6 +9,11 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 	"github.com/Tinyblargon/DemoOnDemand/dod/template"
 	"github.com/gorilla/mux"
@@ -22,12 +28,13 @@ type Data struct {
 }
 
 type Demo struct {
-	UserName    string                  `json:"user"`
-	DemoName    string                  `json:"demo"`
-	DemoNumber  uint                    `json:"demonumber"`
-	Running     bool                    `json:"active"`
-	Description string                  `json:"description,omitempty"`
-	PortForward []*template.PortForward `json:"portforwards,omitempty"`
+	UserName         string                  `json:"user"`
+	DemoName         string                  `json:"demo"`
+	DemoNumber       uint                    `json:"demonumber"`
+	Running          bool                    `json:"active"`
+	Description      string                  `json:"description,omitempty"`
+	RouterConnection string                  `json:"router-ip,omitempty"`
+	PortForward      []*template.PortForward `json:"portforwards,omitempty"`
 }
 
 var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -163,7 +170,11 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 		api.OutputServerError(w, "", err)
 		return
 	}
-
+	guestIp, err := obtainGuestIP(demoObj)
+	if err != nil {
+		api.OutputServerError(w, "", err)
+		return
+	}
 	portForwards := make([]*template.PortForward, len(templateConf.PortForwards))
 	for i, e := range templateConf.PortForwards {
 		portForwards[i] = &template.PortForward{
@@ -175,12 +186,13 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 	response := api.JsonResponse{
 		Data: IdData{
 			Demo: &Demo{
-				UserName:    demo.UserName,
-				DemoName:    demo.DemoName,
-				DemoNumber:  demo.DemoNumber,
-				Running:     demo.Running,
-				Description: templateConf.Description,
-				PortForward: portForwards,
+				UserName:         demo.UserName,
+				DemoName:         demo.DemoName,
+				DemoNumber:       demo.DemoNumber,
+				Running:          demo.Running,
+				Description:      templateConf.Description,
+				RouterConnection: guestIp,
+				PortForward:      portForwards,
 			},
 		},
 	}
@@ -294,4 +306,16 @@ func isDemoUnique(list *[]Demo, item string) bool {
 		}
 	}
 	return true
+}
+
+func obtainGuestIP(demoObj demo.Demo) (guestIP string, err error) {
+	c, err := session.New(*vsphere.GetConfig())
+	if err != nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
+	defer cancel()
+	defer c.VimClient.Logout(ctx)
+	guestIP, _, err = virtualmachine.GetGuestIP(c.VimClient, demoObj.CreateDemoURl(), global.IngressVM, datacenter.GetObject(), nil)
+	return
 }
