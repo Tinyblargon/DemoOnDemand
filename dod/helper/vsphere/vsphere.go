@@ -20,6 +20,8 @@ func Initialize(config *programconfig.VMwareConfiguration, vlanPrefix string) (e
 	if err != nil {
 		return
 	}
+	// Never close this session!
+	// or it will make the Datacenter and host objects invalid.
 	c, err := session.New(globalConfig)
 	if err != nil {
 		return
