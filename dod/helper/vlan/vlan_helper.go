@@ -32,6 +32,18 @@ type LocalList struct {
 	BackingInfo     *types.BaseVirtualDeviceBackingInfo
 }
 
+func GetNetworkList(vlans []*LocalList) (networks []string) {
+	networks = make([]string, len(vlans))
+	for i, e := range vlans {
+		networks[i] = getDeviceName(*e.BackingInfo)
+	}
+	return
+}
+
+func getDeviceName(BackingInfo types.BaseVirtualDeviceBackingInfo) string {
+	return BackingInfo.(*types.VirtualEthernetCardNetworkBackingInfo).DeviceName
+}
+
 // Create a list containg all the localy needed vlan/network information
 func CreateLocalList(configList *[]template.Network) (List []*LocalList, err error) {
 	List = make([]*LocalList, len(*configList))

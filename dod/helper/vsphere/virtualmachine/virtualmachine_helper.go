@@ -8,6 +8,7 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/generic"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
@@ -216,7 +217,7 @@ func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, e
 	return vm.PowerState(ctx)
 }
 
-func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter, status *taskstatus.Status) (guestIP string, vmProperties *mo.VirtualMachine, err error) {
+func GetGuestIP(client *govmomi.Client, path, name string, networks []string, dc *object.Datacenter, status *taskstatus.Status) (guestIP string, vmProperties *mo.VirtualMachine, err error) {
 	status.AddToInfo(fmt.Sprintf("Fetching IP of guest %s", name))
 	// try until the guest ip is readable from vmware tools
 	for {
@@ -230,7 +231,10 @@ func GetGuestIP(client *govmomi.Client, path, name string, dc *object.Datacenter
 			return
 		}
 		if vmProperties.Guest.IpAddress != "" {
-			guestIP = vmProperties.Guest.IpAddress
+			guestIP, err = filterIP(vmProperties, networks)
+			if err != nil {
+				return
+			}
 			status.AddToInfo(fmt.Sprintf("Obtained IP (%s) of guest %s", guestIP, vmObject.Name()))
 			break
 		}
@@ -278,4 +282,18 @@ func GetNetworks(vmObject *object.VirtualMachine, status *taskstatus.Status) (ne
 		networks = append(networks, e.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard().VirtualDevice.DeviceInfo.GetDescription().Summary)
 	}
 	return
+}
+
+// gets the ip of the first networtk that is not in the list
+func filterIP(vmProperties *mo.VirtualMachine, networks []string) (string, error) {
+	for _, e := range vmProperties.Guest.Net {
+		if util.IsStringUnique(&networks, e.Network) {
+			if len(e.IpAddress) != 0 {
+				return e.IpAddress[0], nil
+			} else {
+				break
+			}
+		}
+	}
+	return "", fmt.Errorf("no valid ip address found")
 }

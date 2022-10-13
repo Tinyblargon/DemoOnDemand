@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/name"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	_ "github.com/lib/pq"
 )
@@ -19,6 +20,10 @@ type Vlan struct {
 	ID     uint
 	Demo   string
 	Prefix string
+}
+
+func (v Vlan) GetNetwork() string {
+	return name.Network(v.Prefix, v.ID)
 }
 
 func New(config programconfig.PostgreSQLConfiguration) (db *sql.DB, err error) {
@@ -115,6 +120,18 @@ func ListUsedVlans(db *sql.DB) (*[]Vlan, error) {
 		return nil, err
 	}
 	return getVlansFromRows(rows)
+}
+
+func ListUsedNetworksOfDemo(db *sql.DB, demoObj *demo.Demo) ([]string, error) {
+	vlans, err := ListUsedVlansOfDemo(db, demoObj)
+	if err != nil {
+		return nil, err
+	}
+	networks := make([]string, len(*vlans))
+	for i, e := range *vlans {
+		networks[i] = e.GetNetwork()
+	}
+	return networks, nil
 }
 
 func ListUsedVlansOfDemo(db *sql.DB, demoObj *demo.Demo) (*[]Vlan, error) {

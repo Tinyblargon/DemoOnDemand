@@ -170,12 +170,12 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	// networks, err := database.ListUsedNetworksOfDemo(global.DB, &demoObj)
-	// if err != nil {
-	// 	api.OutputServerError(w, "", err)
-	// 	return
-	// }
-	guestIp, err := obtainGuestIP(demoObj)
+	networks, err := database.ListUsedNetworksOfDemo(global.DB, &demoObj)
+	if err != nil {
+		api.OutputServerError(w, "", err)
+		return
+	}
+	guestIp, err := obtainGuestIP(demoObj, networks)
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return
@@ -313,7 +313,7 @@ func isDemoUnique(list *[]Demo, item string) bool {
 	return true
 }
 
-func obtainGuestIP(demoObj demo.Demo) (guestIP string, err error) {
+func obtainGuestIP(demoObj demo.Demo, networks []string) (guestIP string, err error) {
 	c, err := session.New(*vsphere.GetConfig())
 	if err != nil {
 		return
@@ -321,6 +321,6 @@ func obtainGuestIP(demoObj demo.Demo) (guestIP string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	defer c.VimClient.Logout(ctx)
-	guestIP, _, err = virtualmachine.GetGuestIP(c.VimClient, demoObj.CreateDemoURl(), global.IngressVM, datacenter.GetObject(), nil)
+	guestIP, _, err = virtualmachine.GetGuestIP(c.VimClient, demoObj.CreateDemoURl(), global.IngressVM, networks, datacenter.GetObject(), nil)
 	return
 }

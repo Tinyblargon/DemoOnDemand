@@ -100,7 +100,6 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 
 func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *demo.Demo, networkList []*vlan.LocalList, status *taskstatus.Status) (vlans []*vlan.LocalList, err error) {
 	reservedVlans, err := vlan.ReserveVlans(demo, networkList)
-	// reservedVlans, err := vlan.ReserveAmount(demo, uint(len(*templateConf.Networks)))
 	if err != nil {
 		return
 	}
@@ -175,7 +174,7 @@ func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *
 	if err != nil {
 		return
 	}
-	guestIP, vmProperties, err = virtualmachine.GetGuestIP(client, basePath, global.IngressVM, dc, status)
+	guestIP, vmProperties, err = virtualmachine.GetGuestIP(client, basePath, global.IngressVM, vlan.GetNetworkList(vlans), dc, status)
 	if err != nil {
 		return
 	}
