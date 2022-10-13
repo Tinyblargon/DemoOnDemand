@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/name"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
@@ -59,7 +60,7 @@ func createSingle(c *govmomi.Client, host *object.HostSystem, prefix, vSwitch st
 // HostPortGroupSpec.
 func expandHostPortGroupSpec(prefix, vSwitchName string, vlan uint) *types.HostPortGroupSpec {
 	return &types.HostPortGroupSpec{
-		Name:        prefix + strconv.Itoa(int(vlan)),
+		Name:        name.Network(prefix, vlan),
 		VlanId:      int32(vlan),
 		VswitchName: vSwitchName,
 		// Policy:      *expandHostNetworkPolicy(d),
