@@ -35,7 +35,8 @@ func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
 	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdPutHandler)).Methods("PUT")       //updates information on a specific demo of the user
 	router.Handle(pathPrefix+"/demos/{id}", authMiddleware(demos.IdDeleteHandler)).Methods("DELETE") //removes a specific demo of the user
 
-	router.HandleFunc(pathPrefix+"/logout", ping.Pong).Methods("PUT") //revokes the users session token
+	// TODO remove session token
+	// router.HandleFunc(pathPrefix+"/logout", ping.Pong).Methods("PUT") //revokes the users session token
 
 	router.Handle(pathPrefix+"/networks", authMiddleware(networks.PostHandler)).Methods("POST") //lists all the networks of vms in a folder and subfolders
 
@@ -43,7 +44,8 @@ func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
 
 	router.HandleFunc(pathPrefix+"/ping", ping.Pong).Methods("GET") //check if the application is still running
 
-	router.HandleFunc(pathPrefix+"/renew", ping.Pong).Methods("POST") //Returns a new session token. This is used to extend the session.
+	// TODO refresh session token
+	// router.HandleFunc(pathPrefix+"/renew", ping.Pong).Methods("POST") //Returns a new session token. This is used to extend the session.
 
 	router.Handle(pathPrefix+"/tasks", authMiddleware(tasks.GetHandler)).Methods("GET") //returns the list of all enden,running and queued tasks
 
