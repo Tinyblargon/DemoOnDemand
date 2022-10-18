@@ -61,11 +61,11 @@ func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string,
 	if numberOfDemos > demoLimit {
 		return fmt.Errorf("max number of concurrent demos reached")
 	}
-	err = database.AddDemoOfUser(db, demo)
+	templateConf, err := template.Get(demo.Name)
 	if err != nil {
 		return
 	}
-	templateConf, err := template.Get(demo.Name)
+	err = database.AddDemoOfUser(db, demo)
 	if err != nil {
 		return
 	}
