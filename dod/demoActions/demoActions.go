@@ -329,8 +329,10 @@ func GetImportProperties(client *govmomi.Client, dc *object.Datacenter, folderCo
 		if err != nil {
 			return
 		}
-		networks = *(util.FilterUniqueStrings(&vmNetworks))
+		vmNetworks = *util.FilterUniqueStrings(&vmNetworks)
+		networks = append(networks, vmNetworks...)
 	}
+	networks = *util.FilterUniqueStrings(&networks)
 	return
 }
 
