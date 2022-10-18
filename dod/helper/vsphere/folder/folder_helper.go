@@ -30,6 +30,9 @@ type FileSystemItem struct {
 
 // Clone Wil clone all items in the speciefied folder and all it's subfolders
 func Clone(client *govmomi.Client, dc *object.Datacenter, vlans []*vlan.LocalList, Path, newPath, pool string, vmTemplate bool, status *taskstatus.Status) (err error) {
+	if Exists(client, dc, VSphereFolderTypeVM, newPath) {
+		return fmt.Errorf("unable to clone, destination folder already exists")
+	}
 	fileSystem, err := ReadFileSystem(client, dc, Path)
 	if err != nil {
 		return
