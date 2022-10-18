@@ -8,6 +8,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
 )
@@ -41,6 +42,10 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	defer c.VimClient.Logout(ctx)
 	if err != nil {
 		api.OutputServerError(w, "", err)
+		return
+	}
+	if !folder.Exists(c.VimClient, datacenter.GetObject(), folder.VSphereFolderTypeVM, input.Path) {
+		api.OutputUserInputError(w, "folder does not exist")
 		return
 	}
 	networks, err := demoactions.GetImportProperties(c.VimClient, datacenter.GetObject(), input.Path)
