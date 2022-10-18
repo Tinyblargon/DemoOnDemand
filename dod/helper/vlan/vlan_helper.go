@@ -124,7 +124,7 @@ func reserve(demo *demo.Demo) (id uint, err error) {
 	list.Mutex.Lock()
 	for _, e := range *list.Vlans {
 		if e.Demo == "" {
-			e.Demo = demo.Name
+			e.Demo = demo.CreateID()
 			e.Prefix = list.NewPrefix
 			id = e.ID
 			break
