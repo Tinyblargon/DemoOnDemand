@@ -26,10 +26,12 @@ func Initialize(config *programconfig.VMwareConfiguration, vlanPrefix string) (e
 	if err != nil {
 		return
 	}
+	// TODO these items can get incalidated get thembefore every call
 	err = datacenter.Initialize(c.VimClient, globalConfig.DataCenter)
 	if err != nil {
 		return
 	}
+	// TODO these items can get incalidated get thembefore every call
 	err = host.Initialize(c.VimClient, datacenter.GetObject(), globalConfig.Hosts)
 	if err != nil {
 		return

@@ -20,6 +20,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// TODO generate id automatically
+// TODO make example systemd service
+// TODO log tasklog to disk when taskhas ended
+// TODO combine demo list and demo info into summary endpoint
+// TODO let user add a description for a demo
 func main() {
 	config, err := programconfig.GetConfigProgramConfig()
 	OutFatal(err)
