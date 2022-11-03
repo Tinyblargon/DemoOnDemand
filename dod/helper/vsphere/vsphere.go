@@ -1,6 +1,8 @@
 package vsphere
 
 import (
+	"context"
+
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
@@ -20,23 +22,26 @@ func Initialize(config *programconfig.VMwareConfiguration, vlanPrefix string) (e
 	if err != nil {
 		return
 	}
-	// Never close this session!
-	// or it will make the Datacenter and host objects invalid.
 	c, err := session.New(globalConfig)
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
+	defer cancel()
+	defer c.VimClient.Logout(ctx)
 	if err != nil {
 		return
 	}
-	// TODO these items can get incalidated get thembefore every call
 	err = datacenter.Initialize(c.VimClient, globalConfig.DataCenter)
 	if err != nil {
 		return
 	}
-	// TODO these items can get incalidated get thembefore every call
-	err = host.Initialize(c.VimClient, datacenter.GetObject(), globalConfig.Hosts)
+	dataCenter, err := datacenter.Get(c.VimClient, datacenter.GetName())
 	if err != nil {
 		return
 	}
-	return setupFolderStructure(c.VimClient, datacenter.GetObject(), vlanPrefix)
+	err = host.Initialize(c.VimClient, dataCenter, globalConfig.Hosts)
+	if err != nil {
+		return
+	}
+	return setupFolderStructure(c.VimClient, dataCenter, vlanPrefix)
 }
 
 func GetConfig() *programconfig.VMwareConfiguration {

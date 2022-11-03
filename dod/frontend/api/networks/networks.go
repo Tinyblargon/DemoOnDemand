@@ -44,11 +44,16 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	if !folder.Exists(c.VimClient, datacenter.GetObject(), folder.VSphereFolderTypeVM, input.Path) {
+	dataCenter, err := datacenter.Get(c.VimClient, datacenter.GetName())
+	if err != nil {
+		api.OutputServerError(w, "", err)
+		return
+	}
+	if !folder.Exists(c.VimClient, dataCenter, folder.VSphereFolderTypeVM, input.Path) {
 		api.OutputUserInputError(w, "folder does not exist")
 		return
 	}
-	networks, err := demoactions.GetImportProperties(c.VimClient, datacenter.GetObject(), input.Path)
+	networks, err := demoactions.GetImportProperties(c.VimClient, dataCenter, input.Path)
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return

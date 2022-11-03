@@ -89,7 +89,12 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	networks, err := demoactions.GetImportProperties(c.VimClient, datacenter.GetObject(), newConfig.Path)
+	dataCenter, err := datacenter.Get(c.VimClient, datacenter.GetName())
+	if err != nil {
+		api.OutputServerError(w, "", err)
+		return
+	}
+	networks, err := demoactions.GetImportProperties(c.VimClient, dataCenter, newConfig.Path)
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return

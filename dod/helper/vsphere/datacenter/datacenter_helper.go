@@ -9,14 +9,21 @@ import (
 	"github.com/vmware/govmomi/object"
 )
 
-var obj *object.Datacenter
+var obj string
 
-func Initialize(client *govmomi.Client, datacenter string) (err error) {
-	obj, err = fromName(client, datacenter)
+func Initialize(client *govmomi.Client, dataCenter string) (err error) {
+	_, err = fromName(client, dataCenter)
+	if err == nil {
+		obj = dataCenter
+	}
 	return
 }
 
-func GetObject() *object.Datacenter {
+func Get(client *govmomi.Client, dataCenter string) (*object.Datacenter, error) {
+	return fromName(client, dataCenter)
+}
+
+func GetName() string {
 	return obj
 }
 

@@ -98,17 +98,21 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 	return folder.Clone(client, dc, vlans, global.TemplateFodler+"/"+demo.Name, basePath+"/Demo", pool, false, status)
 }
 
-func createAndSetupVlans(client *govmomi.Client, dc *object.Datacenter, demo *demo.Demo, networkList []*vlan.LocalList, status *taskstatus.Status) (vlans []*vlan.LocalList, err error) {
+func createAndSetupVlans(c *govmomi.Client, dc *object.Datacenter, demo *demo.Demo, networkList []*vlan.LocalList, status *taskstatus.Status) (vlans []*vlan.LocalList, err error) {
 	reservedVlans, err := vlan.ReserveVlans(demo, networkList)
 	if err != nil {
 		return
 	}
-	err = portgroup.Create(client, host.GetList(), &reservedVlans, vlan.GetPrefix(), vsphere.GetConfig().Vswitch, concurrency.Threads(), status)
+	hosts, err := host.ListAll(c, dc, host.GetArray())
+	if err != nil {
+		return
+	}
+	err = portgroup.Create(c, hosts, &reservedVlans, vlan.GetPrefix(), vsphere.GetConfig().Vswitch, concurrency.Threads(), status)
 	if err != nil {
 		return
 	}
 	time.Sleep(10 * time.Second)
-	backingList, err := getAllbackingInfo(client, dc, reservedVlans)
+	backingList, err := getAllbackingInfo(c, dc, reservedVlans)
 	if err != nil {
 		return
 	}
@@ -286,14 +290,14 @@ func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demoObj *
 			return
 		}
 	}
-	err = deleteAndReleaseNetworks(client, db, demoObj, status)
+	err = deleteAndReleaseNetworks(client, dc, db, demoObj, status)
 	if err != nil {
 		return
 	}
 	return database.DeleteDemoOfUser(db, demoObj)
 }
 
-func deleteAndReleaseNetworks(client *govmomi.Client, db *sql.DB, demoObj *demo.Demo, status *taskstatus.Status) (err error) {
+func deleteAndReleaseNetworks(c *govmomi.Client, dc *object.Datacenter, db *sql.DB, demoObj *demo.Demo, status *taskstatus.Status) (err error) {
 	vlanObjList, err := database.ListUsedVlansOfDemo(db, demoObj)
 	if err != nil {
 		return
@@ -303,7 +307,12 @@ func deleteAndReleaseNetworks(client *govmomi.Client, db *sql.DB, demoObj *demo.
 		vlanIdList[i] = e.ID
 	}
 	if len(*vlanObjList) != 0 {
-		err = portgroup.Delete(client, host.GetList(), (*vlanObjList)[0].Prefix, &vlanIdList, concurrency.Threads(), status)
+		var hosts []*object.HostSystem
+		hosts, err = host.ListAll(c, dc, host.GetArray())
+		if err != nil {
+			return
+		}
+		err = portgroup.Delete(c, hosts, (*vlanObjList)[0].Prefix, &vlanIdList, concurrency.Threads(), status)
 		if err != nil {
 			return
 		}

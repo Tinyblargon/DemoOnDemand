@@ -321,6 +321,10 @@ func obtainGuestIP(demoObj demo.Demo, networks []string) (guestIP string, err er
 	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	defer c.VimClient.Logout(ctx)
-	guestIP, _, err = virtualmachine.GetGuestIP(c.VimClient, demoObj.CreateDemoURl(), global.IngressVM, networks, datacenter.GetObject(), nil)
+	dataCenter, err := datacenter.Get(c.VimClient, datacenter.GetName())
+	if err != nil {
+		return
+	}
+	guestIP, _, err = virtualmachine.GetGuestIP(c.VimClient, demoObj.CreateDemoURl(), global.IngressVM, networks, dataCenter, nil)
 	return
 }

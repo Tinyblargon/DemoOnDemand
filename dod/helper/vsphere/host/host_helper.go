@@ -10,21 +10,24 @@ import (
 	"github.com/vmware/govmomi/object"
 )
 
-var list []*object.HostSystem
+var hosts []string
 
-func Initialize(client *govmomi.Client, datacenter *object.Datacenter, hostsArray []string) (err error) {
-	list, err = listAll(client, datacenter, hostsArray)
+func Initialize(client *govmomi.Client, dataCenter *object.Datacenter, hostsArray []string) (err error) {
+	_, err = ListAll(client, dataCenter, hostsArray)
+	if err == nil {
+		hosts = hostsArray
+	}
 	return
 }
 
-func GetList() []*object.HostSystem {
-	return list
+func GetArray() []string {
+	return hosts
 }
 
-func listAll(client *govmomi.Client, datacenter *object.Datacenter, hostsArray []string) (hostList []*object.HostSystem, err error) {
+func ListAll(client *govmomi.Client, dataCenter *object.Datacenter, hostsArray []string) (hostList []*object.HostSystem, err error) {
 	hostList = make([]*object.HostSystem, len(hostsArray))
 	for i, e := range hostsArray {
-		hostOBJ, err := objectFromName(client, e, datacenter)
+		hostOBJ, err := objectFromName(client, e, dataCenter)
 		if err != nil {
 			return nil, err
 		}
@@ -33,8 +36,8 @@ func listAll(client *govmomi.Client, datacenter *object.Datacenter, hostsArray [
 	return hostList, nil
 }
 
-func objectFromName(c *govmomi.Client, hostName string, datacenter *object.Datacenter) (hostOBJ *object.HostSystem, err error) {
-	hostOBJ, err = systemOrDefault(c, hostName, datacenter)
+func objectFromName(c *govmomi.Client, hostName string, dataCenter *object.Datacenter) (hostOBJ *object.HostSystem, err error) {
+	hostOBJ, err = systemOrDefault(c, hostName, dataCenter)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching host: %s", err)
 	}
