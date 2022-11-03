@@ -95,7 +95,7 @@ func createAndSetupDemo(client *govmomi.Client, dc *object.Datacenter, pool stri
 	if err != nil {
 		return
 	}
-	return folder.Clone(client, dc, vlans, global.TemplateFodler+"/"+demo.Name, basePath+"/Demo", pool, false, status)
+	return folder.Clone(client, dc, vlans, global.TemplateFolder+"/"+demo.Name, basePath+"/Demo", pool, false, status)
 }
 
 func createAndSetupVlans(c *govmomi.Client, dc *object.Datacenter, demo *demo.Demo, networkList []*vlan.LocalList, status *taskstatus.Status) (vlans []*vlan.LocalList, err error) {
@@ -112,7 +112,7 @@ func createAndSetupVlans(c *govmomi.Client, dc *object.Datacenter, demo *demo.De
 		return
 	}
 	time.Sleep(10 * time.Second)
-	backingList, err := getAllbackingInfo(c, dc, reservedVlans)
+	backingList, err := getAllBackingInfo(c, dc, reservedVlans)
 	if err != nil {
 		return
 	}
@@ -135,7 +135,7 @@ func createAndSetupVlans(c *govmomi.Client, dc *object.Datacenter, demo *demo.De
 }
 
 // get backing info of the provided vlans
-func getAllbackingInfo(client *govmomi.Client, dc *object.Datacenter, vlanList []uint) (backingList []*types.BaseVirtualDeviceBackingInfo, err error) {
+func getAllBackingInfo(client *govmomi.Client, dc *object.Datacenter, vlanList []uint) (backingList []*types.BaseVirtualDeviceBackingInfo, err error) {
 	backingList = make([]*types.BaseVirtualDeviceBackingInfo, len(vlanList))
 	for i, e := range vlanList {
 		var networkObj *object.NetworkReference
@@ -155,7 +155,7 @@ func getAllbackingInfo(client *govmomi.Client, dc *object.Datacenter, vlanList [
 
 // setup the vm responsible for making all the routing work
 func cloneRouterVM(client *govmomi.Client, dc *object.Datacenter, folderObject *object.Folder, basePath string, vlans []*vlan.LocalList, status *taskstatus.Status) (vmProperties *mo.VirtualMachine, guestIP string, err error) {
-	vmObject, err := virtualmachine.Get(client, dc, global.RouterFodler+"/"+global.IngressVM)
+	vmObject, err := virtualmachine.Get(client, dc, global.RouterFolder+"/"+global.IngressVM)
 	if err != nil {
 		return
 	}
@@ -206,7 +206,7 @@ func configureRouterVM(vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, 
 }
 
 func restartRouterVM(vs *vssh.VSSH, status *taskstatus.Status) error {
-	status.AddToInfo("Restarting routervm")
+	status.AddToInfo("Restarting routerVM")
 	return ssh.RestartOS(vs)
 }
 
@@ -245,7 +245,7 @@ func buildFirewallConfig(portForwards []*template.PortForward, firstInterface st
 	firewallConfig = firewallconfig.Base()
 	*firewallConfig = append(*firewallConfig, firewallconfig.New("TCP", sshPort))
 	for _, e := range portForwards {
-		*firewallConfig = append(*firewallConfig, firewallconfig.NewPrerouting(uint16(e.SourcePort), uint16(e.DestinationPort), e.DestinationIP, e.Protocol, firstInterface))
+		*firewallConfig = append(*firewallConfig, firewallconfig.NewPreRouting(uint16(e.SourcePort), uint16(e.DestinationPort), e.DestinationIP, e.Protocol, firstInterface))
 	}
 	return
 }
@@ -261,7 +261,7 @@ func getFirstNetworkInterface(interfaces *[]ssh.NetworkInterfaces, firstMac stri
 }
 
 func getInterfaces(vs *vssh.VSSH, vmProperties *mo.VirtualMachine, vlan []*vlan.LocalList, status *taskstatus.Status) (networks []*vlan.LocalList, interfaces *[]ssh.NetworkInterfaces, firstInterface string, err error) {
-	status.AddToInfo("Obtaining network interfaces of routervm")
+	status.AddToInfo("Obtaining network interfaces of routerVM")
 	networks = virtualhost.GetInterfaceSettings(vmProperties, vlan)
 	interfaces, err = ssh.ListNetworkInterfaces(vs)
 	if err != nil {
@@ -277,11 +277,11 @@ func getInterfaces(vs *vssh.VSSH, vmProperties *mo.VirtualMachine, vlan []*vlan.
 
 func Delete(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, demoObj *demo.Demo, status *taskstatus.Status) (err error) {
 	demoURL := demoObj.CreateDemoURl()
-	existance, err := CheckExistance(db, *demoObj)
+	existence, err := CheckExistence(db, *demoObj)
 	if err != nil {
 		return
 	}
-	if !existance {
+	if !existence {
 		return fmt.Errorf(demoDoesNotExist)
 	}
 	if folder.Exists(client, dc, folder.VSphereFolderTypeVM, demoURL) {
@@ -345,14 +345,14 @@ func GetImportProperties(client *govmomi.Client, dc *object.Datacenter, folderCo
 	return
 }
 
-func CheckExistance(db *sql.DB, demo demo.Demo) (existance bool, err error) {
+func CheckExistence(db *sql.DB, demo demo.Demo) (existence bool, err error) {
 	userDemos, err := database.ListDemosOfUser(db, demo.User)
 	if err != nil {
 		return
 	}
 	for _, e := range *userDemos {
 		if e.DemoName == demo.Name && e.DemoNumber == demo.ID {
-			existance = true
+			existence = true
 			break
 		}
 	}

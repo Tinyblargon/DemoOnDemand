@@ -44,7 +44,7 @@ func getDeviceName(BackingInfo types.BaseVirtualDeviceBackingInfo) string {
 	return BackingInfo.(*types.VirtualEthernetCardNetworkBackingInfo).DeviceName
 }
 
-// Create a list containg all the localy needed vlan/network information
+// Create a list that contains all the locally needed vlan/network information
 func CreateLocalList(configList *[]template.Network) (List []*LocalList, err error) {
 	List = make([]*LocalList, len(*configList))
 	for i, e := range *configList {
@@ -65,7 +65,7 @@ func Initialize(vlanIDs *[]uint, prefix string) (err error) {
 	if list != nil {
 		return fmt.Errorf("list can only be initialized once")
 	}
-	err = validatedSettigns(prefix)
+	err = validatedSettings(prefix)
 	if err != nil {
 		return
 	}
@@ -104,7 +104,7 @@ func ReserveVlans(demo *demo.Demo, list []*LocalList) (idList []uint, err error)
 	return reserveAmount(demo, uint(len(*util.FilterUniqueStrings(&tmpList))))
 }
 
-// Reserves x amount of vlans from the list of availible vlans
+// Reserves x amount of vlans from the list of available vlans
 func reserveAmount(demo *demo.Demo, numberOfVlans uint) (idList []uint, err error) {
 	idList = make([]uint, numberOfVlans)
 	for i := range idList {
@@ -118,7 +118,7 @@ func reserveAmount(demo *demo.Demo, numberOfVlans uint) (idList []uint, err erro
 	return
 }
 
-// Reseves a vlan from the list of availible vlans
+// Reserves a vlan from the list of available vlans
 func reserve(demo *demo.Demo) (id uint, err error) {
 	var counter int
 	list.Mutex.Lock()
@@ -140,7 +140,7 @@ func reserve(demo *demo.Demo) (id uint, err error) {
 	return
 }
 
-// Releases all vlans associated with the speciefied demo from the list of availible vlans
+// Releases all vlans associated with the specified demo from the list of available vlans
 func Release(demoObj *demo.Demo) (err error) {
 	err = database.DeleteVlanInUse(global.DB, demoObj)
 	if err != nil {
@@ -161,7 +161,7 @@ func GetPrefix() string {
 	return list.NewPrefix
 }
 
-func validatedSettigns(prefix string) error {
+func validatedSettings(prefix string) error {
 	if prefix == "" {
 		return fmt.Errorf("vlan prefix may not be empty")
 	}

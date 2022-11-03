@@ -49,8 +49,8 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		allTasks := scheduler.Main.ListAllTasks()
 		var tasksList []*Task
 		if role == "root" {
-			nuberOfTasks := len(allTasks)
-			tasksList = make([]*Task, nuberOfTasks)
+			numberOfTasks := len(allTasks)
+			tasksList = make([]*Task, numberOfTasks)
 			for i, e := range allTasks {
 				newTask := newTask(e)
 				tasksList[i] = newTask

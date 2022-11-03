@@ -13,11 +13,11 @@ import (
 )
 
 func PropertiesFromPath(client *govmomi.Client, dc *object.Datacenter, pool string, status *taskstatus.Status) (clusterProp *mo.ClusterComputeResource, err error) {
-	clusteOB, err := FromPath(client, pool, dc, status)
+	clusterOB, err := FromPath(client, pool, dc, status)
 	if err != nil {
 		return
 	}
-	clusterProp, err = Properties(clusteOB)
+	clusterProp, err = Properties(clusterOB)
 	return
 }
 

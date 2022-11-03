@@ -38,11 +38,11 @@ func AddNetworkInterface(vmProperties *mo.VirtualMachine, spec *types.VirtualMac
 		return nil, err
 	}
 
-	dspec, err := object.VirtualDeviceList{device}.ConfigSpec(types.VirtualDeviceConfigSpecOperationAdd)
+	dSpec, err := object.VirtualDeviceList{device}.ConfigSpec(types.VirtualDeviceConfigSpecOperationAdd)
 	if err != nil {
 		return nil, err
 	}
-	spec.Config.DeviceChange = append(spec.Config.DeviceChange, dspec...)
+	spec.Config.DeviceChange = append(spec.Config.DeviceChange, dSpec...)
 	return spec, err
 }
 

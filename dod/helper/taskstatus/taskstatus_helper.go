@@ -48,7 +48,7 @@ func (s *Status) AddToInfo(newLine string) {
 	}
 }
 
-func (s *Status) AddWarnign(newLine string) {
+func (s *Status) AddWarning(newLine string) {
 	if s != nil {
 		s.Mutex.Lock()
 		s.unsafeAddToInfo(prefixWarning, newLine)

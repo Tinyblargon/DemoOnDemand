@@ -210,7 +210,7 @@ func DeleteObjects(vmObjects []*object.VirtualMachine, concurrency uint, status 
 	return
 }
 
-// Returns the powerstate of the given Virtualmachine object
+// Returns the powerState of the given VirtualMachine object
 func GetPowerState(vm *object.VirtualMachine) (types.VirtualMachinePowerState, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
@@ -284,7 +284,7 @@ func GetNetworks(vmObject *object.VirtualMachine, status *taskstatus.Status) (ne
 	return
 }
 
-// gets the ip of the first networtk that is not in the list
+// gets the ip of the first network that is not in the list
 func filterIP(vmProperties *mo.VirtualMachine, networks []string) (string, error) {
 	for _, e := range vmProperties.Guest.Net {
 		if util.IsStringUnique(&networks, e.Network) {

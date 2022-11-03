@@ -21,16 +21,16 @@ type Settings_Group struct {
 	UsersDN string
 }
 
-func New(settigns *Settings) (*Settings, error) {
-	l, err := settigns.NewSession()
+func New(settings *Settings) (*Settings, error) {
+	l, err := settings.NewSession()
 	if err != nil {
 		return nil, err
 	}
 	l.Close()
-	return settigns, nil
+	return settings, nil
 }
 
-func (s *Settings) Authenticate(userName, password string) (group string, succecfulLogin bool, err error) {
+func (s *Settings) Authenticate(userName, password string) (group string, successfulLogin bool, err error) {
 	newSettings := Settings{
 		URL:                s.URL,
 		InsecureSkipVerify: s.InsecureSkipVerify,

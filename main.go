@@ -22,7 +22,7 @@ import (
 
 // TODO generate id automatically
 // TODO make example systemd service
-// TODO log tasklog to disk when taskhas ended
+// TODO log task log to disk when task has ended
 // TODO combine demo list and demo info into summary endpoint
 // TODO let user add a description for a demo
 func main() {
@@ -57,7 +57,7 @@ func NewSchedulerBackend(concurrency uint) scheduler.Backend {
 }
 
 func NewAuthBackend(LDAPsettings *programconfig.LDAPConfiguration) authentication.Backend {
-	validatedSettigns, err := ldap.New(&ldap.Settings{
+	validatedSettings, err := ldap.New(&ldap.Settings{
 		URL:                LDAPsettings.URL,
 		BindDN:             LDAPsettings.BindDN,
 		BindCredential:     LDAPsettings.BindPassword,
@@ -71,5 +71,5 @@ func NewAuthBackend(LDAPsettings *programconfig.LDAPConfiguration) authenticatio
 		},
 	})
 	logger.Fatal(err)
-	return validatedSettigns
+	return validatedSettings
 }

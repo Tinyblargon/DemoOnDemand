@@ -24,7 +24,7 @@ func New(user, password, addr string, port uint16) (vs *vssh.VSSH, err error) {
 type Response struct {
 	OutTxt   string
 	ErrText  string
-	Exitcode int
+	ExitCode int
 	Err      error
 }
 
@@ -46,7 +46,7 @@ func command(vs *vssh.VSSH, cmd string) (response []Response) {
 			currentResponse = Response{
 				OutTxt:   outTxt,
 				ErrText:  errTxt,
-				Exitcode: resp.ExitStatus(),
+				ExitCode: resp.ExitStatus(),
 				Err:      err,
 			}
 		}
@@ -128,7 +128,7 @@ func returnResponseError(response []Response) error {
 		if e.Err != nil {
 			return e.Err
 		}
-		if e.Exitcode > 0 {
+		if e.ExitCode > 0 {
 			if e.ErrText != "" {
 				return errors.New(e.ErrText)
 			}

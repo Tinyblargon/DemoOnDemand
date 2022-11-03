@@ -110,10 +110,10 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		Config: &newConfig,
 		Import: true,
 	}
-	newjob := job.Job{
+	newJob := job.Job{
 		Template: &newTemplate,
 	}
-	api.NewJob(w, &newjob, r.Header.Get("name"))
+	api.NewJob(w, &newJob, r.Header.Get("name"))
 }
 
 func IdDelete(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +123,7 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		api.OutputInvalidPermission(w)
 		return
 	}
-	if !filesystem.CheckExistance(global.ConfigFolder + "/" + id) {
+	if !filesystem.CheckExistence(global.ConfigFolder + "/" + id) {
 		api.OutputInvalidID(w)
 		return
 	}
@@ -134,8 +134,8 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		Config:  &newConfig,
 		Destroy: true,
 	}
-	newjob := job.Job{
+	newJob := job.Job{
 		Template: &newTemplate,
 	}
-	api.NewJob(w, &newjob, r.Header.Get("name"))
+	api.NewJob(w, &newJob, r.Header.Get("name"))
 }

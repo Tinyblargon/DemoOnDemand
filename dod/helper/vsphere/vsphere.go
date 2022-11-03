@@ -50,14 +50,14 @@ func GetConfig() *programconfig.VMwareConfiguration {
 }
 
 func setupFolderStructure(c *govmomi.Client, dc *object.Datacenter, vlanPrefix string) (err error) {
-	_, err = folder.Create(c, dc, folder.VSphereFolderTypeVM, global.TemplateFodler)
+	_, err = folder.Create(c, dc, folder.VSphereFolderTypeVM, global.TemplateFolder)
 	if err != nil {
 		return
 	}
-	_, err = folder.Create(c, dc, folder.VSphereFolderTypeVM, global.RouterFodler)
+	_, err = folder.Create(c, dc, folder.VSphereFolderTypeVM, global.RouterFolder)
 	if err != nil {
 		return
 	}
-	_, err = folder.Create(c, dc, folder.VSphereFolderTypeVM, global.DemoFodler)
+	_, err = folder.Create(c, dc, folder.VSphereFolderTypeVM, global.DemoFolder)
 	return
 }

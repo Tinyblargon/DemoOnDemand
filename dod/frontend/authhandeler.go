@@ -69,16 +69,16 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Please provide username and password to obtain the token"))
 		return
 	}
-	var succecfulLogin bool
+	var successfulLogin bool
 	var role string
 
 	if auth.Username == rootUser && rootUser != "" {
 		if auth.Password == rootPassword && rootPassword != "" {
-			succecfulLogin = true
+			successfulLogin = true
 			role = "root"
 		}
 	} else {
-		role, succecfulLogin, err = authentication.Main.Authenticate(auth.Username, auth.Password)
+		role, successfulLogin, err = authentication.Main.Authenticate(auth.Username, auth.Password)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Error something went wrong during authentication."))
@@ -86,7 +86,7 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if succecfulLogin {
+	if successfulLogin {
 		token, err := newToken(auth.Username, role)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -121,7 +121,7 @@ func authMiddleware(next http.Handler) http.Handler {
 		claims, err := verifyToken(tokenString)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			// dont know if this is a good idea might give cryptic and not for user destined information.
+			// don't know if this is a good idea might give cryptic and not for user destined information.
 			w.Write([]byte(err.Error()))
 			return
 		}

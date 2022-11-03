@@ -1,4 +1,4 @@
-package childs
+package children
 
 import (
 	"net/http"
@@ -13,7 +13,7 @@ import (
 )
 
 type Data struct {
-	Childs uint `json:"childs"`
+	Children uint `json:"children"`
 }
 
 var IdGetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -31,13 +31,13 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 		api.OutputInvalidPermission(w)
 		return
 	}
-	childs, err := database.CountTemplateInUse(global.DB, id)
+	children, err := database.CountTemplateInUse(global.DB, id)
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return
 	}
 	data := Data{
-		Childs: childs,
+		Children: children,
 	}
 	response := api.JsonResponse{
 		Data: data,
@@ -52,7 +52,7 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		api.OutputInvalidPermission(w)
 		return
 	}
-	if !filesystem.CheckExistance(global.ConfigFolder + "/" + id) {
+	if !filesystem.CheckExistence(global.ConfigFolder + "/" + id) {
 		api.OutputInvalidID(w)
 		return
 	}
@@ -63,8 +63,8 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		Config:       &newConfig,
 		ChildDestroy: true,
 	}
-	newjob := job.Job{
+	newJob := job.Job{
 		Template: &newTemplate,
 	}
-	api.NewJob(w, &newjob, r.Header.Get("name"))
+	api.NewJob(w, &newJob, r.Header.Get("name"))
 }

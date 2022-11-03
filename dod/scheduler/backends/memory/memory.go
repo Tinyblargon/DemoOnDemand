@@ -13,7 +13,7 @@ import (
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
 )
 
-const Concurency uint = 5
+const Concurrency uint = 5
 
 type Queue struct {
 	Tasks *[]*scheduler.Task
@@ -67,19 +67,19 @@ func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration, userID st
 }
 
 // Move Item from the Wait to the Work queue
-func (m *Memory) MoveToWorkQeueu(taskID string) (err error) {
+func (m *Memory) MoveToWorkQueue(taskID string) (err error) {
 	moveTaskToQueue(m.Wait, m.Work, taskID)
 	return
 }
 
-func (m *Memory) moveToDoneQeueu(taskID string) {
+func (m *Memory) moveToDoneQueue(taskID string) {
 	task := removeTaskFromQueue(m.Work, taskID)
 	tmpTasks := make([]*scheduler.Task, global.TaskHistoryDepth)
 	tmpTasks[0] = task
-	looplimit := int(global.TaskHistoryDepth) - 1
+	loopLimit := int(global.TaskHistoryDepth) - 1
 	m.Done.Mutex.Lock()
 	for i, e := range *m.Done.Tasks {
-		if i < looplimit {
+		if i < loopLimit {
 			tmpTasks[i+1] = e
 		}
 	}
@@ -137,7 +137,7 @@ func moveTaskToQueue(from, to *Queue, taskID string) {
 	addTaskToQueue(to, movedTask)
 }
 
-func checkTaskExistance(queue *Queue, taskID string) bool {
+func checkTaskExistence(queue *Queue, taskID string) bool {
 	for _, e := range *queue.Tasks {
 		if e.ID == taskID {
 			return true
@@ -187,9 +187,9 @@ func addTaskToQueue(queue *Queue, task *scheduler.Task) {
 func removeTaskFromQueue(queue *Queue, taskID string) (movedTask *scheduler.Task) {
 	var counter uint
 	queue.Mutex.Lock()
-	numberOftasks := len(*queue.Tasks)
-	if numberOftasks > 1 {
-		tmpTasks := make([]*scheduler.Task, numberOftasks-1)
+	numberOfTasks := len(*queue.Tasks)
+	if numberOfTasks > 1 {
+		tmpTasks := make([]*scheduler.Task, numberOfTasks-1)
 		for _, e := range *queue.Tasks {
 			if e.ID != taskID {
 				tmpTasks[counter] = e
@@ -209,10 +209,10 @@ func removeTaskFromQueue(queue *Queue, taskID string) (movedTask *scheduler.Task
 
 // this function does not Lock and Unlock, the function calling this is responsible for Lock and Unlock
 func unsafeRemoveFirstItemOfQueue(queue *Queue) (task *scheduler.Task) {
-	numberOftasks := len(*queue.Tasks)
+	numberOfTasks := len(*queue.Tasks)
 	task = (*queue.Tasks)[0]
-	if numberOftasks > 1 {
-		tmpTasks := make([]*scheduler.Task, numberOftasks-1)
+	if numberOfTasks > 1 {
+		tmpTasks := make([]*scheduler.Task, numberOfTasks-1)
 		for i, e := range (*queue.Tasks)[1:] {
 			tmpTasks[i] = e
 		}
@@ -238,6 +238,6 @@ func (m *Memory) worker() {
 		e.Status.UnsafeSetStarted()
 		// e.Job.Execute will spawn more threads
 		e.Job.Execute(e.Status, m.DemoLock)
-		m.moveToDoneQeueu(e.ID)
+		m.moveToDoneQueue(e.ID)
 	}
 }

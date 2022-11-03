@@ -31,6 +31,6 @@ func New(protocol string, port uint16) string {
 	return "iptables -A INPUT -p " + strings.ToLower(protocol) + " --dport " + strconv.Itoa(int(port)) + " -j ACCEPT"
 }
 
-func NewPrerouting(sourcePort, destinationPort uint16, ip, protocol, mainInterface string) string {
+func NewPreRouting(sourcePort, destinationPort uint16, ip, protocol, mainInterface string) string {
 	return "iptables -A PREROUTING -t nat -i " + mainInterface + " -p " + strings.ToLower(protocol) + " --dport " + strconv.Itoa(int(sourcePort)) + " -j DNAT --to " + ip + ":" + strconv.Itoa(int(destinationPort))
 }

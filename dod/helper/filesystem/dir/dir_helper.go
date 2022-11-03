@@ -7,7 +7,7 @@ import (
 )
 
 func Create(path string) (err error) {
-	if !filesystem.CheckExistance(path) {
+	if !filesystem.CheckExistence(path) {
 		err = os.Mkdir(path, 0755)
 	}
 	return

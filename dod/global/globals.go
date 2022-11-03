@@ -8,9 +8,9 @@ import (
 )
 
 var ConfigFolder string
-var TemplateFodler string
-var RouterFodler string
-var DemoFodler string
+var TemplateFolder string
+var RouterFolder string
+var DemoFolder string
 var IngressVM string
 var PostgreSQLConfig *programconfig.PostgreSQLConfiguration
 
@@ -23,9 +23,9 @@ var RouterConfiguration *programconfig.SSHConfiguration
 func SetAll(config *programconfig.Configuration, db *sql.DB) {
 	ConfigFolder = config.ConfigFolder
 	baseFolder := strings.Trim(config.VMware.DemoFolder, "/")
-	TemplateFodler = baseFolder + "/Templates"
-	RouterFodler = baseFolder + "/Router"
-	DemoFodler = baseFolder + "/Demos"
+	TemplateFolder = baseFolder + "/Templates"
+	RouterFolder = baseFolder + "/Router"
+	DemoFolder = baseFolder + "/Demos"
 	IngressVM = "routervm"
 
 	TaskHistoryDepth = config.TaskHistoryDepth

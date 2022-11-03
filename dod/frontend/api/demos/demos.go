@@ -76,7 +76,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	demolist := make([]*Demo, len(*demos))
+	demoList := make([]*Demo, len(*demos))
 	for i, e := range *demos {
 		var userName string
 		if allDemos {
@@ -84,7 +84,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		}
 		for _, ee := range *uniqueDemos {
 			if e.DemoName == ee.DemoName {
-				demolist[i] = &Demo{
+				demoList[i] = &Demo{
 					UserName:    userName,
 					DemoName:    e.DemoName,
 					DemoNumber:  e.DemoNumber,
@@ -96,7 +96,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	}
 	response := api.JsonResponse{
 		Data: Data{
-			Demos: &demolist,
+			Demos: &demoList,
 		},
 	}
 	response.Output(w)
@@ -123,19 +123,19 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		User: newDemo.UserName,
 		ID:   newDemo.Number,
 	}
-	existance, err := demoactions.CheckExistance(global.DB, demoObj)
+	existence, err := demoactions.CheckExistence(global.DB, demoObj)
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	if existance {
+	if existence {
 		api.OutputDemoAlreadyExists(w)
 		return
 	}
-	newjob := job.Job{
+	newJob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob, newDemo.UserName)
+	api.NewJob(w, &newJob, newDemo.UserName)
 }
 
 type IdData struct {
@@ -156,12 +156,12 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	existance, err := demoactions.CheckExistance(global.DB, demoObj)
+	existence, err := demoactions.CheckExistence(global.DB, demoObj)
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	if !existance {
+	if !existence {
 		api.OutputDemoDoesNotExists(w)
 		return
 	}
@@ -213,12 +213,12 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		api.OutputInvalidPermission(w)
 		return
 	}
-	existance, err := demoactions.CheckExistance(global.DB, demoObj)
+	existence, err := demoactions.CheckExistence(global.DB, demoObj)
 	if err != nil {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	if !existance {
+	if !existence {
 		api.OutputDemoDoesNotExists(w)
 		return
 	}
@@ -228,10 +228,10 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		Number:   demoObj.ID,
 		Destroy:  true,
 	}
-	newjob := job.Job{
+	newJob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob, demoObj.User)
+	api.NewJob(w, &newJob, demoObj.User)
 }
 
 func IdPut(w http.ResponseWriter, r *http.Request) {
@@ -263,13 +263,13 @@ func IdPut(w http.ResponseWriter, r *http.Request) {
 		newDemo.Start = true
 		newDemo.Stop = true
 	default:
-		api.OutputUserInputError(w, "Key task shoud be (Start|Stop|Restart)")
+		api.OutputUserInputError(w, "Key task should be (Start|Stop|Restart)")
 		return
 	}
-	newjob := job.Job{
+	newJob := job.Job{
 		Demo: &newDemo,
 	}
-	api.NewJob(w, &newjob, demoObj.User)
+	api.NewJob(w, &newJob, demoObj.User)
 }
 
 func checkID(w http.ResponseWriter, r *http.Request) (demoObj demo.Demo, err error) {
@@ -284,8 +284,8 @@ func checkID(w http.ResponseWriter, r *http.Request) (demoObj demo.Demo, err err
 
 // gets the file information of every unique demo in the list
 func getUniqueDemo(list *[]*database.Demo) (uniqueList *[]Demo, err error) {
-	tmplist := make([]Demo, 0)
-	uniqueList = &tmplist
+	tmpList := make([]Demo, 0)
+	uniqueList = &tmpList
 	for _, e := range *list {
 		var templateConf *template.Config
 		if isDemoUnique(uniqueList, e.DemoName) {

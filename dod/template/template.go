@@ -63,29 +63,29 @@ func GetDescriptions(templateNames *[]string) (templateConfigs *[]Config, err er
 	return
 }
 
-func Destroy(client *govmomi.Client, dc *object.Datacenter, TempalateName string, status *taskstatus.Status) (err error) {
-	inUse, err := database.CheckTemplateInUse(global.DB, TempalateName)
+func Destroy(client *govmomi.Client, dc *object.Datacenter, TemplateName string, status *taskstatus.Status) (err error) {
+	inUse, err := database.CheckTemplateInUse(global.DB, TemplateName)
 	if err != nil {
 		return
 	}
 	if inUse {
 		return fmt.Errorf("unable to remove template, template is in use")
 	}
-	err = folder.Delete(client, dc, global.TemplateFodler+"/"+TempalateName, status)
+	err = folder.Delete(client, dc, global.TemplateFolder+"/"+TemplateName, status)
 	if err != nil {
 		return
 	}
-	return file.Delete(global.ConfigFolder + "/" + TempalateName)
+	return file.Delete(global.ConfigFolder + "/" + TemplateName)
 }
 
 func List() (files []string, err error) {
 	return file.ReadDir(global.ConfigFolder)
 }
 
-// Imports a new demo from the speciefid folder
+// Imports a new demo from the specified folder
 func (c *Config) Import(client *govmomi.Client, dc *object.Datacenter, pool string, status *taskstatus.Status) (err error) {
 	filePath := global.ConfigFolder + "/" + c.Name
-	err = folder.Clone(client, dc, nil, c.Path, global.TemplateFodler+"/"+c.Name, pool, true, status)
+	err = folder.Clone(client, dc, nil, c.Path, global.TemplateFolder+"/"+c.Name, pool, true, status)
 	if err != nil {
 		return
 	}
@@ -112,7 +112,7 @@ func (c *Config) Validate(nameAndPathEmpty bool) (err error) {
 			return fmt.Errorf("path may not be empty")
 		}
 	}
-	err = c.ValidatePortforwards()
+	err = c.ValidatePortForwards()
 	if err != nil {
 		return
 	}
@@ -138,7 +138,7 @@ func (c *Config) WriteToFile(filePath string) error {
 	return file.Write(filePath, data)
 }
 
-func (c *Config) ValidatePortforwards() (err error) {
+func (c *Config) ValidatePortForwards() (err error) {
 	list := make([]string, 0)
 	for _, e := range c.PortForwards {
 		err = ValidateSourcePort(e.SourcePort)
@@ -164,14 +164,14 @@ func (c *Config) ValidatePortforwards() (err error) {
 
 func ValidateSourcePort(port uint) error {
 	if port == 0 && port > 65353 {
-		return fmt.Errorf("%d is not an valid sourceport", port)
+		return fmt.Errorf("%d is not an valid source port", port)
 	}
 	return nil
 }
 
 func ValidateDestinationPort(port uint) error {
 	if port > 65353 {
-		return fmt.Errorf("%d is not an valid destinationport", port)
+		return fmt.Errorf("%d is not an valid destination port", port)
 	}
 	return nil
 }
