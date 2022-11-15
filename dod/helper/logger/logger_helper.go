@@ -4,8 +4,11 @@ import (
 	"log"
 	"os"
 	"path"
+	"strconv"
 	"sync"
+	"time"
 
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem/dir"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 )
@@ -22,7 +25,11 @@ func Initialize(logFiles programconfig.Logging) (err error) {
 	if err != nil {
 		return
 	}
-	return dir.Create(path.Dir(file.Info))
+	err = dir.Create(path.Dir(file.Info))
+	if err != nil {
+		return
+	}
+	return dir.Create(file.Task)
 }
 
 func Fatal(err error) {
@@ -46,6 +53,10 @@ func Info(text string) {
 	infoMutex.Lock()
 	initialize(file.Info, text)
 	infoMutex.Unlock()
+}
+
+func Task(timeStamp time.Time, demoObj demo.Demo, text string) {
+	initialize(file.Task+"/"+strconv.Itoa(int(timeStamp.Unix()))+" "+demoObj.CreateID()+".log", text)
 }
 
 func initialize(filePath string, text string) {

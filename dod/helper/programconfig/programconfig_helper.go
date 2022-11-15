@@ -89,6 +89,7 @@ type Logging struct {
 	Access string
 	Error  string
 	Info   string
+	Task   string
 }
 
 type SuperUser struct {

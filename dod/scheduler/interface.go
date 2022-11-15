@@ -11,7 +11,13 @@ type Task struct {
 	ID     string
 	Job    *job.Job
 	Status *taskstatus.Status
+	Time   *Time
 	UserID string
+}
+
+type Time struct {
+	Start time.Time
+	End   time.Time
 }
 
 var Main Backend

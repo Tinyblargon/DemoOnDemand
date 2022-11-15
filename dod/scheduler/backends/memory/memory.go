@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/dod/helper/logger"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
 	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/backends/memory/demolock"
@@ -53,6 +55,7 @@ func New(concurrency uint) (memory *Memory) {
 
 // Adds task to queue (wait)
 func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration, userID string) (taskID string) {
+	startTime := time.Now()
 	id := atomic.AddUint64(&m.taskIDCounter, 1)
 	taskID = strconv.FormatUint(id, 10)
 	status := taskstatus.NewStatus()
@@ -61,6 +64,9 @@ func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration, userID st
 		Job:    payload,
 		Status: status,
 		UserID: userID,
+		Time: &scheduler.Time{
+			Start: startTime,
+		},
 	}
 	addTaskToQueue(m.Wait, task)
 	return taskID
@@ -72,8 +78,8 @@ func (m *Memory) MoveToWorkQueue(taskID string) (err error) {
 	return
 }
 
-func (m *Memory) moveToDoneQueue(taskID string) {
-	task := removeTaskFromQueue(m.Work, taskID)
+func (m *Memory) moveToDoneQueue(taskID string) (task *scheduler.Task) {
+	task = removeTaskFromQueue(m.Work, taskID)
 	tmpTasks := make([]*scheduler.Task, global.TaskHistoryDepth)
 	tmpTasks[0] = task
 	loopLimit := int(global.TaskHistoryDepth) - 1
@@ -85,6 +91,7 @@ func (m *Memory) moveToDoneQueue(taskID string) {
 	}
 	m.Done.Tasks = &tmpTasks
 	m.Done.Mutex.Unlock()
+	return
 }
 
 func (m *Memory) GetTaskStatus(taskID string) (info []byte, userID string) {
@@ -238,6 +245,12 @@ func (m *Memory) worker() {
 		e.Status.UnsafeSetStarted()
 		// e.Job.Execute will spawn more threads
 		e.Job.Execute(e.Status, m.DemoLock)
-		m.moveToDoneQueue(e.ID)
+		task := m.moveToDoneQueue(e.ID)
+		demoObj := demo.Demo{
+			Name: task.Job.Demo.Template,
+			User: task.UserID,
+			ID:   task.Job.Demo.Number,
+		}
+		logger.Task(task.Time.Start, demoObj, string(task.Status.Info))
 	}
 }
