@@ -92,7 +92,7 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Error generating JWT token: " + err.Error()))
 		} else {
-			w.Header().Set("Authorization", "Bearer "+token)
+			// w.Header().Add("Authorization", "Bearer "+token)
 			w.WriteHeader(http.StatusOK)
 			data := Data{
 				Token: token,
@@ -110,14 +110,12 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		tokenString := r.Header.Get("Authorization")
 		if len(tokenString) == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Missing Authorization Header"))
 			return
 		}
-
 		claims, err := verifyToken(tokenString)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -125,9 +123,8 @@ func authMiddleware(next http.Handler) http.Handler {
 			w.Write([]byte(err.Error()))
 			return
 		}
-		r.Header.Set("name", claims.Name)
-		r.Header.Set("role", claims.Role)
-
+		r.Header.Add("name", claims.Name)
+		r.Header.Add("role", claims.Role)
 		next.ServeHTTP(w, r)
 	})
 }
