@@ -22,7 +22,6 @@ import (
 
 // TODO generate id automatically
 // TODO make example systemd service
-// TODO log task log to disk when task has ended
 // TODO combine demo list and demo info into summary endpoint
 // TODO let user add a description for a demo
 func main() {
