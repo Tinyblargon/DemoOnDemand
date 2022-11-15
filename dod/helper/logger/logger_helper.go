@@ -32,20 +32,20 @@ func Fatal(err error) {
 	}
 }
 
-var ErrorMutex sync.Mutex
+var errorMutex sync.Mutex
 
 func Error(err error) {
-	ErrorMutex.Lock()
+	errorMutex.Lock()
 	initialize(file.Error, err.Error())
-	ErrorMutex.Unlock()
+	errorMutex.Unlock()
 }
 
-var InfoMutex sync.Mutex
+var infoMutex sync.Mutex
 
 func Info(text string) {
-	InfoMutex.Lock()
+	infoMutex.Lock()
 	initialize(file.Info, text)
-	InfoMutex.Unlock()
+	infoMutex.Unlock()
 }
 
 func initialize(filePath string, text string) {
