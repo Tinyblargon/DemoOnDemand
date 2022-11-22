@@ -68,5 +68,6 @@ func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
 
 	origins := handlers.AllowedOrigins([]string{"*"})
 	headers := handlers.AllowedHeaders([]string{"Authorization"})
-	return http.ListenAndServe(":"+strconv.Itoa(int(port)), handlers.CORS(origins, headers)(handlers.LoggingHandler(accessLog, router)))
+	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
+	return http.ListenAndServe(":"+strconv.Itoa(int(port)), handlers.CORS(origins, headers, methods)(handlers.LoggingHandler(accessLog, router)))
 }
