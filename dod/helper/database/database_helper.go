@@ -27,7 +27,11 @@ func (v Vlan) GetNetwork() string {
 }
 
 func New(config programconfig.PostgreSQLConfiguration) (db *sql.DB, err error) {
-	return sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.Host, config.Port, config.User, config.Password, config.Database))
+	db, err = sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.Host, config.Port, config.User, config.Password, config.Database))
+	if err != nil {
+		return
+	}
+	return db, db.Ping()
 }
 
 func AddDemoOfUser(db *sql.DB, demoObj *demo.Demo) (demoID uint, err error) {
