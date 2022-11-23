@@ -33,7 +33,7 @@ type Demo struct {
 	DemoNumber       uint                    `json:"number"`
 	Running          bool                    `json:"active"`
 	Description      string                  `json:"description,omitempty"`
-	RouterConnection string                  `json:"router-ip,omitempty"`
+	RouterConnection string                  `json:"ip,omitempty"`
 	PortForward      []*template.PortForward `json:"portforwards,omitempty"`
 }
 
