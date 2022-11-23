@@ -65,7 +65,7 @@ func New(client *govmomi.Client, db *sql.DB, dc *object.Datacenter, pool string,
 	if err != nil {
 		return
 	}
-	err = database.AddDemoOfUser(db, demo)
+	demo.ID, err = database.AddDemoOfUser(db, demo)
 	if err != nil {
 		return
 	}

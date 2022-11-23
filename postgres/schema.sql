@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS public.Vlans
 
 CREATE TABLE IF NOT EXISTS public.RunningDemos
 (
+    id serial PRIMARY KEY,
     DemoName text COLLATE pg_catalog."default",
     UserName text COLLATE pg_catalog."default",
-    DemoNumber integer,
     Running boolean
 );

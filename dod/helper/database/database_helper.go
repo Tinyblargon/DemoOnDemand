@@ -30,18 +30,18 @@ func New(config programconfig.PostgreSQLConfiguration) (db *sql.DB, err error) {
 	return sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", config.Host, config.Port, config.User, config.Password, config.Database))
 }
 
-func AddDemoOfUser(db *sql.DB, demoObj *demo.Demo) (err error) {
-	_, err = db.Exec(`insert into "runningdemos"("username","demoname","demonumber","running") values($1, $2, $3, $4)`, demoObj.User, demoObj.Name, demoObj.ID, false)
+func AddDemoOfUser(db *sql.DB, demoObj *demo.Demo) (demoID uint, err error) {
+	err = db.QueryRow(`INSERT INTO "runningdemos"("username","demoname","running") VALUES ($1, $2, $3) RETURNING id`, demoObj.User, demoObj.Name, false).Scan(&demoID)
 	return
 }
 
 func DeleteDemoOfUser(db *sql.DB, demoObj *demo.Demo) (err error) {
-	_, err = db.Exec(`delete from "runningdemos" where username=$1 AND demoname=$2 AND demonumber=$3`, demoObj.User, demoObj.Name, demoObj.ID)
+	_, err = db.Exec(`delete from "runningdemos" where username=$1 AND demoname=$2 AND id=$3`, demoObj.User, demoObj.Name, demoObj.ID)
 	return
 }
 
 func UpdateDemoOfUser(db *sql.DB, demoObj *demo.Demo, running bool) (err error) {
-	_, err = db.Exec(`update "runningdemos" set "running"=$1 where username=$2 AND demoname=$3 AND demonumber=$4`, running, demoObj.User, demoObj.Name, demoObj.ID)
+	_, err = db.Exec(`update "runningdemos" set "running"=$1 where username=$2 AND demoname=$3 AND id=$4`, running, demoObj.User, demoObj.Name, demoObj.ID)
 	return
 }
 
@@ -59,7 +59,7 @@ type Demo struct {
 }
 
 func GetSpecificDemo(db *sql.DB, demoObj demo.Demo) (demo *Demo, err error) {
-	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos" WHERE username=$1 AND demoname=$2 AND demonumber=$3`, demoObj.User, demoObj.Name, demoObj.ID)
+	rows, err := db.Query(`SELECT "username","demoname","id","running" FROM "runningdemos" WHERE username=$1 AND demoname=$2 AND id=$3`, demoObj.User, demoObj.Name, demoObj.ID)
 	if err != nil {
 		return
 	}
@@ -76,7 +76,7 @@ func GetSpecificDemo(db *sql.DB, demoObj demo.Demo) (demo *Demo, err error) {
 }
 
 func ListDemosOfUser(db *sql.DB, userName string) (*[]*Demo, error) {
-	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos" WHERE username=$1`, userName)
+	rows, err := db.Query(`SELECT "username","demoname","id","running" FROM "runningdemos" WHERE username=$1`, userName)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func ListDemosOfUser(db *sql.DB, userName string) (*[]*Demo, error) {
 }
 
 func ListDemosOfTemplate(db *sql.DB, template string) (*[]*Demo, error) {
-	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos" WHERE demoname=$1`, template)
+	rows, err := db.Query(`SELECT "username","demoname","id","running" FROM "runningdemos" WHERE demoname=$1`, template)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func ListDemosOfTemplate(db *sql.DB, template string) (*[]*Demo, error) {
 }
 
 func ListAllDemos(db *sql.DB) (*[]*Demo, error) {
-	rows, err := db.Query(`SELECT "username","demoname","demonumber","running" FROM "runningdemos"`)
+	rows, err := db.Query(`SELECT "username","demoname","id","running" FROM "runningdemos"`)
 	if err != nil {
 		return nil, err
 	}
