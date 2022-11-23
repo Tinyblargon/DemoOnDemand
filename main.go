@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
+	frontend "github.com/Tinyblargon/DemoOnDemand/dod/api"
 	"github.com/Tinyblargon/DemoOnDemand/dod/authentication"
 	"github.com/Tinyblargon/DemoOnDemand/dod/authentication/backends/ldap"
-	"github.com/Tinyblargon/DemoOnDemand/dod/frontend"
 	"github.com/Tinyblargon/DemoOnDemand/dod/global"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
