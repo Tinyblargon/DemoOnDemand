@@ -28,6 +28,8 @@ var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	Get(w, r)
 })
 
+// TODO return start and end date/time of task
+
 func Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
