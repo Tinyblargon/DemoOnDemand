@@ -60,9 +60,7 @@ var IdPutHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request)
 func Get(w http.ResponseWriter, r *http.Request) {
 	var demos *[]*database.Demo
 	var err error
-	var allDemos bool
 	if r.Header.Get("role") == "root" {
-		allDemos = true
 		demos, err = database.ListAllDemos(global.DB)
 	} else {
 		demos, err = database.ListDemosOfUser(global.DB, r.Header.Get("name"))
@@ -78,14 +76,10 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	}
 	demoList := make([]*Demo, len(*demos))
 	for i, e := range *demos {
-		var userName string
-		if allDemos {
-			userName = e.UserName
-		}
 		for _, ee := range *uniqueDemos {
 			if e.DemoName == ee.DemoName {
 				demoList[i] = &Demo{
-					UserName:    userName,
+					UserName:    e.UserName,
 					DemoName:    e.DemoName,
 					DemoNumber:  e.DemoNumber,
 					Running:     e.Running,
