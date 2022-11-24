@@ -96,18 +96,18 @@ func (m *Memory) moveToDoneQueue(taskID uint) (task *scheduler.Task) {
 	return
 }
 
-func (m *Memory) GetTaskStatus(taskID uint) (info []byte, userID string) {
+func (m *Memory) GetTaskStatus(taskID uint) (info *[]*taskstatus.Output, userID string) {
 	task := getTaskFromQueue(m.Wait, taskID)
 	if task != nil {
-		return task.Status.Info, task.Info.UserID
+		return task.Status.Output, task.Info.UserID
 	}
 	task = getTaskFromQueue(m.Work, taskID)
 	if task != nil {
-		return task.Status.Info, task.Info.UserID
+		return task.Status.Output, task.Info.UserID
 	}
 	task = getTaskFromQueue(m.Done, taskID)
 	if task != nil {
-		return task.Status.Info, task.Info.UserID
+		return task.Status.Output, task.Info.UserID
 	}
 	return nil, ""
 }
@@ -253,6 +253,6 @@ func (m *Memory) worker() {
 			User: task.Info.UserID,
 			ID:   task.Job.Demo.Number,
 		}
-		logger.Task(task.Info.Time.Start, demoObj, string(task.Status.Info))
+		logger.Task(task.Info.Time.Start, demoObj, taskstatus.ToString(task.Status.Output))
 	}
 }

@@ -23,6 +23,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 	name := r.Header.Get("name")
 	role := r.Header.Get("role")
+	var response api.JsonResponse
 	if id != "" {
 		taskID, err := strconv.Atoi(id)
 		if err != nil || taskID <= 0 {
@@ -30,16 +31,15 @@ func Get(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		info, userID := scheduler.Main.GetTaskStatus(uint(taskID))
-		infoString := string(info)
-		if infoString != "" {
+		if len(*info) != 0 {
 			if !api.IfRoleOrUser(r, "root", userID) {
 				api.OutputInvalidPermission(w)
 				return
 			}
+			response.Data = info
 		} else {
-			infoString = "Task with id " + id + " does not exist."
+			fmt.Fprint(w, "Task with id "+id+" does not exist.")
 		}
-		fmt.Fprint(w, infoString)
 	} else {
 		allTasks := scheduler.Main.ListAllTasks()
 		var tasksList []*scheduler.Task
@@ -55,9 +55,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		}
 		data := new(Data)
 		data.Tasks = &tasksList
-		response := api.JsonResponse{
-			Data: &data,
-		}
-		response.Output(w)
+		response.Data = &data
 	}
+	response.Output(w)
 }

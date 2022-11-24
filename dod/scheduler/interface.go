@@ -30,6 +30,6 @@ var Main Backend
 type Backend interface {
 	Add(payload *job.Job, executionTimeout time.Duration, userID string) (taskID uint)
 	MoveToWorkQueue(taskID uint) (err error)
-	GetTaskStatus(taskID uint) (info []byte, userID string)
+	GetTaskStatus(taskID uint) (info *[]*taskstatus.Output, userID string)
 	ListAllTasks() (tasks []*Task)
 }
