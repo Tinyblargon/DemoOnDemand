@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -54,18 +53,20 @@ func New(concurrency uint) (memory *Memory) {
 }
 
 // Adds task to queue (wait)
-func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration, userID string) (taskID string) {
-	startTime := time.Now()
-	id := atomic.AddUint64(&m.taskIDCounter, 1)
-	taskID = strconv.FormatUint(id, 10)
+func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration, userID string) (taskID uint) {
+	startTime := time.Now().Unix()
+	taskID = uint(atomic.AddUint64(&m.taskIDCounter, 1))
 	status := taskstatus.NewStatus()
 	task := &scheduler.Task{
 		ID:     taskID,
 		Job:    payload,
 		Status: status,
-		UserID: userID,
-		Time: &scheduler.Time{
-			Start: startTime,
+		Info: &scheduler.Info{
+			UserID: userID,
+			Status: &status.Status,
+			Time: &scheduler.Time{
+				Start: startTime,
+			},
 		},
 	}
 	addTaskToQueue(m.Wait, task)
@@ -73,13 +74,14 @@ func (m *Memory) Add(payload *job.Job, executionTimeout time.Duration, userID st
 }
 
 // Move Item from the Wait to the Work queue
-func (m *Memory) MoveToWorkQueue(taskID string) (err error) {
+func (m *Memory) MoveToWorkQueue(taskID uint) (err error) {
 	moveTaskToQueue(m.Wait, m.Work, taskID)
 	return
 }
 
-func (m *Memory) moveToDoneQueue(taskID string) (task *scheduler.Task) {
+func (m *Memory) moveToDoneQueue(taskID uint) (task *scheduler.Task) {
 	task = removeTaskFromQueue(m.Work, taskID)
+	task.Info.Time.End = time.Now().Unix()
 	tmpTasks := make([]*scheduler.Task, global.TaskHistoryDepth)
 	tmpTasks[0] = task
 	loopLimit := int(global.TaskHistoryDepth) - 1
@@ -94,18 +96,18 @@ func (m *Memory) moveToDoneQueue(taskID string) (task *scheduler.Task) {
 	return
 }
 
-func (m *Memory) GetTaskStatus(taskID string) (info []byte, userID string) {
+func (m *Memory) GetTaskStatus(taskID uint) (info []byte, userID string) {
 	task := getTaskFromQueue(m.Wait, taskID)
 	if task != nil {
-		return task.Status.Info, task.UserID
+		return task.Status.Info, task.Info.UserID
 	}
 	task = getTaskFromQueue(m.Work, taskID)
 	if task != nil {
-		return task.Status.Info, task.UserID
+		return task.Status.Info, task.Info.UserID
 	}
 	task = getTaskFromQueue(m.Done, taskID)
 	if task != nil {
-		return task.Status.Info, task.UserID
+		return task.Status.Info, task.Info.UserID
 	}
 	return nil, ""
 }
@@ -139,12 +141,12 @@ func (m *Memory) watchdogWaitQueue() {
 	}
 }
 
-func moveTaskToQueue(from, to *Queue, taskID string) {
+func moveTaskToQueue(from, to *Queue, taskID uint) {
 	movedTask := removeTaskFromQueue(from, taskID)
 	addTaskToQueue(to, movedTask)
 }
 
-func checkTaskExistence(queue *Queue, taskID string) bool {
+func checkTaskExistence(queue *Queue, taskID uint) bool {
 	for _, e := range *queue.Tasks {
 		if e.ID == taskID {
 			return true
@@ -165,7 +167,7 @@ func listTasksFromQueue(queue *Queue) (tasks []*scheduler.Task) {
 	return
 }
 
-func getTaskFromQueue(queue *Queue, taskID string) (task *scheduler.Task) {
+func getTaskFromQueue(queue *Queue, taskID uint) (task *scheduler.Task) {
 	if queue.Tasks != nil {
 		for _, e := range *queue.Tasks {
 			if e != nil {
@@ -191,7 +193,7 @@ func addTaskToQueue(queue *Queue, task *scheduler.Task) {
 	queue.Mutex.Unlock()
 }
 
-func removeTaskFromQueue(queue *Queue, taskID string) (movedTask *scheduler.Task) {
+func removeTaskFromQueue(queue *Queue, taskID uint) (movedTask *scheduler.Task) {
 	var counter uint
 	queue.Mutex.Lock()
 	numberOfTasks := len(*queue.Tasks)
@@ -248,9 +250,9 @@ func (m *Memory) worker() {
 		task := m.moveToDoneQueue(e.ID)
 		demoObj := demo.Demo{
 			Name: task.Job.Demo.Template,
-			User: task.UserID,
+			User: task.Info.UserID,
 			ID:   task.Job.Demo.Number,
 		}
-		logger.Task(task.Time.Start, demoObj, string(task.Status.Info))
+		logger.Task(task.Info.Time.Start, demoObj, string(task.Status.Info))
 	}
 }

@@ -40,18 +40,18 @@ func NewStatus() (status *Status) {
 	}
 }
 
-func (s *Status) AddToInfo(newLine string) {
+func (s *Status) AddToInfo(text string) {
 	if s != nil {
 		s.Mutex.Lock()
-		s.unsafeAddToInfo(prefixInfo, newLine)
+		s.unsafeAddToInfo(prefixInfo, text)
 		s.Mutex.Unlock()
 	}
 }
 
-func (s *Status) AddWarning(newLine string) {
+func (s *Status) AddWarning(text string) {
 	if s != nil {
 		s.Mutex.Lock()
-		s.unsafeAddToInfo(prefixWarning, newLine)
+		s.unsafeAddToInfo(prefixWarning, text)
 		s.Mutex.Unlock()
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"path"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem/dir"
@@ -55,8 +54,8 @@ func Info(text string) {
 	infoMutex.Unlock()
 }
 
-func Task(timeStamp time.Time, demoObj demo.Demo, text string) {
-	initialize(file.Task+"/"+strconv.Itoa(int(timeStamp.Unix()))+" "+demoObj.CreateID()+".log", text)
+func Task(timeStamp int64, demoObj demo.Demo, text string) {
+	initialize(file.Task+"/"+strconv.Itoa(int(timeStamp))+" "+demoObj.CreateID()+".log", text)
 }
 
 func initialize(filePath string, text string) {

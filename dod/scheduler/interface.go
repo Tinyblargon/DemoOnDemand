@@ -8,23 +8,28 @@ import (
 )
 
 type Task struct {
-	ID     string
-	Job    *job.Job
-	Status *taskstatus.Status
-	Time   *Time
-	UserID string
+	ID     uint               `json:"id"`
+	Job    *job.Job           `json:"-"`
+	Status *taskstatus.Status `json:"-"`
+	Info   *Info              `json:"info"`
+}
+
+type Info struct {
+	UserID string  `json:"user"`
+	Status *string `json:"status"`
+	Time   *Time   `json:"time"`
 }
 
 type Time struct {
-	Start time.Time
-	End   time.Time
+	Start int64 `json:"start"`
+	End   int64 `json:"end,omitempty"`
 }
 
 var Main Backend
 
 type Backend interface {
-	Add(payload *job.Job, executionTimeout time.Duration, userID string) (taskID string)
-	MoveToWorkQueue(taskID string) (err error)
-	GetTaskStatus(taskID string) (info []byte, userID string)
+	Add(payload *job.Job, executionTimeout time.Duration, userID string) (taskID uint)
+	MoveToWorkQueue(taskID uint) (err error)
+	GetTaskStatus(taskID uint) (info []byte, userID string)
 	ListAllTasks() (tasks []*Task)
 }

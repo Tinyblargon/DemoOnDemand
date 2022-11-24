@@ -11,24 +11,12 @@ import (
 )
 
 type Data struct {
-	Tasks *[]*Task `json:"tasks"`
-}
-
-type Task struct {
-	ID   uint `json:"id"`
-	Info Info `json:"info"`
-}
-
-type Info struct {
-	User   string `json:"user"`
-	Status string `json:"status"`
+	Tasks *[]*scheduler.Task `json:"tasks"`
 }
 
 var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	Get(w, r)
 })
-
-// TODO return start and end date/time of task
 
 func Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -36,7 +24,12 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	name := r.Header.Get("name")
 	role := r.Header.Get("role")
 	if id != "" {
-		info, userID := scheduler.Main.GetTaskStatus(id)
+		taskID, err := strconv.Atoi(id)
+		if err != nil || taskID <= 0 {
+			api.OutputUserInputError(w, "id should be a positive number")
+			return
+		}
+		info, userID := scheduler.Main.GetTaskStatus(uint(taskID))
 		infoString := string(info)
 		if infoString != "" {
 			if !api.IfRoleOrUser(r, "root", userID) {
@@ -49,20 +42,14 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, infoString)
 	} else {
 		allTasks := scheduler.Main.ListAllTasks()
-		var tasksList []*Task
+		var tasksList []*scheduler.Task
 		if role == "root" {
-			numberOfTasks := len(allTasks)
-			tasksList = make([]*Task, numberOfTasks)
-			for i, e := range allTasks {
-				newTask := newTask(e)
-				tasksList[i] = newTask
-			}
+			tasksList = allTasks
 		} else {
-			tasksList = make([]*Task, 0)
+			tasksList = make([]*scheduler.Task, 0)
 			for _, e := range allTasks {
-				if e.UserID == name {
-					newTask := newTask(e)
-					tasksList = append(tasksList, newTask)
+				if e.Info.UserID == name {
+					tasksList = append(tasksList, e)
 				}
 			}
 		}
@@ -73,13 +60,4 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		}
 		response.Output(w)
 	}
-}
-
-func newTask(task *scheduler.Task) (newTask *Task) {
-	id, _ := strconv.Atoi(task.ID)
-	newTask = new(Task)
-	newTask.ID = uint(id)
-	newTask.Info.User = task.UserID
-	newTask.Info.Status = task.Status.Status
-	return
 }
