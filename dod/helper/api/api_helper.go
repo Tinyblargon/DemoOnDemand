@@ -43,8 +43,17 @@ func ReadingBodyFailed(w http.ResponseWriter, err error) {
 	fmt.Fprintf(w, "Reading body failed: %s", err)
 }
 
+type jobData struct {
+	Task uint `json:"task,omitempty"`
+}
+
 func NewJob(w http.ResponseWriter, newJob *job.Job, jobOwner string) {
-	fmt.Fprintf(w, "Task added with ID: %d", scheduler.Main.Add(newJob, 9999999, jobOwner))
+	response := JsonResponse{
+		Data: jobData{
+			Task: scheduler.Main.Add(newJob, 9999999, jobOwner),
+		},
+	}
+	response.Output(w)
 }
 
 func OutputInvalidPermission(w http.ResponseWriter) {
