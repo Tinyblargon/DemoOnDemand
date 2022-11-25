@@ -92,13 +92,10 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Error generating JWT token: " + err.Error()))
 		} else {
-			// w.Header().Add("Authorization", "Bearer "+token)
-			w.WriteHeader(http.StatusOK)
-			data := Data{
-				Token: token,
-			}
 			response := api.JsonResponse{
-				Data: data,
+				Data: Data{
+					Token: token,
+				},
 			}
 			response.Output(w)
 		}

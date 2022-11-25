@@ -23,6 +23,7 @@ type JsonResponse struct {
 func (j *JsonResponse) Output(w http.ResponseWriter) {
 	response, _ := json.Marshal(j)
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, string(response))
 }
 
