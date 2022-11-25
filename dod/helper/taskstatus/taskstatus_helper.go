@@ -2,10 +2,14 @@ package taskstatus
 
 import "sync"
 
-const prefixError string = "[ERROR] "
-const prefixInfo string = "[INFO] "
-const prefixWarning string = "[WARN] "
-const prefixSuccess string = "[SUCCESS] "
+const prefixError string = "ERROR"
+const prefixInfo string = "INFO"
+const prefixWarning string = "WARN"
+const prefixSuccess string = "SUCCESS"
+const statusError string = "error"
+const statusStarted string = "started"
+const statusOk string = "ok"
+const statusQueued string = "queued"
 
 type Status struct {
 	Output *[]*Output
@@ -22,7 +26,7 @@ func (s *Status) AddError(err error) {
 	s.Mutex.Lock()
 	s.unsafeAddToInfo(prefixError, err.Error())
 	s.unsafeAddToInfo(prefixError, "Task Failed!")
-	s.unsafeSetStatus("error")
+	s.unsafeSetStatus(statusError)
 	s.Mutex.Unlock()
 }
 
@@ -33,13 +37,13 @@ func (s *Status) UnsafeSetStarted() {
 		Text: "Task Started.",
 	}
 	s.Output = &output
-	s.unsafeSetStatus("started")
+	s.unsafeSetStatus(statusStarted)
 }
 
 func (s *Status) AddCompleted() {
 	s.Mutex.Lock()
 	s.unsafeAddToInfo(prefixSuccess, "OK")
-	s.unsafeSetStatus("ok")
+	s.unsafeSetStatus(statusOk)
 	s.Mutex.Unlock()
 }
 
@@ -51,7 +55,7 @@ func NewStatus() (status *Status) {
 	}
 	return &Status{
 		Output: &output,
-		Status: "queued",
+		Status: statusQueued,
 	}
 }
 
