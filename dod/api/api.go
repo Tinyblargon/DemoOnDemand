@@ -26,8 +26,6 @@ type Post struct {
 func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc(pathPrefix+"/auth", authenticate).Methods("POST") //Authenticates the user/returns a session token
-
 	router.Handle(pathPrefix+"/demos", authMiddleware(demos.GetHandler)).Methods("GET")   //gets the users list of demos
 	router.Handle(pathPrefix+"/demos", authMiddleware(demos.PostHandler)).Methods("POST") //creates a new demo for the user
 
@@ -37,6 +35,7 @@ func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
 
 	// TODO remove session token
 	// router.HandleFunc(pathPrefix+"/logout", ping.Pong).Methods("PUT") //revokes the users session token
+	router.HandleFunc(pathPrefix+"/login", authenticate).Methods("POST") //Authenticates the user/returns a session token
 
 	router.Handle(pathPrefix+"/networks", authMiddleware(networks.PostHandler)).Methods("POST") //lists all the networks of vms in a folder and sub folders
 
