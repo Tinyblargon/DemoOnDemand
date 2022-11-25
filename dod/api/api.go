@@ -7,7 +7,7 @@ import (
 
 	"github.com/Tinyblargon/DemoOnDemand/dod/api/demos"
 	"github.com/Tinyblargon/DemoOnDemand/dod/api/networks"
-	"github.com/Tinyblargon/DemoOnDemand/dod/api/permissions"
+	"github.com/Tinyblargon/DemoOnDemand/dod/api/permission"
 	"github.com/Tinyblargon/DemoOnDemand/dod/api/ping"
 	"github.com/Tinyblargon/DemoOnDemand/dod/api/tasks"
 	"github.com/Tinyblargon/DemoOnDemand/dod/api/templates"
@@ -39,7 +39,7 @@ func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
 
 	router.Handle(pathPrefix+"/networks", authMiddleware(networks.PostHandler)).Methods("POST") //lists all the networks of vms in a folder and sub folders
 
-	router.Handle(pathPrefix+"/permissions", authMiddleware(permissions.GetHandler)).Methods("GET") //returns the users permissions
+	router.Handle(pathPrefix+"/permission", authMiddleware(permission.GetHandler)).Methods("GET") //returns the users permissions
 
 	router.HandleFunc(pathPrefix+"/ping", ping.Pong).Methods("GET") //check if the application is still running
 
