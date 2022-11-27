@@ -15,10 +15,6 @@ type Data struct {
 }
 
 var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	Get(w, r)
-})
-
-func Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	name := r.Header.Get("name")
@@ -58,4 +54,4 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		response.Data = &data
 	}
 	response.Output(w)
-}
+})

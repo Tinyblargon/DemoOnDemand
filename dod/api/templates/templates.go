@@ -24,21 +24,8 @@ type Data struct {
 }
 
 var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	Get(w, r)
-})
-
-var PostHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	Post(w, r)
-})
-
-var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	IdDelete(w, r)
-})
-
-func Get(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-
 	templates, err := template.List()
 	if err != nil {
 		api.OutputServerError(w, "", err)
@@ -68,9 +55,9 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	response.Output(w)
-}
+})
 
-func Post(w http.ResponseWriter, r *http.Request) {
+var PostHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	newConfig := template.Config{}
 	err := api.GetBody(r, &newConfig)
 	if err != nil {
@@ -116,9 +103,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		Template: &newTemplate,
 	}
 	api.NewJob(w, &newJob, r.Header.Get("name"))
-}
+})
 
-func IdDelete(w http.ResponseWriter, r *http.Request) {
+var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if !api.IfRole(r, []string{"admin", "root"}) {
@@ -140,4 +127,4 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		Template: &newTemplate,
 	}
 	api.NewJob(w, &newJob, r.Header.Get("name"))
-}
+})

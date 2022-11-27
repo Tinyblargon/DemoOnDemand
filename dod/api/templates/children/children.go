@@ -17,14 +17,6 @@ type Data struct {
 }
 
 var IdGetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	IdGet(w, r)
-})
-
-var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	IdDelete(w, r)
-})
-
-func IdGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if !api.IfRole(r, []string{"root", "admin"}) {
@@ -43,9 +35,9 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 		Data: data,
 	}
 	response.Output(w)
-}
+})
 
-func IdDelete(w http.ResponseWriter, r *http.Request) {
+var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if !api.IfRole(r, []string{"root"}) {
@@ -67,4 +59,4 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		Template: &newTemplate,
 	}
 	api.NewJob(w, &newJob, r.Header.Get("name"))
-}
+})

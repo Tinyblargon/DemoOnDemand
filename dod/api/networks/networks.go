@@ -22,10 +22,6 @@ type Data struct {
 }
 
 var PostHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	Post(w, r)
-})
-
-func Post(w http.ResponseWriter, r *http.Request) {
 	if !api.IfRole(r, []string{"root", "admin"}) {
 		api.OutputInvalidPermission(w)
 		return
@@ -68,4 +64,4 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		Data: &data,
 	}
 	response.Output(w)
-}
+})

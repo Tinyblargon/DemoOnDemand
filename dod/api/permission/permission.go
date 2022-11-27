@@ -12,10 +12,6 @@ type Data struct {
 }
 
 var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	Get(w, r)
-})
-
-func Get(w http.ResponseWriter, r *http.Request) {
 	data := Data{
 		User: r.Header.Get("name"),
 		Role: r.Header.Get("role"),
@@ -24,4 +20,4 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		Data: &data,
 	}
 	response.Output(w)
-}
+})

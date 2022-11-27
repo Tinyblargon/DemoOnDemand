@@ -38,26 +38,6 @@ type Demo struct {
 }
 
 var GetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	Get(w, r)
-})
-
-var PostHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	Post(w, r)
-})
-
-var IdGetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	IdGet(w, r)
-})
-
-var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	IdDelete(w, r)
-})
-
-var IdPutHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	IdPut(w, r)
-})
-
-func Get(w http.ResponseWriter, r *http.Request) {
 	var demos *[]*database.Demo
 	var err error
 	if r.Header.Get("role") == "root" {
@@ -94,9 +74,9 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	response.Output(w)
-}
+})
 
-func Post(w http.ResponseWriter, r *http.Request) {
+var PostHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	newDemo := job.Demo{
 		Create: true,
 	}
@@ -130,13 +110,13 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		Demo: &newDemo,
 	}
 	api.NewJob(w, &newJob, newDemo.UserName)
-}
+})
 
 type IdData struct {
 	Demo *Demo `json:"demo"`
 }
 
-func IdGet(w http.ResponseWriter, r *http.Request) {
+var IdGetHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	demoObj, err := checkID(w, r)
 	if err != nil {
 		return
@@ -196,9 +176,9 @@ func IdGet(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	response.Output(w)
-}
+})
 
-func IdDelete(w http.ResponseWriter, r *http.Request) {
+var IdDeleteHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	demoObj, err := checkID(w, r)
 	if err != nil {
 		return
@@ -226,9 +206,9 @@ func IdDelete(w http.ResponseWriter, r *http.Request) {
 		Demo: &newDemo,
 	}
 	api.NewJob(w, &newJob, demoObj.User)
-}
+})
 
-func IdPut(w http.ResponseWriter, r *http.Request) {
+var IdPutHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	demoObj, err := checkID(w, r)
 	if err != nil {
 		return
@@ -264,7 +244,7 @@ func IdPut(w http.ResponseWriter, r *http.Request) {
 		Demo: &newDemo,
 	}
 	api.NewJob(w, &newJob, demoObj.User)
-}
+})
 
 func checkID(w http.ResponseWriter, r *http.Request) (demoObj demo.Demo, err error) {
 	vars := mux.Vars(r)
