@@ -10,7 +10,7 @@ Vlan:
   Prefix: 'dod-'
 API:
   PathPrefix: '/api'
-  Port: 10080
+  Port: 18080
   Token:
     Secret: 'supersecretvalue'
     IssuerClaim: 'dod'
