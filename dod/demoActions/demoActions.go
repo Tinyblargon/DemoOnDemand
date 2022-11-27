@@ -325,10 +325,7 @@ func deleteAndReleaseNetworks(c *govmomi.Client, dc *object.Datacenter, db *sql.
 func GetImportProperties(client *govmomi.Client, dc *object.Datacenter, folderContainingNewTemplate string) (networks []string, err error) {
 	networks = make([]string, 0)
 	vmObjects, err := folder.GetVmObjectsFromPath(client, dc, folderContainingNewTemplate)
-	if err != nil {
-		return
-	}
-	if len(vmObjects) == 0 {
+	if err != nil || len(vmObjects) == 0 {
 		return
 	}
 	for _, e := range vmObjects {
