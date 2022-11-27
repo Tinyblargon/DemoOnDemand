@@ -309,12 +309,12 @@ func isDemoUnique(list *[]Demo, item string) bool {
 
 func obtainGuestIP(demoObj demo.Demo, networks []string) (guestIP string, err error) {
 	c, err := session.New(*vsphere.GetConfig())
-	if err != nil {
-		return
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
 	defer cancel()
 	defer c.VimClient.Logout(ctx)
+	if err != nil {
+		return
+	}
 	dataCenter, err := datacenter.Get(c.VimClient, datacenter.GetName())
 	if err != nil {
 		return
