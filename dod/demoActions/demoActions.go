@@ -324,7 +324,6 @@ func deleteAndReleaseNetworks(c *govmomi.Client, dc *object.Datacenter, db *sql.
 // Get the current properties like VLANS of a new demo you would like to import.
 func GetImportProperties(client *govmomi.Client, dc *object.Datacenter, folderContainingNewTemplate string) (networks []string, err error) {
 	networks = make([]string, 0)
-	status := new(taskstatus.Status)
 	vmObjects, err := folder.GetVmObjectsFromPath(client, dc, folderContainingNewTemplate)
 	if err != nil {
 		return
@@ -334,7 +333,7 @@ func GetImportProperties(client *govmomi.Client, dc *object.Datacenter, folderCo
 	}
 	for _, e := range vmObjects {
 		var vmNetworks []string
-		vmNetworks, err = virtualmachine.GetNetworks(e, status)
+		vmNetworks, err = virtualmachine.GetNetworks(e, nil)
 		if err != nil {
 			return
 		}
