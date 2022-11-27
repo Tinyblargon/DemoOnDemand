@@ -58,7 +58,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	api.ErrorToManyNetworks(w, &networks)
+	if api.ErrorToManyNetworks(w, &networks) {
+		return
+	}
 	data := Data{
 		Networks: networks,
 	}

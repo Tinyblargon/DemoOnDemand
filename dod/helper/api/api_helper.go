@@ -90,11 +90,12 @@ func OutputDemoDoesNotExists(w http.ResponseWriter) {
 	fmt.Fprint(w, DemoDoesNotExists)
 }
 
-func ErrorToManyNetworks(w http.ResponseWriter, networks *[]string) {
+func ErrorToManyNetworks(w http.ResponseWriter, networks *[]string) bool {
 	if len(*networks) > 8 {
 		OutputUserInputError(w, fmt.Errorf("to many networks found, found %d, maximum is 8", len(*networks)).Error())
-		return
+		return true
 	}
+	return false
 }
 
 func IfRoleOrUser(r *http.Request, role, user string) bool {

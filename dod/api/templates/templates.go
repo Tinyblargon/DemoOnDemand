@@ -99,7 +99,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		api.OutputServerError(w, "", err)
 		return
 	}
-	api.ErrorToManyNetworks(w, &networks)
+	if api.ErrorToManyNetworks(w, &networks) {
+		return
+	}
 	newConfig.Defaults()
 	err = newConfig.Validate(false)
 	if err != nil {
