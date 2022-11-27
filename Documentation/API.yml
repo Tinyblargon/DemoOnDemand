@@ -1,0 +1,913 @@
+openapi: '3.0.2'
+info:
+  title: DemoOnDemand
+  description: ""
+  version: '1.0'
+  license:
+    name: MIT
+    url: https://raw.githubusercontent.com/Tinyblargon/DemoOnDemand/main/LICENSE
+servers:
+  - url: http://localhost:18080/api
+tags:
+  - name: User
+  - name: Demo
+    description: CRUD operations for demo's
+  - name: Task
+  - name: Template
+  - name: Template Children
+  - name: Network
+  - name: Monitoring
+paths:
+  /ping:
+    get:
+      tags:
+        - "Monitoring"
+      summary: Can be used to check if the program is running
+      responses:
+        "200":
+          description: Check if program is running
+          content:
+            text/plain:
+              schema:
+                type: string
+                default: pong
+  /login:
+    post:
+      tags:
+        - User
+      summary: Provide user credentials to obtain a Json Web Token
+      requestBody:
+        description: Provide user credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: test
+                password:
+                  type: string
+                  example: Enter123!
+      responses:
+        "200":
+          description: Obtain Json Web Token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        $ref: "#/components/schemas/JWT"
+        "400":
+          description: No username and password provided
+          content:
+            text/plain:
+              schema:
+                type: string
+                default: 'Please provide username and password to obtain the token'
+        "401":
+          description: Invalid credentials
+          content:
+            text/plain:
+              schema:
+                type: string
+                default: 'Invalid username or password.'
+  /permission:
+    get:
+      tags:
+        - "User"
+      summary: Get the users name and role
+      description: Get the users name and role.
+        <br>All users are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: get the users name and role
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - "data"
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - "user"
+                      - "role"
+                    properties:
+                      user:
+                        type: string
+                        example: testuser
+                      role:
+                        type: string
+                        enum:
+                          - user
+                          - admin
+                          - root
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+  /demos:
+    get:
+      tags:
+        - Demo
+      summary: Get list of all demos the user has permission for
+      description: Get list of all demos the user has permission for.
+        <br>All users are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: List all demos of the user
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - "data"
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - "demos"
+                    properties:
+                      demos:
+                        type: array
+                        minLength: 0
+                        items:
+                          $ref: "#/components/schemas/DemoArrayItem"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+    post:
+      tags:
+        - Demo
+      summary: Create a new demo from a template
+      description: Create a new demo from a template.
+        <br>All users are allowed to use this.
+      security:
+        - AuthHeader: []
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - template
+                - username
+              properties:
+                template:
+                  type: string
+                  example: first-test-demo
+                username:
+                  type: string
+                  example: test
+      responses:
+        "200":
+          description: Returns a new task ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewTaskResponse"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+  /demos/{userName}_{demoNumber}_{demoName}:
+    parameters:
+      - name: userName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: demoNumber
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+      - name: demoName
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Demo
+      summary: Get info of the specified demo
+      description: Get info of the specified demo.
+        <br>Only users which have the following role ('root') ore are owner of the demo are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: Get info of specific demo
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - "data"
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - "demo"
+                    properties:
+                      demo:
+                        type: object
+                        required:
+                          - "user"
+                          - "demo"
+                          - "number"
+                          - "active"
+                          - "ip"
+                          - "portforwards"
+                        properties:
+                          user:
+                            type: string
+                            example: testuser
+                          demo:
+                            type: string
+                            example: demo template name
+                          number:
+                            type: integer
+                            minimum: 0
+                          active:
+                            type: boolean
+                          description:
+                            type: string
+                            example: demo template description
+                          ip:
+                            type: string
+                            example: 10.27.45.229
+                          portforwards:
+                            type: array
+                            minLength: 0
+                            items:
+                              $ref: "#/components/schemas/PortForwardsResponseArrayItem"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+    put:
+      tags:
+        - Demo
+      summary: Start, Stop and restart the specified demo
+      description: Start, Stop and restart the specified demo.
+        <br>Only users which have the following role ('root') ore are owner of the demo are allowed to use this.
+      security:
+        - AuthHeader: []
+      requestBody:
+        description: providing user credentials to obtain a Json Web Token
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task:
+                  type: string
+                  enum:
+                    - start
+                    - stop
+                    - restart
+      responses:
+        "200":
+          description: Returns a new task ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewTaskResponse"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+    delete:
+      tags:
+        - Demo
+      summary: Delete the specified demo
+      description: Delete the specified demo.
+        <br>All users are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: Returns a new task ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewTaskResponse"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+  /tasks:
+    get:
+      tags:
+        - "Task"
+      summary: Retrieves a list of tasks
+      description: Retrieves a list of all tasks that the user has permission for.
+        <br>All users are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - "data"
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - "tasks"
+                    properties:
+                      tasks:
+                        type: array
+                        minLength: 0
+                        items:
+                          $ref: "#/components/schemas/TaskArrayItem"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+  /tasks/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    get:
+      tags:
+        - "Task"
+      summary: Get the live status log of the specified task
+      description: Get the live status log of the specified task.
+        <br>Only users which have the following role ('root') ore are owner of the task are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - "data"
+                properties:
+                  data:
+                    type: array
+                    minLength: 1
+                    items:
+                      $ref: "#/components/schemas/TaskStatusArrayItem"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+  /templates:
+    get:
+      tags:
+        - "Template"
+      summary: Retrieve a list of all available template
+      description: Retrieve a list of all available template.
+        <br>All users are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - "data"
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - "templates"
+                    properties:
+                      templates:
+                        type: array
+                        minLength: 0
+                        items:
+                          $ref: "#/components/schemas/TemplateArrayItem"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+    post:
+      tags:
+        - "Template"
+      summary: Create a new template
+      description: Create a new template.
+        <br>Only users which have one of the following roles ('root','admin') are allowed to use this.
+      security:
+        - AuthHeader: []
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - "name"
+                - "path"
+                - "networks"
+              properties:
+                name:
+                  type: string
+                  example: first-test-demo
+                description:
+                  type: string
+                  example: this is the first demo to be tested
+                path:
+                  type: string
+                  example: /folder/my-demo-to-import
+                networks:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/TemplateNetworkArrayItem"
+                portforwards:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/TemplatePortForwardArrayItem"
+      responses:
+        "200":
+          description: Returns a new task ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewTaskResponse"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+  /templates/{templateName}:
+    parameters:
+    - name: templateName
+      in: path
+      required: true
+      schema:
+        type: string
+        example: first-test-demo
+    get:
+      tags:
+        - "Template"
+      summary: Retrieve the specified templates settings
+      description: Retrieve the specified templates settings.
+        <br>All users are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - "data"
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - "config"
+                    properties:
+                      config:
+                        type: object
+                        properties:
+                          description:
+                            type: string
+                            example: this is the first demo to be tested
+                          portforwards:
+                            type: array
+                            minLength: 1
+                            items:
+                              $ref: "#/components/schemas/TemplateIdPortForwardArrayItem"
+                          networks:
+                            type: array
+                            minLength: 1
+                            items:
+                              $ref: "#/components/schemas/TemplateNetworkArrayItem"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+    delete:
+      tags:
+        - "Template"
+      summary: Delete te specified template
+      description: Delete te specified template.
+        <br>Only users which have one of the following roles ('root','admin') are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: Returns a new task ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewTaskResponse"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+  /templates/{templateName}/children:
+    parameters:
+    - name: templateName
+      in: path
+      required: true
+      schema:
+        type: string
+        example: first-test-demo
+    get:
+      tags:
+        - "Template Children"
+      summary: List all demo's based of the specified template
+      description: List all demo's based of the specified template.
+        <br>Only users which have one of the following roles ('root','admin') are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - "data"
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - "children"
+                    properties:
+                      children:
+                        type: integer
+                        minimum: 0
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+    delete:
+      tags:
+        - "Template Children"
+      summary: Delete all demo's based of the specified template
+      description: Delete all demo's based of the specified template.
+        <br>Only users which have the following role ('root') are allowed to use this.
+      security:
+        - AuthHeader: []
+      responses:
+        "200":
+          description: Returns a new task ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewTaskResponse"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+  /networks:
+    post:
+      tags:
+        - Network
+      summary: Return a list of networks
+      description: Get all the unique networks used by systems in the specified folder.
+        <br>Only users which have one of the following roles ('root','admin') are allowed to use this.
+      security:
+        - AuthHeader: []
+      requestBody:
+        description: Provide the path to the folder that has te demo you want to import
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - path
+              properties:
+                path:
+                  type: string
+                  example: /folder/subfolder
+      responses:
+        "200":
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - "data"
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      networks:
+                        type: array
+                        minLength: 1
+                        items:
+                          $ref: "#/components/schemas/NetworksArrayItem"
+        "401":
+          description: Invalid Permission
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/Unauthorized"
+        "500":
+          description: Internal Server Error
+          content:
+            text/plain:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+components:
+  securitySchemes:
+    AuthHeader:
+      name: Authorization
+      type: apiKey
+      in: header
+  schemas:
+    JWT:
+      description: Json Web Token
+      type: string
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+    NewTaskResponse:
+      type: object
+      required:
+        - "data"
+      properties:
+        data:
+          type: object
+          required:
+            - "task"
+          properties:
+            task:
+              type: integer
+              minimum: 1
+    DemoArrayItem:
+      required:
+        - "user"
+        - "demo"
+        - "number"
+        - "active"
+      properties:
+        user:
+          type: string
+          example: testuser
+        demo:
+          type: string
+          example: first-test-demo
+        number:
+          type: integer
+          minimum: 0
+        active:
+          type: boolean
+        description:
+          type: string
+          example: demo template description
+    PortForwardsResponseArrayItem:
+      required:
+        - "sourceport"
+        - "protocol"
+      properties:
+        sourceport:
+          type: integer
+          minimum: 1
+          example: 22
+        protocol:
+          type: string
+          enum:
+            - TCP
+            - UDP
+        comment:
+          type: string
+          example: SSH
+    TaskArrayItem:
+      required:
+        - "id"
+        - "info"
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        info:
+          type: object
+          required:
+            - "user"
+            - "status"
+            - "time"
+          properties:
+            user:
+              type: string
+            status:
+              type: string
+              enum:
+                - ok
+                - started
+                - error
+                - queued
+            time:
+              type: object
+              required:
+                - "start"
+              properties:
+                start: 
+                  type: integer
+                  minimum: 1
+                end:
+                  type: integer
+                  minimum: 1
+    TaskStatusArrayItem:
+      required:
+        - "kind"
+        - "text"
+      properties:
+        kind:
+          type: string
+          enum:
+            - INFO
+            - ERROR
+            - WARN
+            - SUCCESS
+        text:
+          type: string
+          example: Fetching IP of guest routervm
+    TemplateArrayItem:
+      required:
+        - "name"
+      properties:
+        name:
+          type: string
+          example: first test demo
+        description:
+          type: string
+          example: this is the first demo to be tested
+    TemplateNetworkArrayItem:
+      required:
+        - "name"
+        - "router-cidr"
+      properties:
+        name:
+          type: string
+          example: dod-400
+        router-cidr:
+          type: string
+          example: 10.23.56.1/24
+    TemplatePortForwardArrayItem:
+      required: 
+        - "sourceport"
+        - "destinationip"
+      properties:
+        sourceport:
+          $ref: "#/components/schemas/IpPort"
+        destinationport:
+          $ref: "#/components/schemas/IpPort"
+        destinationip:
+          $ref: "#/components/schemas/IpAddress"
+        protocol:
+          $ref: "#/components/schemas/IpProtocol"
+        comment:
+          type: string
+          example: ssh
+    TemplateIdPortForwardArrayItem:
+      required: 
+        - "sourceport"
+        - "destinationip"
+        - "protocol"
+        - "comment"
+      properties:
+        sourceport:
+          $ref: "#/components/schemas/IpPort"
+        destinationport:
+          $ref: "#/components/schemas/IpPort"
+        destinationip:
+          $ref: "#/components/schemas/IpAddress"
+        protocol:
+          $ref: "#/components/schemas/IpProtocol"
+        comment:
+          type: string
+          example: ssh
+    IpAddress:
+      type: string
+      example: 10.23.56.34
+    IpPort:
+      type: integer
+      format: int16
+      minimum: 1
+      example: 22
+    IpProtocol:
+      type: string
+      enum:
+        - TCP
+        - UDP
+    NetworksArrayItem:
+      type: string
+      example: dod-400
+    Unauthorized:
+      type: string
+      enum:
+        - Invalid Permission.
+        - Missing Authorization Header
+    ServerError:
+      type: string
+      example: internal server error
