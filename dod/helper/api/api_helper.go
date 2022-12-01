@@ -92,7 +92,7 @@ func OutputDemoDoesNotExists(w http.ResponseWriter) {
 
 func ErrorToManyNetworks(w http.ResponseWriter, networks *[]string) bool {
 	if len(*networks) > 8 {
-		OutputUserInputError(w, fmt.Errorf("to many networks found, found %d, maximum is 8", len(*networks)).Error())
+		OutputUserInputError(w, fmt.Errorf("too many networks found, found %d, maximum is 8", len(*networks)).Error())
 		return true
 	}
 	return false
