@@ -7,7 +7,7 @@ import (
 
 type Network struct {
 	Name         string `json:"name" yaml:"name"`
-	RouterSubnet string `json:"router-cidr" yaml:"router-cidr"`
+	RouterSubnet string `json:"cidr" yaml:"cidr"`
 }
 
 func (n *Network) ValidateRouterCIDR() error {
