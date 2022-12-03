@@ -247,12 +247,20 @@ func (m *Memory) worker() {
 		e.Status.UnsafeSetStarted()
 		// e.Job.Execute will spawn more threads
 		e.Job.Execute(e.Status, m.DemoLock)
-		task := m.moveToDoneQueue(e.ID)
-		demoObj := demo.Demo{
+		logTask(m.moveToDoneQueue(e.ID))
+	}
+}
+
+func logTask(task *scheduler.Task) {
+	var fileName string
+	if task.Job.Demo != nil {
+		fileName = "demo " + task.Info.UserID + " " + demo.Demo{
 			Name: task.Job.Demo.Template,
 			User: task.Info.UserID,
 			ID:   task.Job.Demo.Number,
-		}
-		logger.Task(task.Info.Time.Start, demoObj, taskstatus.ToString(task.Status.Output))
+		}.CreateID()
+	} else if task.Job.Template != nil {
+		fileName = "template " + task.Info.UserID + " " + task.Job.Template.Config.Name
 	}
+	logger.Task(task.Info.Time.Start, fileName, taskstatus.ToString(task.Status.Output))
 }

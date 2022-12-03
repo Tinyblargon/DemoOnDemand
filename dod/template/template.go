@@ -131,7 +131,7 @@ func (c *Config) Validate(nameAndPathEmpty bool) (err error) {
 	return err
 }
 
-func (c *Config) WriteToFile(filePath string) error {
+func (c Config) WriteToFile(filePath string) error {
 	c.Name = ""
 	c.Path = ""
 	data, _ := yaml.Marshal(c)

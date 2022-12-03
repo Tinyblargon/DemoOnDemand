@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem/dir"
 	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
 )
@@ -54,8 +53,8 @@ func Info(text string) {
 	infoMutex.Unlock()
 }
 
-func Task(timeStamp int64, demoObj demo.Demo, text string) {
-	initialize(file.Task+"/"+strconv.Itoa(int(timeStamp))+" "+demoObj.CreateID()+".log", text)
+func Task(timeStamp int64, fileName string, text string) {
+	initialize(file.Task+"/"+strconv.Itoa(int(timeStamp))+" "+fileName+".log", text)
 }
 
 func initialize(filePath string, text string) {
