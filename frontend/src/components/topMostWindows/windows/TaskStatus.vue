@@ -3,34 +3,44 @@
     <button @click="setOutput(true)" :disabled='this.output'>Output</button>
     <button @click="setOutput(false)" :disabled='!this.output'>Status</button>
   </div>
-  <div>
+  <div class="innerWindow">
     <div v-if="this.output">
       <perfect-scrollbar style="height: 24em;">
-        <tbody style="font-size: 0.6em;">
-          <tr v-for="stat in status" :key="stat.kind+stat.text">
-            <td>{{stat.kind}}</td>
-            <td>{{stat.text}}</td>
-          </tr>
-        </tbody>
+        <table>
+          <colgroup>
+          <col span="1" style="width: 3.7em;">
+          <col span="1">
+        </colgroup>
+          <tbody style="font-size: 0.6em;">
+            <tr v-for="stat in status" :key="stat.kind+stat.text">
+              <td>{{stat.kind}}</td>
+              <td>{{stat.text}}</td>
+            </tr>
+          </tbody>
+        </table>
       </perfect-scrollbar>
     </div>
     <div v-else>
-      <tr>
-        <td>Status</td>
-        <td>{{this.task.info.status}}</td>
-      </tr>
-      <tr>
-        <td>User</td>
-        <td>{{this.task.info.user}}</td>
-      </tr>
-      <tr>
-        <td>Start Time</td>
-        <td>{{this.task.info.time.start}}</td>
-      </tr>
-      <tr>
-        <td>End Time</td>
-        <td>{{this.task.info.time.end}}</td>
-      </tr>
+      <table>
+        <tbody>
+          <tr>
+            <td>Status</td>
+            <td>{{this.task.info.status}}</td>
+          </tr>
+          <tr>
+            <td>User</td>
+            <td>{{this.task.info.user}}</td>
+          </tr>
+          <tr>
+            <td>Start Time</td>
+            <td>{{this.task.info.time.start}}</td>
+          </tr>
+          <tr>
+            <td>End Time</td>
+            <td>{{this.task.info.time.end}}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
