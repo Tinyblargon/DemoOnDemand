@@ -1,6 +1,8 @@
 <template>
-  <p style="text-align: center;">Are you sure you want to destroy:<br>({{this.demoName}})?</p>
-  <button @click="destroyDemo(this.demo.user,this.demo.demo,this.demo.number)">Destroy</button>
+  <div class="innerWindow" style="text-align: center;height: 7.9em;padding-top: 0.3em;">
+    <p style="text-align: center;">Are you sure you want to destroy:<br>({{this.demoName}})?</p>
+    <button @click="destroyDemo(this.demo.user,this.demo.demo,this.demo.number)">Destroy</button>
+  </div>
 </template>
 
 <script>
