@@ -36,7 +36,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres:/docker-entrypoint-initdb.d/
+      - ./postgres:/docker-entrypoint-initdb.d/:ro
+      # persistend storage for database. uncomment when running in production
+      # - ./data:/var/lib/postgresql/data:rw
   pgadmin:
     image: dpage/pgadmin4
     restart: unless-stopped

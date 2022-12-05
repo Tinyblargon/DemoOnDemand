@@ -4,6 +4,7 @@ Demos
 __debug_bin
 **.log
 log
+data
 
 #VueJS
 .DS_Store
