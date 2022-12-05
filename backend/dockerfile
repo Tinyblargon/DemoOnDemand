@@ -1,6 +1,9 @@
 FROM golang:1.18.8-alpine3.17
 RUN mkdir /app
-ADD . /app
+COPY go.mod /app/go.mod
+COPY go.sum /app/go.sum
+COPY main.go /app/main.go
+COPY dod /app/dod
 WORKDIR /app
 RUN go build -o main .
 CMD ["/app/main"]
