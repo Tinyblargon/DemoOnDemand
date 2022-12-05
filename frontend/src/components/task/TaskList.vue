@@ -69,7 +69,7 @@ export default {
         }
       })
       .then(data => {
-        this.tasks = data.data.tasks
+        this.tasks = data.data.tasks.sort((a,b) => b.id - a.id)
       })
       .catch(err => {
         console.log(err.message)
