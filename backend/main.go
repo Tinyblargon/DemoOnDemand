@@ -20,8 +20,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// TODO make example systemd service
-// TODO combine demo list and demo info into summary endpoint
 // TODO let user add a description for a demo
 func main() {
 	config, err := programconfig.GetConfigProgramConfig()
