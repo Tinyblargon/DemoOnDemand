@@ -2,7 +2,7 @@
   <div style="display: flex; height: 2.5em;">
     <h2 style="  margin: 0.1em 0.4em 0 0">User: {{this.name}}</h2>
     <div style="margin-left: auto;">
-      <button v-if="this.role == 'root'" @click="emitWindow('Template','Create: Template',60,30)">
+      <button v-if="(this.role === 'root'||this.role === 'admin')" @click="emitWindow('Template','Create: Template',60,30)">
         <span><!-- icon --></span>
         <span>Create Template</span></button>
       <button @click="emitWindow('Demo','Create: Demo',50,30)">
