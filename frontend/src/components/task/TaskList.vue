@@ -1,7 +1,7 @@
 <template>
   <div style="top: 30.3em;bottom: 0.4em;position: absolute;background-color: white;">
     <perfect-scrollbar v-if="this.tasks" style="height: 100%;">
-      <table v-for="task in tasks" :key="task.id" v-bind:class="{'active':(task.id == this.activeTaskID)}">
+      <table v-for="task in this.computedTasks" :key="task.id" v-bind:class="{'active':(task.id == this.activeTaskID)}">
         <tbody>
           <tr>
             <td @click="setTask(task)">{{task.info.time.start}}</td>
@@ -12,6 +12,7 @@
           </tr>
         </tbody>
       </table>
+      <p>{{this.computedTasks}}</p>
     </perfect-scrollbar>
   </div>
 </template>
@@ -28,6 +29,16 @@ export default {
   },
   created() {
     this.listAllTasksRecursive()
+  },
+  computed: {
+    computedTasks() {
+      let computed = this.tasks
+      for (let i = 0; i < computed.length; i++) {
+        computed[i].info.time.start = this.formatDateTime(computed[i].info.time.start*1000)
+        computed[i].info.time.end = this.formatDateTime(computed[i].info.time.end*1000)
+      }
+      return computed
+    },
   },
   methods: {
     listAllTasksRecursive() {
@@ -55,6 +66,54 @@ export default {
       .catch(err => {
         console.log(err.message)
       })
+    },
+    formatDateTime(timestamp) {
+      var d = new Date(timestamp)
+      let month
+      switch(d.getMonth()) {
+        case 1:
+          month = "Jan"
+          break;
+        case 2:
+          month = "Feb"
+          break;
+        case 3:
+          month = "Mar"
+          break
+        case 4:
+          month = "Apr"
+          break;
+        case 5:
+          month = "May"
+          break;
+        case 6:
+          month = "Jun"
+          break;
+        case 7:
+          month = "Jul"
+          break;
+        case 8:
+          month = "Aug"
+          break;
+        case 9:
+          month = "Sep"
+          break;
+        case 10:
+          month = "Oct"
+          break;
+        case 11:
+          month = "Nov"
+          break;
+        case 12:
+          month = "Dec"
+          break;
+      }
+      let dayNumber = d.getDay()
+      let day
+      if (dayNumber < 10) {
+        day = '0' + dayNumber
+      }
+      return month + ' ' + day + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
     },
     setTask(task) {
       this.activeTaskID = task.id
