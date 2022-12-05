@@ -10,7 +10,7 @@
       <DemoStatus v-if="this.demo" @window="setTopWindow" :demoSelected="this.demoSelected" :demo="this.demo" :jwt="this.jwt"/>
     </div>
   </div>
-  <TaskList @task="setTask" :role="this.role" :jwt="this.jwt"/>
+  <TaskList @task="setTask" :role="this.role" :jwt="this.jwt" style="left: 0.4em;right: 0.4em;"/>
   <TopMostWindows v-if="this.topWindow.name != ''" :topWindow="this.topWindow" :task="this.task" :demo="this.demo" :user="this.name" :role="this.role" :jwt="this.jwt" @close="setTopWindow"/>
 </template>
 

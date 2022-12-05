@@ -1,9 +1,16 @@
 <template>
   <div style="top: 30.3em;bottom: 0.4em;position: absolute;background-color: white;">
     <perfect-scrollbar v-if="this.tasks" style="height: 100%;">
-      <table v-for="task in this.computedTasks" :key="task.id" v-bind:class="{'active':(task.id == this.activeTaskID)}">
+      <table style="width: 100%;table-layout: fixed;">
+        <thead>
+          <th>Start Time:</th>
+          <th>End Time:</th>
+          <th>Task Number:</th>
+          <th v-if="this.role == 'root'">User:</th>
+          <th>Status:</th>
+        </thead>
         <tbody>
-          <tr>
+          <tr v-for="task in this.computedTasks" :key="task.id" v-bind:class="{'active':(task.id == this.activeTaskID)}">
             <td @click="setTask(task)">{{task.info.time.start}}</td>
             <td @click="setTask(task)">{{task.info.time.end}}</td>
             <td @click="setTask(task)">{{task.id}}</td>
@@ -12,7 +19,6 @@
           </tr>
         </tbody>
       </table>
-      <p>{{this.computedTasks}}</p>
     </perfect-scrollbar>
   </div>
 </template>
