@@ -1,56 +1,99 @@
+#This is the folder where te application places the config of templates.
 ConfigFolder: './Demos'
 Concurrency:
+  #this is the number of concurrent task the application can run.
   ConcurrentTasks: 4
+  #This is the number of simultaneous actions each task can do.
   TreadsPerTask: 5
-TaskHistoryDepth: 50
+  #example if 'ConcurrentTasks: 4' and 'TreadsPerTask: 5' the total of number possible concurrent actions in vmware would be 20.
+#this is the number of task the application wil keep in the task history.
+TaskHistoryDepth: 500
 Vlan:
+  #this is a comma separated list of all used vlans.
   Id: [
     2000,2001,2002
   ]
+  #this is the prefix the network names will have within vmware.
+  #example vmware network name: 'dod-2000'
   Prefix: 'dod-'
 API:
+  #this is the url prefix.
   PathPrefix: '/api'
+  #the port the application wil listen on.
   Port: 18080
+  #Setting of the JWT (Json Web Token).
   Token:
+    #the secret is used to derive the signature of the token.
     Secret: 'supersecretvalue'
     IssuerClaim: 'dod'
+    #the time duration in seconds the JWT is valid for
     ExpirationTime: '3600'
   SuperUser:
+    #This is the superuser of the application, this user is allowed to everything without restrictions.
+    #if either the username of Password of the superuser is empty the superuser will be disabled.
     User: 'root'
     Password: 'root'
+#Settings regarding the router vm.
 Router:
+  #The username for connecting over SSH.
   User: ''
+  #The password for connecting over SSH.
   Password: ''
+  #The port for connecting over SSH.
   Port: 22
 LogPath:
   Access: 'log/access.log'
   Error: 'log/error.log'
   Info: 'log/info.log'
   Task: 'log/tasks'
+#Settings for connecting with vSphere
 VMware:
   APITimeout: 60
   URL: ''
+  #the username used by the application to talk to vSphere.
   User: ''
+  #the password used by the application to authenticate to vSphere.
   Password: ''
+  #if 'https' is used in the 'URL:' should checking the signature of the certificate be skipped.
   Insecure: 'true'
+  #The name of the dataCenter in vSphere.
   DataCenter: ''
-  DemoFolder: ''
+  #The path to the folder that wil be used by the application to store demo's and templates.
+  #If this folder does not exist it will be created
+  DemoFolder: '/demo'
+  #Name of the cluster in the vSphere dashboard.
   Pool: ''
+  #Comma separated list of all hosts in the vSphere DataCenter/Cluster.
   Hosts: []
+  #Name of the Vswitch the application can use to dynamically assign networks.
+  #This should be a normal VSwitch (No distributed switch) and should exist on all 'Hosts:'
   Vswitch: ''
 PostgreSQL:
+  #Database host.
   Host:      ''
+  #Database user.
   User:     ''
+  #Database user password.
   Password: ''
+  #Database name.
   Database: 'dod_db'
+  #Port for the database connection.
   Port: 5432
 LDAP:
+  #
   URL: 'ldaps://example.com:636'
+  #DN of the user that can search ta database.
   BindDN: 'CN=dod-user,DC=example,DC=com'
+  #Password of the user that wil search the database.
   BindPassword: ''
+  #if 'ldaps' is used in the 'URL:' should checking the signature of the certificate be skipped.
   InsecureSkipVerify: true
+  #Ldap attribute that wil hold the username.
   UsernameAttribute: 'samaccountname'
   UserGroup:
+    #Users found in this DN will have user rights.
     UsersDN: 'OU=users,CN=dod-user,DC=example,DC=com'
   AdminGroup:
+    #Users found in this DN will have admin rights.
     UsersDN: 'OU=admins,CN=dod-user,DC=example,DC=com'
+  #User and Admin group DN should not overlap.
