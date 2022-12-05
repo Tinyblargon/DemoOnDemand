@@ -1,11 +1,23 @@
 version: '3.3'
 services:
+  frontend:
+    image: dod/frontend
+    restart: unless-stopped
+    build:
+      context: frontend
+      dockerfile: dockerfile
+    environment:
+      URL: 'http://localhost:18080/api'
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
   backend:
     image: dod/backend
     restart: unless-stopped
     build:
       context: backend
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     ports:
       - "18080:18080"
     volumes:

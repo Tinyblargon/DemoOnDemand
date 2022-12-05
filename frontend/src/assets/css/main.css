@@ -1,0 +1,9 @@
+.innerWindow {
+  background-color: white;
+  width: 98%;
+  margin-left: 1%;
+}
+.errorText {
+  text-align: right;
+  color: red;
+}
