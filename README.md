@@ -1,28 +1,33 @@
 # DemoOnDemand
-
+### Application for creating VM-templates and deploying said templates in a vSphere environment.
 # Production
 
-configure config file
-update docker volume mappings for 'backend' and 'db'
+## Prerequisites
 
+Install the following packages:
+- docker
+- docker-compose
+
+## Setup
+
+1. Configure the config under `backend` inside the file `docker-compose.yml`.
+2. Update docker volume mappings for `backend` and `db` in the `docker-compose.yml` file.
+3. Update environment variables for `frontend` and `db` in the `docker-compose.yml` file.
+4. Run docker-compose
 ```bash
 docker-compose up -d --build
 ```
 
 # Development
 ## Backend
-install go 1.18
-```bash
-cd backend
-```
-### Copy example config file
-```bash
-cp config.yml.example config.yml
-```
-configure settings in config file
-### Running
 
-run in debug mode with vscode
+### install go 1.18
+
+### Copy the example config file
+```bash
+cp backend/config.yml.example backend/config.yml
+```
+### configure settings in `backend/config.yml`
 
 ## Frontend
 
@@ -37,20 +42,12 @@ apt install npm
 cd frontend
 npm install
 ```
-### Configure setting in .env file
+### Configure the URL of the API in .env file
 ```bash
 cp .env.example .env.local
 ```
-change 'VUE_APP_ROOT_API=' in frontend/.env
-#### Compiles and hot-reloads for development
+#### change `VUE_APP_ROOT_API=` in frontend/.env.local
+### Compile and hot-load for development
 ```bash
 npm run serve
-```
-#### Compiles and minifies for production
-```bash
-npm run build
-```
-#### Lints and fixes files
-```bash
-npm run lint
 ```
