@@ -1,4 +1,4 @@
-module github.com/Tinyblargon/DemoOnDemand
+module github.com/Tinyblargon/DemoOnDemand/backend
 
 go 1.18
 

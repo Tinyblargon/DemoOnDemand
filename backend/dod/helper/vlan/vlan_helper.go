@@ -5,11 +5,11 @@ import (
 	"net"
 	"sync"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/global"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/template"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/database"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/template"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/util"
 	"github.com/vmware/govmomi/vim25/types"
 )
 

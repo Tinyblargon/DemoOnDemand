@@ -3,7 +3,7 @@ package dir
 import (
 	"os"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/filesystem"
 )
 
 func Create(path string) (err error) {

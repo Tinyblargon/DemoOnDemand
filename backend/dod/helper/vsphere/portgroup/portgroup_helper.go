@@ -6,10 +6,10 @@ import (
 
 	"context"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/concurrency"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/name"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/concurrency"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/name"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/types"

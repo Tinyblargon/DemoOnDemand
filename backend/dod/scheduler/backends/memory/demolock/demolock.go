@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/util"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/util"
 )
 
 type DemoLock struct {

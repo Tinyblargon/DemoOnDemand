@@ -3,13 +3,13 @@ package vsphere
 import (
 	"context"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/global"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/host"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/programconfig"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/datacenter"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/folder"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/host"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/provider"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/session"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/object"
 )

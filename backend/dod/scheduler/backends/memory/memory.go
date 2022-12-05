@@ -5,13 +5,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/global"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/logger"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
-	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
-	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/backends/memory/demolock"
-	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/logger"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/scheduler"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/scheduler/backends/memory/demolock"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/scheduler/job"
 )
 
 const Concurrency uint = 5

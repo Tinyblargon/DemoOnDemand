@@ -3,8 +3,8 @@ package scheduler
 import (
 	"time"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
-	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/scheduler/job"
 )
 
 type Task struct {

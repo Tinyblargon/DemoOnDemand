@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem/dir"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/filesystem/dir"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/programconfig"
 )
 
 var file programconfig.Logging

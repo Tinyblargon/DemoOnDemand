@@ -1,8 +1,8 @@
 package virtualmachine
 
 import (
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/taskstatus"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/taskstatus"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vlan"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"

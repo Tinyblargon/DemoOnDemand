@@ -1,8 +1,8 @@
 package virtualhost
 
 import (
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vlan"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/virtualmachine"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vlan"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/virtualmachine"
 	"github.com/vmware/govmomi/vim25/mo"
 )
 

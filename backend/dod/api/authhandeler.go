@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/authentication"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/authentication"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/api"
 )
 
 var rootUser string

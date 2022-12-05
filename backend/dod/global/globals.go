@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/programconfig"
 )
 
 var ConfigFolder string

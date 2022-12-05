@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/programconfig"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/session"
 	"github.com/vmware/govmomi/vim25"

@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/filesystem"
 )
 
 const fileExists string = "file already exists"

@@ -4,13 +4,13 @@ import (
 	"context"
 	"net/http"
 
-	demoactions "github.com/Tinyblargon/DemoOnDemand/dod/demoActions"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/datacenter"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/folder"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/session"
+	demoactions "github.com/Tinyblargon/DemoOnDemand/backend/dod/demoActions"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/datacenter"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/folder"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/provider"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/session"
 )
 
 type Input struct {

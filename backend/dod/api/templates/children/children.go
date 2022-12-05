@@ -3,12 +3,12 @@ package children
 import (
 	"net/http"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/global"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/database"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/filesystem"
-	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
-	"github.com/Tinyblargon/DemoOnDemand/dod/template"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/global"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/database"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/filesystem"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/scheduler/job"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/template"
 	"github.com/gorilla/mux"
 )
 

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
-	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/scheduler"
 	"github.com/gorilla/mux"
 )
 

@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/logger"
-	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler"
-	"github.com/Tinyblargon/DemoOnDemand/dod/scheduler/job"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/logger"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/scheduler"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/scheduler/job"
 )
 
 const InvalidPerm string = "Invalid Permission."

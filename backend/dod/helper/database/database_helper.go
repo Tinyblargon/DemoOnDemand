@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/demo"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/name"
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/programconfig"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/demo"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/name"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/programconfig"
 	_ "github.com/lib/pq"
 )
 

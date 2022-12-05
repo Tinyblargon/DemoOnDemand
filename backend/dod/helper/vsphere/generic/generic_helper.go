@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/vsphere/provider"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/vsphere/provider"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"

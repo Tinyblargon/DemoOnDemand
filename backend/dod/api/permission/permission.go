@@ -3,7 +3,7 @@ package permission
 import (
 	"net/http"
 
-	"github.com/Tinyblargon/DemoOnDemand/dod/helper/api"
+	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/api"
 )
 
 type Data struct {
