@@ -1,5 +1,19 @@
 version: '3.3'
 services:
+  backend:
+    image: dod/backend
+    restart: unless-stopped
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    ports:
+      - "18080:18080"
+    volumes:
+      - ./backend/config.yml:/app/config.yml:ro
+      - ./Demos:/app/Demos:rw
+      - ./log:/app/log:rw
+    depends_on:
+      - db
   db:
     image: postgres
     restart: unless-stopped
