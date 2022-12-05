@@ -249,33 +249,21 @@ export default {
 <style>
 #pathTable {
   width: 98%;
-  /* width: 48em; */
 }
 #pathRow0 {
   width: 10%;
-  /* width: 3.9em; */
 }
 #pathRow1 {
   width: 34%;
-  /* width: 21em; */
 }
 #pathRow2 {
   width: 13%;
-  /* width: 3.9em; */
 }
 #pathRow3 {
   width: 7%;
-  /* width: 3em; */
-}
-#pathRow4 {
-  /* width: 20%; */
-  /* width: 18em; */
 }
 .pathTableHeader {
   margin-top: 0;
   margin-bottom: 0;
 }
-
-
-
 </style>
