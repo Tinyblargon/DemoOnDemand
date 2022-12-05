@@ -32,7 +32,7 @@
         <p v-else class="infoLine">Status: stopped</p>
         <p class="infoLine">IP: {{this.demo.ip}}</p>
         <p class="infoLine">Description: {{this.demo.description}}</p>
-        <p class="infoLine">Comment: {{this.demo.description}}</p>
+        <!-- <p class="infoLine">Comment: {{this.demo.description}}</p> -->
     </div>
     </div>
   </div>
