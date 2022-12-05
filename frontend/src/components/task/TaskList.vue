@@ -41,7 +41,9 @@ export default {
       let computed = this.tasks
       for (let i = 0; i < computed.length; i++) {
         computed[i].info.time.start = this.formatDateTime(computed[i].info.time.start*1000)
-        computed[i].info.time.end = this.formatDateTime(computed[i].info.time.end*1000)
+        if (typeof computed[i].info.time.end !== 'undefined') {
+          computed[i].info.time.end = this.formatDateTime(computed[i].info.time.end*1000)
+        }
       }
       return computed
     },
