@@ -5,8 +5,10 @@
 ## Prerequisites
 
 Install the following packages:
-- docker
-- docker-compose
+- docker-ce
+- docker-ce-cli
+- containerd.io
+- docker-compose-plugin
 
 ## Setup
 
@@ -15,7 +17,7 @@ Install the following packages:
 3. Update environment variables for `frontend` and `db` in the `docker-compose.yml` file.
 4. Run docker-compose
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 # Development
