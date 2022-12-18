@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/demo"
 	"github.com/Tinyblargon/DemoOnDemand/backend/dod/helper/name"
@@ -31,7 +32,7 @@ func New(config programconfig.PostgreSQLConfiguration) (db *sql.DB, err error) {
 	if err != nil {
 		return
 	}
-	return db, db.Ping()
+	return db, pingRetry(db, 3, 3)
 }
 
 func AddDemoOfUser(db *sql.DB, demoObj *demo.Demo) (demoID uint, err error) {
@@ -190,6 +191,20 @@ func CountTemplateInUse(db *sql.DB, demoName string) (demos uint, err error) {
 		err = rows.Scan(&demos)
 		if err != nil {
 			return
+		}
+	}
+	return
+}
+
+func pingRetry(db *sql.DB, attempts, delayInSeconds uint) (err error) {
+	lastLoop := attempts - 1
+	for i := 0; i < int(attempts); i++ {
+		err = db.Ping()
+		if err == nil {
+			return
+		}
+		if i != int(lastLoop) {
+			time.Sleep(time.Second * time.Duration(delayInSeconds))
 		}
 	}
 	return
