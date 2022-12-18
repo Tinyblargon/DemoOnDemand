@@ -35,7 +35,10 @@ func main() {
 	logger.Fatal(vlan.Initialize(config.Vlan.Id, config.Vlan.Prefix))
 	logger.Fatal(vsphere.Initialize(config.VMware, vlan.GetPrefix()))
 	logger.Fatal(frontend.Initialize(config.API.SuperUser.User, config.API.SuperUser.Password, config.API.Token.Secret, config.API.Token.IssuerClaim, config.API.Token.ExpirationTime))
-	logger.Fatal(frontend.HandleRequests(config.LogPath.Access, config.API.PathPrefix, config.API.Port))
+
+	accessLog, err := os.OpenFile(config.LogPath.Access, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	logger.Fatal(err)
+	logger.Fatal(frontend.HandleRequests(config.API.PathPrefix, config.API.Port, accessLog))
 
 	db.Close()
 	fmt.Println(err)

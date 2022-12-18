@@ -1,8 +1,8 @@
 package frontend
 
 import (
+	"io"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/Tinyblargon/DemoOnDemand/backend/dod/api/demos"
@@ -16,7 +16,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
+func HandleRequests(pathPrefix string, port uint16, accessLog io.Writer) (err error) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.Handle(pathPrefix+"/demos", authMiddleware(demos.GetHandler)).Methods("GET")   //gets the users list of demos
@@ -52,11 +52,6 @@ func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
 
 	router.Handle(pathPrefix+"/templates/{id}/children", authMiddleware(children.IdGetHandler)).Methods("GET")       //returns the amount of demos that exist based on the speciefied template
 	router.Handle(pathPrefix+"/templates/{id}/children", authMiddleware(children.IdDeleteHandler)).Methods("DELETE") //deletes all demos based on the specified template
-
-	accessLog, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return
-	}
 
 	origins := handlers.AllowedOrigins([]string{"*"})
 	headers := handlers.AllowedHeaders([]string{"Authorization", "accept", "Content-Type"})
