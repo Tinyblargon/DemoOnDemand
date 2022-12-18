@@ -16,13 +16,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Post struct {
-	UserID string `json:"userId"`
-	ID     int    `json:"id"`
-	Title  string `json:"title"`
-	Body   string `json:"body"`
-}
-
 func HandleRequests(logFile, pathPrefix string, port uint16) (err error) {
 	router := mux.NewRouter().StrictSlash(true)
 
