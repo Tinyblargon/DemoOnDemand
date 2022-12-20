@@ -23,12 +23,12 @@ func Initialize(config *programconfig.VMwareConfiguration, vlanPrefix string) (e
 		return
 	}
 	c, err := session.New(globalConfig)
-	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
-	defer cancel()
-	defer c.VimClient.Logout(ctx)
 	if err != nil {
 		return
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), provider.GetTimeout())
+	defer cancel()
+	defer c.VimClient.Logout(ctx)
 	err = datacenter.Initialize(c.VimClient, globalConfig.DataCenter)
 	if err != nil {
 		return
