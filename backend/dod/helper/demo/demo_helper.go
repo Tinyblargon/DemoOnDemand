@@ -28,9 +28,18 @@ func (demoObj Demo) CreateID() string {
 // creates a demo object from its separate parts
 func CreateObject(id string) (demo Demo, err error) {
 	idString := strings.Split(id, "_")
-	if len(idString) != 3 {
+	var demoName string
+	if len(idString) < 3 {
 		err = fmt.Errorf(invalidString)
 		return
+	}
+	if len(idString) > 3 {
+		demoName = idString[2]
+		for i := 3; i < len(idString); i++ {
+			demoName = demoName + "_" + idString[i]
+		}
+	} else {
+		demoName = idString[2]
 	}
 	tmpNumber, err := strconv.Atoi(idString[1])
 	if err != nil {
@@ -38,7 +47,7 @@ func CreateObject(id string) (demo Demo, err error) {
 		return
 	}
 	demo = Demo{
-		Name: idString[2],
+		Name: demoName,
 		User: idString[0],
 		ID:   uint(tmpNumber),
 	}
