@@ -78,48 +78,51 @@ export default {
     formatDateTime(timestamp) {
       var d = new Date(timestamp)
       let month
+      console.log(d)
       switch(d.getMonth()) {
-        case 1:
+        case 0:
           month = "Jan"
           break;
-        case 2:
+        case 1:
           month = "Feb"
           break;
-        case 3:
+        case 2:
           month = "Mar"
           break
-        case 4:
+        case 3:
           month = "Apr"
           break;
-        case 5:
+        case 4:
           month = "May"
           break;
-        case 6:
+        case 5:
           month = "Jun"
           break;
-        case 7:
+        case 6:
           month = "Jul"
           break;
-        case 8:
+        case 7:
           month = "Aug"
           break;
-        case 9:
+        case 8:
           month = "Sep"
           break;
-        case 10:
+        case 9:
           month = "Oct"
           break;
-        case 11:
+        case 10:
           month = "Nov"
           break;
-        case 12:
+        case 11:
           month = "Dec"
           break;
       }
-      let dayNumber = d.getDay()
+      let dayNumber = d.getDate()
       let day
       if (dayNumber < 10) {
         day = '0' + dayNumber
+      } else {
+        day = dayNumber
       }
       return month + ' ' + day + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds()
     },
